@@ -666,8 +666,8 @@ export default function BarberProApp() {
 
   const cargarReservas = async () => {
   const { data, error } = await supabase
-    .from("reservas")
-    .select("*");
+  .from("reservas_ocupadas_publicas")
+  .select("*");
 
   if (error) {
     console.log("ERROR RESERVAS:", error);
