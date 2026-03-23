@@ -584,8 +584,11 @@ function BookingModal({
 export default function BarberProApp() {
   const [locationEnabled, setLocationEnabled] = useState(false);
   const [view, setView] = useState("landing");
+  const [adminAccess, setAdminAccess] = useState(false);
+  const [adminPassword, setAdminPassword] = useState("");
   const [shops, setShops] = useState([]);
   const [allBarbers, setAllBarbers] = useState([]);
+  const COMISION = 5;
   const [affiliateForm, setAffiliateForm] = useState({
     nombre: "",
     distrito: "",
@@ -661,7 +664,22 @@ export default function BarberProApp() {
     },
   ]);
 
-  const cargarBarberiasActivas = async () => {
+  const cargarReservas = async () => {
+  const { data, error } = await supabase
+    .from("reservas")
+    .select("*");
+
+  if (error) {
+    console.log("ERROR RESERVAS:", error);
+    return [];
+  }
+
+  return data || [];
+};
+
+const cargarBarberiasActivas = async () => {
+  const reservas = await cargarReservas();
+
   const { data, error } = await supabase
     .from("barberias")
     .select("*")
@@ -691,12 +709,48 @@ export default function BarberProApp() {
     introVideoNote: "",
     cutsVideoTitle: "",
     cutsVideoNote: "",
-    services: [],
+    services: [
+  { id: "clasico", name: "Corte clásico", price: 25, duration: "45 min" },
+  { id: "fade", name: "Fade", price: 30, duration: "50 min" },
+  { id: "barba", name: "Corte + barba", price: 40, duration: "60 min" },
+],
     calendar: {
-      [AVAILABLE_DATES[0]]: [],
-      [AVAILABLE_DATES[1]]: [],
-      [AVAILABLE_DATES[2]]: [],
-    },
+  [AVAILABLE_DATES[0]]: [
+    "10:00","11:00","12:00","13:00","14:00","15:00","16:00","17:00","18:00","19:00","20:00"
+  ].map((time) => ({
+    time,
+    occupied: reservas.some(
+      (r) =>
+        String(r.barberia_id) === String(item.id) &&
+        r.fecha === AVAILABLE_DATES[0] &&
+        r.hora === time
+    ),
+  })),
+
+  [AVAILABLE_DATES[1]]: [
+    "10:00","11:00","12:00","13:00","14:00","15:00","16:00","17:00","18:00","19:00","20:00"
+  ].map((time) => ({
+    time,
+    occupied: reservas.some(
+      (r) =>
+        String(r.barberia_id) === String(item.id) &&
+        r.fecha === AVAILABLE_DATES[1] &&
+        r.hora === time
+    ),
+  })),
+
+  [AVAILABLE_DATES[2]]: [
+    "10:00","11:00","12:00","13:00","14:00","15:00","16:00","17:00","18:00","19:00","20:00"
+  ].map((time) => ({
+    time,
+    occupied: reservas.some(
+      (r) =>
+        String(r.barberia_id) === String(item.id) &&
+        r.fecha === AVAILABLE_DATES[2] &&
+        r.hora === time
+    ),
+  })),
+},
   }));
 
   setShops(formatted);
@@ -850,16 +904,18 @@ setShowAffiliateForm(false);
 
   // 🔥 GUARDAR EN SUPABASE
   const { error } = await supabase.from("reservas").insert([
-    {
-      shop_id: selectedShop.id,
-      cliente: customerInfo.name,
-      servicio: selectedService.name,
-      fecha: selectedDate,
-      hora: selectedTime,
-      pedido: customRequest || "Sin pedido especial",
-      total: selectedService.price + customExtra,
-    },
-  ]);
+  {
+    shop_id: selectedShop.id,
+    cliente: customerInfo.name,
+    servicio: selectedService.name,
+    fecha: selectedDate,
+    hora: selectedTime,
+    pedido: customRequest || "Sin pedido especial",
+    total: selectedService.price + customExtra,
+
+    estado: "pendiente"
+  },
+]);
 
   if (error) {
     alert("Error al guardar reserva: " + error.message);
@@ -932,8 +988,13 @@ setShowAffiliateForm(false);
     ? shops.find((shop) => shop.id === selectedShop.id)?.calendar?.[selectedDate] || []
     : [];
 
-  const finalPrice =
-    (selectedService?.price || selectedShop?.basePrice || 0) + customExtra;
+  const basePrice =
+  (selectedService?.price || selectedShop?.basePrice || 0) + customExtra;
+
+const barberEarnings = basePrice - COMISION;
+const appEarnings = COMISION;
+
+const finalPrice = basePrice;
   if (view === "landing") {
     return (
       <div className="min-h-screen bg-neutral-950 text-white">
@@ -1052,7 +1113,48 @@ setShowAffiliateForm(false);
       </div>
     );
   }
-if (view === "admin") {
+  if (view === "admin" && !adminAccess) {
+  return (
+    <div className="min-h-screen bg-neutral-950 p-8 text-white">
+      <div className="mx-auto mt-12 max-w-md rounded-[2rem] border border-white/10 bg-neutral-900 p-8 shadow-2xl">
+        <p className="text-sm uppercase tracking-[0.2em] text-amber-400">Acceso administrador</p>
+        <h1 className="mt-2 text-3xl font-black">Panel Admin</h1>
+        <p className="mt-3 text-sm text-neutral-400">Ingresa la clave para acceder.</p>
+
+        <div className="mt-6 space-y-3">
+          <input
+            type="password"
+            value={adminPassword}
+            onChange={(e) => setAdminPassword(e.target.value)}
+            className="w-full rounded-xl border border-white/10 bg-black/20 px-4 py-3 outline-none"
+            placeholder="Clave de administrador"
+          />
+
+          <button
+            onClick={() => {
+              if (adminPassword === "BarberProAdmin2026") {
+                setAdminAccess(true);
+              } else {
+                alert("Clave incorrecta");
+              }
+            }}
+            className={`w-full rounded-xl bg-amber-400 px-4 py-3 font-bold text-black ${pointerClass}`}
+          >
+            Ingresar
+          </button>
+
+          <button
+            onClick={() => setView("client")}
+            className={`w-full rounded-xl border border-white/10 px-4 py-3 font-bold ${pointerClass}`}
+          >
+            Volver
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+if (view === "admin" && adminAccess) {
   return (
     <div className="min-h-screen bg-neutral-950 p-8 text-white">
       <h1 className="mb-8 text-3xl font-black">
@@ -1167,7 +1269,7 @@ if (view === "admin") {
           <div className="flex flex-wrap gap-3">
             <button onClick={() => setView("landing")} className={`rounded-xl border border-white/20 px-4 py-2 text-sm ${pointerClass}`}>Inicio</button>
             <button onClick={() => setView("barber")} className={`rounded-xl border border-white/20 px-4 py-2 text-sm ${pointerClass}`}>Panel Barbero</button>
-            <button onClick={() => setView("admin")} className={`rounded-xl border border-white/20 px-4 py-2 text-sm ${pointerClass}`}>Panel Admin</button>
+
             <button onClick={enableLocation} className={`rounded-xl bg-amber-400 px-4 py-2 font-semibold text-black ${pointerClass}`}>Usar ubicación</button>
           </div>
         </div>
