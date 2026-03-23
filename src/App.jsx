@@ -719,36 +719,39 @@ const cargarBarberiasActivas = async () => {
     "10:00","11:00","12:00","13:00","14:00","15:00","16:00","17:00","18:00","19:00","20:00"
   ].map((time) => ({
     time,
-    occupied: reservas.some(
-      (r) =>
-        String(r.barberia_id) === String(item.id) &&
-        r.fecha === AVAILABLE_DATES[0] &&
-        r.hora === time
-    ),
+    occupied: reservas.some((r) => {
+  return (
+    String(r.shop_id) === String(item.id) &&
+    r.fecha === AVAILABLE_DATES[0] &&
+    String(r.hora).slice(0, 5) === time
+  );
+}),
   })),
 
   [AVAILABLE_DATES[1]]: [
     "10:00","11:00","12:00","13:00","14:00","15:00","16:00","17:00","18:00","19:00","20:00"
   ].map((time) => ({
     time,
-    occupied: reservas.some(
-      (r) =>
-        String(r.barberia_id) === String(item.id) &&
-        r.fecha === AVAILABLE_DATES[1] &&
-        r.hora === time
-    ),
+    occupied: reservas.some((r) => {
+  return (
+    String(r.shop_id) === String(item.id) &&
+    r.fecha === AVAILABLE_DATES[1] &&
+    String(r.hora).slice(0, 5) === time
+  );
+}),
   })),
 
   [AVAILABLE_DATES[2]]: [
     "10:00","11:00","12:00","13:00","14:00","15:00","16:00","17:00","18:00","19:00","20:00"
   ].map((time) => ({
     time,
-    occupied: reservas.some(
-      (r) =>
-        String(r.barberia_id) === String(item.id) &&
-        r.fecha === AVAILABLE_DATES[2] &&
-        r.hora === time
-    ),
+    occupied: reservas.some((r) => {
+  return (
+    String(r.shop_id) === String(item.id) &&
+    r.fecha === AVAILABLE_DATES[2] &&
+    String(r.hora).slice(0, 5) === time
+  );
+}),
   })),
 },
   }));
