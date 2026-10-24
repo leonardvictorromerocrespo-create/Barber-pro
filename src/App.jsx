@@ -1,3 +1,4 @@
+import { savedOperation, endSession, commissionLabel, signInWithProfile } from "./lib/operations";
 import { supabase } from "./lib/supabase";
 import { useEffect, useMemo, useState } from "react";
 
@@ -242,7 +243,7 @@ function ClientHero({ heroIndex, setHeroIndex, setView }) {
               Descubre barberos reales cerca de ti. Mira sus trabajos, conoce su estilo y reserva tu cita en segundos.
             </p>
             <div className="mt-4 text-xs uppercase tracking-widest text-amber-400">
-              Barber Pro • Reserva inteligente
+              MERYO • Reserva inteligente
             </div>
             <div className="mt-6 flex gap-3">
               <button
@@ -384,9 +385,11 @@ function BookingModal({
   setPaymentMethod,
   activeSlots,
   finalPrice,
-  paymentConfirmed,
-  confirmPayment,
+  requestSaved,
+  submitReservation,
   closeBookingModal,
+  savingReservation,
+  reservationsEnabled,
 }) {
   if (!selectedShop) return null;
 
@@ -399,7 +402,7 @@ function BookingModal({
             <p className="text-sm uppercase tracking-[0.2em] text-amber-300">Reserva tu cita</p>
             <h3 className="mt-2 text-3xl font-black">{selectedShop.name}</h3>
             <p className="mt-2 text-neutral-400">
-              Elige el corte, luego la fecha, la hora, agrega un pedido especial si quieres y confirma el pago.
+              Elige el servicio y solicita un horario. No se realiza ningún cobro en esta pantalla.
             </p>
           </div>
           <button onClick={closeBookingModal} className={`rounded-xl border border-white/10 px-4 py-2 text-sm ${pointerClass}`}>
@@ -526,12 +529,12 @@ function BookingModal({
             </div>
 
             <div className="rounded-3xl border border-white/10 bg-neutral-900 p-5">
-              <h4 className="text-xl font-bold">6. Método de pago</h4>
+              <h4 className="text-xl font-bold">6. Pago disponible después de la aceptación</h4>
               <div className="mt-4 grid gap-3 sm:grid-cols-3">
                 {["Tarjeta", "Yape", "Plin"].map((method) => (
                   <button
                     key={method}
-                    onClick={() => setPaymentMethod(method)}
+                    disabled onClick={() => setPaymentMethod(method)}
                     className={`rounded-2xl border px-4 py-4 text-sm font-semibold transition ${pointerClass} ${
                       paymentMethod === method
                         ? "border-amber-400 bg-amber-400 text-black"
@@ -560,19 +563,19 @@ function BookingModal({
               <div className="flex justify-between text-lg font-black"><span>Total</span><span className="text-amber-300">S/ {finalPrice}</span></div>
             </div>
             <button
-              onClick={confirmPayment}
-              disabled={!selectedTime || !customerInfo.name.trim() || !customerInfo.phone.trim() || paymentConfirmed}
+              onClick={submitReservation}
+              disabled={!reservationsEnabled || savingReservation || !selectedTime || !customerInfo.name.trim() || !customerInfo.phone.trim() || requestSaved}
               className={`mt-6 w-full rounded-xl py-3 font-bold ${
-                selectedTime && customerInfo.name.trim() && customerInfo.phone.trim() && !paymentConfirmed
+                selectedTime && customerInfo.name.trim() && customerInfo.phone.trim() && !requestSaved
                   ? `${pointerClass} bg-amber-400 text-black`
                   : "cursor-not-allowed bg-neutral-700 text-neutral-400"
               }`}
             >
-              {paymentConfirmed ? "Pago confirmado" : "Confirmar pago"}
+              {requestSaved ? "Solicitud guardada" : savingReservation ? "Guardando…" : reservationsEnabled ? "Solicitar reserva" : "Reservas en preparación"}
             </button>
-            {paymentConfirmed && (
+            {requestSaved && (
               <div className="mt-4 rounded-2xl border border-emerald-500/30 bg-emerald-500/10 p-4 text-sm text-emerald-300">
-                Reserva confirmada para {selectedDate} a las {selectedTime}. La hora quedó bloqueada, el barbero recibió la reserva y también verá el pedido especial.
+                Solicitud guardada para {selectedDate} a las {selectedTime}. Pendiente de aceptación del barbero. No se ha realizado ningún cobro.
               </div>
             )}
           </div>
@@ -586,10 +589,14 @@ export default function BarberProApp() {
   const [locationEnabled, setLocationEnabled] = useState(false);
   const [view, setView] = useState("landing");
   const [adminAccess, setAdminAccess] = useState(false);
-  const [adminPassword, setAdminPassword] = useState("");
   const [shops, setShops] = useState([]);
   const [allBarbers, setAllBarbers] = useState([]);
-  const COMISION = 5;
+  // Fail closed until the candidate database contract has been deployed and verified.
+  const reservationsEnabled = false; // Pending real-schema mapping and server verification.
+  const [savingReservation, setSavingReservation] = useState(false);
+  const [registerForm, setRegisterForm] = useState({ email: "", password: "" });
+  const [registerBusy, setRegisterBusy] = useState(false);
+  const [registerMessage, setRegisterMessage] = useState("");
   const [affiliateForm, setAffiliateForm] = useState({
     nombre: "",
     distrito: "",
@@ -605,13 +612,13 @@ export default function BarberProApp() {
   const [showAffiliateForm, setShowAffiliateForm] = useState(false);
   const [showBookingModal, setShowBookingModal] = useState(false);
   const [showProfileModal, setShowProfileModal] = useState(false);
-  const [paymentConfirmed, setPaymentConfirmed] = useState(false);
+  const [requestSaved, setRequestSaved] = useState(false);
   const [barberLoggedIn, setBarberLoggedIn] = useState(false);
   const [barberLogin, setBarberLogin] = useState({ email: "", password: "" });
   const [loggedBarber, setLoggedBarber] = useState(null);
   const [barberReservations, setBarberReservations] = useState([]);
   const [loadingBarberReservations, setLoadingBarberReservations] = useState(false);
-  const [notification, setNotification] = useState(null);
+  const [notification] = useState(null);
   const [notificaciones, setNotificaciones] = useState([]);
   const [ultimaNoti, setUltimaNoti] = useState(null);
   const [customRequest, setCustomRequest] = useState("");
@@ -738,6 +745,8 @@ const cargarBarberiasActivas = async () => {
 
 useEffect(() => {
   cargarBarberiasActivas();
+  // Initial legacy catalog load; subsequent refreshes are explicit after operations.
+  // eslint-disable-next-line react-hooks/exhaustive-deps
 }, []);
 useEffect(() => {
   if (notificaciones.length > 0) {
@@ -747,10 +756,10 @@ useEffect(() => {
       setUltimaNoti(nueva);
 
       const audio = new Audio("https://actions.google.com/sounds/v1/alarms/beep_short.ogg");
-      audio.play();
+      audio.play().catch(() => {});
     }
   }
-}, [notificaciones]);
+}, [notificaciones, ultimaNoti]);
 useEffect(() => {
   const checkSession = async () => {
     const { data } = await supabase.auth.getSession();
@@ -765,7 +774,7 @@ useEffect(() => {
       .eq("id", user.id)
       .single();
 
-    if (!perfil) return;
+    if (!perfil?.activo) return;
 
     if (perfil.rol === "admin") {
       setAdminAccess(true);
@@ -830,6 +839,17 @@ useEffect(() => {
     }
   }, [barberLoggedIn, loggedBarber]);
 
+  useEffect(() => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event) => {
+      if (event === "SIGNED_OUT") {
+        setAdminAccess(false); setBarberLoggedIn(false); setLoggedBarber(null);
+        setBarberReservations([]); setNotificaciones([]); setCustomerHistory([]);
+        setCustomerInfo({name:"",phone:""}); setBarberLogin({email:"",password:""}); setView("landing");
+      }
+    });
+    return () => subscription.unsubscribe();
+  }, []);
+
   const ranking = useMemo(
     () => [...shops].sort((a, b) => b.rating * 100 + b.reviews - (a.rating * 100 + a.reviews)),
     [shops]
@@ -873,110 +893,30 @@ async function cargarNotificaciones() {
   if (!error) {
     setNotificaciones(data);
 
-// borrar notificaciones después de mostrarlas
-if (data.length > 0) {
-  setTimeout(async () => {
-    await supabase
-      .from("notificaciones")
-      .delete()
-      .in("id", data.map(n => n.id));
-
-    setNotificaciones([]);
-  }, 5000);
-}
   }
 }
-  const cambiarEstadoReserva = async (reservaId, nuevoEstado) => {
-    const { data, error } = await supabase
-  .from("reservas")
-  .update({ estado: nuevoEstado })
-  .eq("id", reservaId)
-  .select();
-
-console.log("UPDATE RESERVA:", data, error, reservaId, nuevoEstado);
-
-    if (error) {
-      alert("Error al actualizar la reserva: " + error.message);
-      return;
-    }
-
-    setBarberReservations((prev) =>
-      prev.map((item) =>
-        item.id === reservaId ? { ...item, estado: nuevoEstado } : item
-      )
-    );
-
-    await cargarBarberiasActivas();
+  const cambiarEstadoReserva = async (reservaId, action) => {
+    if (!reservationsEnabled) return alert("Reservas en preparación. No se cambió la cita.");
+    try {
+      await savedOperation(() => supabase.schema("meryo").rpc("decide_booking", { booking_id: reservaId, accept_booking: action === "accept" }));
+      await cargarReservasDelBarbero(loggedBarber.id);
+      await cargarBarberiasActivas();
+    } catch (error) { alert(error.message); }
   };
 
   const handleAffiliateSubmit = async () => {
-    console.log("FORM DATA:", affiliateForm);
-
     const { nombre, distrito, correo, direccion } = affiliateForm;
-
-    if (!nombre || !distrito || !correo || !direccion) {
-      alert("Completa los campos obligatorios");
-      return;
-    }
-
-    const { data, error } = await supabase
-      .from("barberias")
-      .insert([
-        {
-          nombre,
-          distrito,
-          direccion,
-          descripcion: "Barbería registrada",
-          imagen_url:
-            "https://images.unsplash.com/photo-1622286342621-4bd786c2447c?auto=format&fit=crop&w=1200&q=80",
-          rating: 5,
-          total_resenas: 0,
-          precio_desde: 25,
-        },
-      ])
-      .select();
-
-    console.log("DATA INSERT:", data);
-    console.log("ERROR INSERT:", error);
-
-    if (error) {
-      alert("Error al guardar: " + error.message);
-      return;
-    }
-
-    const newShop = {
-      id: data[0].id,
-      name: data[0].nombre,
-      district: data[0].distrito,
-      distance: "Cerca de ti",
-      rating: data[0].rating,
-      reviews: data[0].total_resenas,
-      basePrice: data[0].precio_desde,
-      originalBasePrice: data[0].precio_desde + 5,
-      discount: "Nuevo",
-      image: data[0].imagen_url,
-      tags: ["Nuevo"],
-      about: data[0].descripcion,
-      services: [],
-      calendar: {
-        "2026-03-15": [],
-        "2026-03-16": [],
-        "2026-03-17": [],
-      },
-    };
-
-    setShops((prev) => [newShop, ...prev]);
-setShowAffiliateForm(false);
-
-    setAffiliateForm({
-      nombre: "",
-      distrito: "",
-      whatsapp: "",
-      correo: "",
-      direccion: "",
-    });
-
-    alert("Barbería registrada correctamente");
+    if (!nombre.trim() || !distrito.trim() || !correo.trim() || !direccion.trim()) return alert("Completa los campos obligatorios");
+    try {
+      await savedOperation(() => supabase.from("barberias").insert({
+        nombre, distrito, direccion, descripcion: "Barbería registrada",
+        imagen_url: "https://images.unsplash.com/photo-1622286342621-4bd786c2447c?auto=format&fit=crop&w=1200&q=80",
+        rating: 5, total_resenas: 0, precio_desde: 25,
+      }).select("id").single());
+      setShowAffiliateForm(false);
+      setAffiliateForm({nombre:"",distrito:"",whatsapp:"",correo:"",direccion:""});
+      alert("Solicitud de afiliación guardada. Pendiente de revisión.");
+    } catch (error) { alert("No se confirmó el registro: " + error.message); }
   };
 
   const enableLocation = () => {
@@ -1001,193 +941,81 @@ setShowAffiliateForm(false);
     setCustomRequest("");
     setCustomExtra(0);
     setCustomerInfo({ name: "", phone: "" });
-    setPaymentConfirmed(false);
+    setRequestSaved(false);
     setShowBookingModal(true);
   };
 
   const closeBookingModal = () => {
     setShowBookingModal(false);
     setSelectedTime("");
-    setPaymentConfirmed(false);
+    setRequestSaved(false);
   };
 
-  const confirmPayment = async () => {
-  if (
-    !selectedShop ||
-    !selectedService ||
-    !selectedTime ||
-    !customerInfo.name.trim() ||
-    !customerInfo.phone.trim()
-  ) {
-    return;
-  }
+  const submitReservation = async () => {
+    if (!reservationsEnabled || savingReservation || !selectedTime || !selectedService) return;
+    setSavingReservation(true);
+    setRequestSaved(false);
+    try {
+      const { data: auth, error } = await supabase.auth.getUser();
+      if (error || !auth.user) throw new Error("Inicia sesión para solicitar una reserva");
+      await savedOperation(() => supabase.schema("meryo").rpc("request_booking", {
+        slot_id: activeSlots.find(slot => slot.time === selectedTime)?.id,
+        service_id: selectedService.id,
+        customer_name: customerInfo.name.trim(),
+        customer_phone: customerInfo.phone.trim(),
+        note: customRequest,
+      }));
+      // Notification is written in the same database transaction, never by the browser.
+      setRequestSaved(true);
+      await cargarBarberiasActivas();
+    } catch (error) { alert(error.message); }
+    finally { setSavingReservation(false); }
+  };
 
-  // 🔥 GUARDAR EN SUPABASE
-  const { error } = await supabase.from("reservas").insert([
-  {
-    shop_id: selectedShop.id,
-    cliente_id: (await supabase.auth.getUser()).data.user?.id,
-    cliente: customerInfo.name,
-    servicio: selectedService.name,
-    fecha: selectedDate,
-    hora: selectedTime,
-    pedido: customRequest || "Sin pedido especial",
-    total: selectedService.price + customExtra,
+  const handleLogout = async () => {
+    try {
+      await endSession(supabase, () => {
+        setAdminAccess(false); setBarberLoggedIn(false); setLoggedBarber(null);
+        setBarberReservations([]); setNotificaciones([]); setUltimaNoti(null);
+        setCustomerHistory([]); setCustomerInfo({ name: "", phone: "" });
+        setBarberLogin({ email: "", password: "" }); setView("landing");
+      });
+    } catch (error) { alert("No se pudo cerrar sesión: " + error.message); }
+  };
 
-    estado: "pendiente"
-  },
-]);
-const { data: barberoPerfil } = await supabase
-  .from("profiles")
-  .select("id")
-  .eq("rol", "barbero")
-  .eq("barberia_id", selectedShop.id)
-  .single();
-
-if (barberoPerfil) {
-  await supabase.from("notificaciones").insert([
-    {
-      user_id: barberoPerfil.id,
-      titulo: "Nueva reserva",
-      mensaje: `${customerInfo.name} reservó ${selectedService.name} para ${selectedDate} a las ${selectedTime}`,
-    }
-  ]);
-}
-  if (error) {
-    alert("Error al guardar reserva: " + error.message);
-    return;
-  }
-
-  setShops((prev) =>
-    prev.map((shop) => {
-      if (shop.id !== selectedShop.id) return shop;
-
-      return {
-        ...shop,
-        calendar: {
-          ...shop.calendar,
-          [selectedDate]: shop.calendar[selectedDate].map((slot) =>
-            slot.time === selectedTime
-              ? { ...slot, occupied: true }
-              : slot
-          ),
-        },
-      };
-    })
-  );
-
-
-  setCustomerHistory((prev) => [
-    {
-      id: Date.now(),
-      shopName: selectedShop.name,
-      service: selectedService.name,
-      date: selectedDate,
-      time: selectedTime,
-      price: selectedService.price + customExtra,
-      rating: 0,
-      customRequest: customRequest || "Sin pedido especial",
-    },
-    ...prev,
-  ]);
-
-  setNotification(
-    `Nueva reserva para ${selectedShop.name}: ${selectedDate} a las ${selectedTime}`
-  );
-
-  setPaymentConfirmed(true);
-};
+  const handleRegister = async (event) => {
+    event.preventDefault();
+    if (registerBusy) return;
+    setRegisterBusy(true); setRegisterMessage("");
+    try {
+      const { data, error } = await supabase.auth.signUp({ email: registerForm.email, password: registerForm.password });
+      if (error) throw error;
+      if (!data.user) throw new Error("No se pudo completar la solicitud");
+      setRegisterMessage("Solicitud recibida. Revisa tu correo si requiere confirmación. El acceso requiere un perfil de cliente activo provisionado por el servidor.");
+      setRegisterForm({ email: "", password: "" });
+    } catch (error) { setRegisterMessage(error.message); }
+    finally { setRegisterBusy(false); }
+  };
 
   const handleBarberLogin = async () => {
-  if (!barberLogin.email || !barberLogin.password) {
-    alert("Ingresa correo y contraseña");
-    return;
-  }
-
-  const { data, error } = await supabase.auth.signInWithPassword({
-    email: barberLogin.email,
-    password: barberLogin.password,
-  });
-
-  if (error) {
-    alert("Correo o contraseña incorrectos");
-    return;
-  }
-
-  const user = data.user;
-
-  const { data: perfil, error: perfilError } = await supabase
-    .from("profiles")
-    .select("*")
-    .eq("id", user.id)
-    .single();
-
-  if (perfilError || !perfil) {
-    alert("No existe perfil para este usuario");
-    return;
-  }
-
-  if (!perfil.activo) {
-    alert("Tu cuenta está inactiva");
-    return;
-  }
-
-  if (perfil.rol === "admin") {
-    setAdminAccess(true);
-    setView("admin");
-    return;
-  }
-
-  if (perfil.rol === "barbero") {
-    setLoggedBarber({ id: perfil.barberia_id });
-    setBarberLoggedIn(true);
-    await cargarReservasDelBarbero(perfil.barberia_id);
-    setView("barber");
-    return;
-  }
-  if (perfil.rol === "cliente") {
-  setView("client");
-  return;
-}
-
-  alert("Rol no permitido");
-};
-const handleCustomerLogin = async () => {
-  if (!customerInfo.email || !customerInfo.password) {
-    alert("Ingresa correo y contraseña");
-    return;
-  }
-
-  const { data, error } = await supabase.auth.signInWithPassword({
-    email: customerInfo.email,
-    password: customerInfo.password,
-  });
-
-  if (error) {
-    alert("Error: " + error.message);
-    return;
-  }
-
-  const user = data.user;
-
-  const { data: perfil } = await supabase
-    .from("profiles")
-    .select("*")
-    .eq("id", user.id)
-    .single();
-
-  if (!perfil) {
-    alert("No tienes perfil registrado");
-    return;
-  }
-
-  if (perfil.rol !== "cliente") {
-    alert("Este usuario no es cliente");
-    return;
-  }
-
-  setView("client");
-};
+    if (!barberLogin.email || !barberLogin.password) return alert("Ingresa correo y contraseña");
+    setAdminAccess(false); setBarberLoggedIn(false); setLoggedBarber(null); setBarberReservations([]);
+    try {
+      const profile = await signInWithProfile(supabase, barberLogin, ["admin", "barbero"]);
+      setBarberLogin(prev => ({...prev, password:""}));
+      if (profile.rol === "admin") { setAdminAccess(true); setView("admin"); return; }
+      setLoggedBarber({id:profile.barberia_id}); setBarberLoggedIn(true);
+      await cargarReservasDelBarbero(profile.barberia_id); setView("barber");
+    } catch (error) { alert(error.message); }
+  };
+  const handleCustomerLogin = async () => {
+    if (!customerInfo.email || !customerInfo.password) return alert("Ingresa correo y contraseña");
+    setAdminAccess(false); setBarberLoggedIn(false); setLoggedBarber(null); setBarberReservations([]);
+    try {
+      await signInWithProfile(supabase, {email:customerInfo.email,password:customerInfo.password}, ["cliente"]);
+      setCustomerInfo(prev => ({...prev,password:""})); setView("client");
+    } catch (error) { alert(error.message); }
+  };
   const updateCustomerRating = (id, rating) => {
     setCustomerHistory((prev) =>
       prev.map((item) => (item.id === id ? { ...item, rating } : item))
@@ -1201,8 +1029,7 @@ const handleCustomerLogin = async () => {
   const basePrice =
   (selectedService?.price || selectedShop?.basePrice || 0) + customExtra;
 
-const barberEarnings = basePrice - COMISION;
-const appEarnings = COMISION;
+
 
 const finalPrice = basePrice;
   if (view === "landing") {
@@ -1226,7 +1053,7 @@ const finalPrice = basePrice;
               <span className="text-amber-400">Se reserva.</span>
             </h1>
             <p className="mx-auto mt-6 max-w-2xl text-lg text-neutral-300">
-              Encuentra a los mejores barberos cerca de ti, descubre su trabajo real, revisa reseñas y reserva tu cita en segundos con Barber Pro.
+              Encuentra a los mejores barberos cerca de ti, descubre su trabajo real, revisa reseñas y reserva tu cita en segundos con MERYO.
             </p>
             <div className="mt-10 flex flex-wrap justify-center gap-4">
               <button
@@ -1263,23 +1090,21 @@ const finalPrice = basePrice;
     );
   }
 
-  if (view === "barber") {
+  if (view === "barber" || view === "barber-login") {
     const currentBarberAppointments = barberReservations;
-    const pendientesCount = currentBarberAppointments.filter((item) => item.estado === "pendiente").length;
+    const pendientesCount = currentBarberAppointments.filter((item) => item.estado === "solicitada").length;
     const confirmedTotal = currentBarberAppointments
       .filter((item) => item.estado === "confirmada")
       .reduce((acc, item) => acc + Number(item.total || 0), 0);
-    const platformTotal = currentBarberAppointments
-      .filter((item) => item.estado === "confirmada")
-      .length * COMISION;
+    const platformTotal = commissionLabel(null);
 
     if (!barberLoggedIn) {
       return (
         <div className="min-h-screen bg-neutral-950 p-8 text-white">
           <div className="mx-auto mt-12 max-w-md rounded-[2rem] border border-white/10 bg-neutral-900 p-8 shadow-2xl">
             <p className="text-sm uppercase tracking-[0.2em] text-amber-400">Acceso barbero</p>
-            <h1 className="mt-2 text-3xl font-black">Login Barber Pro</h1>
-            <p className="mt-3 text-sm text-neutral-400">Solo los barberos ingresan con cuenta. Los clientes reservan sin login.</p>
+            <h1 className="mt-2 text-3xl font-black">Login MERYO</h1>
+            <p className="mt-3 text-sm text-neutral-400">Ingresa con tu cuenta de barbero o administrador.</p>
             <div className="mt-6 space-y-3">
             <input
   value={barberLogin.email}
@@ -1303,7 +1128,7 @@ const finalPrice = basePrice;
 
     return (
       <div className="min-h-screen bg-neutral-950 p-8 text-white">
-        <h1 className="mb-2 text-3xl font-black">Panel Barbero <span className="text-amber-400">Barber Pro</span></h1>
+        <h1 className="mb-2 text-3xl font-black">Panel Barbero <span className="text-amber-400">MERYO</span></h1>
         <div className="mb-4">
   <h3 className="text-white font-bold mb-2">🔔 Notificaciones</h3>
 
@@ -1320,7 +1145,7 @@ const finalPrice = basePrice;
         <div className="mb-10 grid gap-6 md:grid-cols-3">
           <div className="rounded-2xl bg-neutral-900 p-6"><p className="text-sm text-neutral-400">Reservas totales</p><p className="text-3xl font-black">{currentBarberAppointments.length}</p></div>
           <div className="rounded-2xl bg-neutral-900 p-6"><p className="text-sm text-neutral-400">Pendientes</p><p className="text-3xl font-black text-amber-400">{pendientesCount}</p></div>
-          <div className="rounded-2xl bg-neutral-900 p-6"><p className="text-sm text-neutral-400">Confirmadas / Comisión</p><p className="text-3xl font-black">S/ {confirmedTotal} <span className="text-base text-neutral-400">/ S/ {platformTotal}</span></p></div>
+          <div className="rounded-2xl bg-neutral-900 p-6"><p className="text-sm text-neutral-400">Confirmadas / Comisión</p><p className="text-3xl font-black">S/ {confirmedTotal} <span className="text-base text-neutral-400">/ {platformTotal}</span></p></div>
         </div>
         <div className="rounded-2xl bg-neutral-900 p-6">
           <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
@@ -1365,8 +1190,8 @@ const finalPrice = basePrice;
 
                     <div className="flex gap-2">
                       <button
-                        onClick={() => cambiarEstadoReserva(item.id, "confirmada")}
-                        disabled={item.estado !== "pendiente"}
+                        onClick={() => cambiarEstadoReserva(item.id, "accept")}
+                        disabled={!reservationsEnabled || item.estado !== "solicitada"}
                         className={`rounded-xl px-4 py-2 text-sm font-bold ${
                           item.estado === "pendiente"
                             ? `${pointerClass} bg-emerald-500 text-white`
@@ -1377,8 +1202,8 @@ const finalPrice = basePrice;
                       </button>
 
                       <button
-                        onClick={() => cambiarEstadoReserva(item.id, "cancelada")}
-                        disabled={item.estado !== "pendiente"}
+                        onClick={() => cambiarEstadoReserva(item.id, "reject")}
+                        disabled={!reservationsEnabled || item.estado !== "solicitada"}
                         className={`rounded-xl px-4 py-2 text-sm font-bold ${
                           item.estado === "pendiente"
                             ? `${pointerClass} bg-red-500 text-white`
@@ -1396,49 +1221,14 @@ const finalPrice = basePrice;
         </div>
         <div className="mt-10 flex flex-wrap gap-3">
           <button onClick={() => setView("client")} className={`rounded-xl bg-amber-400 px-4 py-2 font-bold text-black ${pointerClass}`}>Volver</button>
-          <button onClick={() => { setBarberLoggedIn(false); setLoggedBarber(null); setBarberReservations([]); setBarberLogin({ email: "", password: "" }); }} className={`rounded-xl border border-white/10 px-4 py-2 font-bold ${pointerClass}`}>Cerrar sesión</button>
+          <button onClick={handleLogout} className={`rounded-xl border border-white/10 px-4 py-2 font-bold ${pointerClass}`}>Cerrar sesión</button>
         </div>
       </div>
     );
   }
   if (view === "admin" && !adminAccess) {
-  return (
-    <div className="min-h-screen bg-neutral-950 p-8 text-white">
-      <div className="mx-auto mt-12 max-w-md rounded-[2rem] border border-white/10 bg-neutral-900 p-8 shadow-2xl">
-        <p className="text-sm uppercase tracking-[0.2em] text-amber-400">Acceso administrador</p>
-        <h1 className="mt-2 text-3xl font-black">Panel Admin</h1>
-        <p className="mt-3 text-sm text-neutral-400">Ingresa la clave para acceder.</p>
-
-        <div className="mt-6 space-y-3">
-          <input
-            type="password"
-            value={adminPassword}
-            onChange={(e) => setAdminPassword(e.target.value)}
-            className="w-full rounded-xl border border-white/10 bg-black/20 px-4 py-3 outline-none"
-            placeholder="Clave de administrador"
-          />
-
-          <button
-            onClick={() => {
-              alert("Ahora el acceso admin es solo con login real");
-setView("barber");
-            }}
-            className={`w-full rounded-xl bg-amber-400 px-4 py-3 font-bold text-black ${pointerClass}`}
-          >
-            Ingresar
-          </button>
-
-          <button
-            onClick={() => setView("client")}
-            className={`w-full rounded-xl border border-white/10 px-4 py-3 font-bold ${pointerClass}`}
-          >
-            Volver
-          </button>
-        </div>
-      </div>
-    </div>
-  );
-}
+    return <div className="min-h-screen bg-neutral-950 p-8 text-white"><button onClick={() => setView("barber-login")} className="rounded-xl bg-amber-400 px-4 py-3 text-black">Iniciar sesión como administrador</button></div>;
+  }
 if (view === "client-auth") {
   return (
     <div
@@ -1451,7 +1241,7 @@ if (view === "client-auth") {
       <div className="min-h-screen bg-black/70 flex items-center justify-center p-6">
         <div className="w-full max-w-md rounded-[2rem] border border-white/10 bg-neutral-950/90 p-8 shadow-2xl">
           <p className="text-sm uppercase tracking-[0.2em] text-amber-400">
-            Bienvenido a Barber Pro
+            Bienvenido a MERYO
           </p>
 
           <h1 className="mt-3 text-4xl font-black leading-tight">
@@ -1459,7 +1249,7 @@ if (view === "client-auth") {
           </h1>
 
           <p className="mt-4 text-sm text-neutral-300">
-            Crea tu cuenta una sola vez para ingresar a Barber Pro y acceder a una experiencia completa.
+            Crea tu cuenta una sola vez para ingresar a MERYO y acceder a una experiencia completa.
           </p>
 
           <div className="mt-8 space-y-3">
@@ -1488,6 +1278,17 @@ if (view === "client-auth") {
       </div>
     </div>
   );
+}
+if (view === "client-register") {
+  return <div className="min-h-screen flex items-center justify-center bg-black text-white p-6">
+    <form onSubmit={handleRegister} className="w-full max-w-md bg-neutral-900 p-8 rounded-2xl border border-white/10">
+      <h2 className="text-2xl font-bold mb-6">Crear cuenta</h2>
+      <input aria-label="Correo" type="email" required autoComplete="email" value={registerForm.email} onChange={e => setRegisterForm(prev => ({...prev, email:e.target.value}))} placeholder="Correo" className="w-full mb-3 px-4 py-3 rounded-xl bg-black border border-white/10" />
+      <input aria-label="Contraseña" type="password" required minLength={8} autoComplete="new-password" value={registerForm.password} onChange={e => setRegisterForm(prev => ({...prev, password:e.target.value}))} placeholder="Contraseña (mínimo 8 caracteres)" className="w-full mb-6 px-4 py-3 rounded-xl bg-black border border-white/10" />
+      <button disabled={registerBusy} className="w-full bg-amber-400 text-black py-3 rounded-xl font-bold">{registerBusy ? "Enviando…" : "Crear cuenta"}</button>
+      {registerMessage && <p role="status" className="mt-4 text-sm">{registerMessage}</p>}
+      <button type="button" onClick={() => setView("client-auth")} className="w-full mt-3 text-sm text-neutral-400">Volver</button>
+    </form></div>;
 }
 if (view === "client-login") {
   return (
@@ -1532,7 +1333,8 @@ if (view === "admin" && adminAccess) {
   return (
     <div className="min-h-screen bg-neutral-950 p-8 text-white">
       <h1 className="mb-8 text-3xl font-black">
-        Panel Admin <span className="text-amber-400">Barber Pro</span>
+        Panel Admin <span className="text-amber-400">MERYO</span>
+        <button onClick={handleLogout} className="ml-4 text-sm">Cerrar sesión</button>
       </h1>
 
       <div className="rounded-2xl bg-neutral-900 p-6">
@@ -1568,7 +1370,7 @@ if (view === "admin" && adminAccess) {
                     const { error } = await supabase
                       .from("barberias")
                       .update({ verificada: true, estado: "activa" })
-                      .eq("id", shop.id);
+                      .eq("id", shop.id).select("id").single();
 
                     if (error) {
                       alert("Error al activar: " + error.message);
@@ -1639,11 +1441,12 @@ if (view === "admin" && adminAccess) {
     <div className="min-h-screen bg-neutral-950 text-white">
       <header className="sticky top-0 z-30 border-b border-white/10 bg-neutral-950/95 backdrop-blur">
         <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-4">
-          <span className="text-3xl font-black">BARBER <span className="text-amber-400">PRO</span></span>
+          <span className="text-3xl font-black">MER<span className="text-amber-400">YO</span></span>
           <div className="flex flex-wrap gap-3">
             <button onClick={() => setView("landing")} className={`rounded-xl border border-white/20 px-4 py-2 text-sm ${pointerClass}`}>Inicio</button>
             <button onClick={() => setView("barber")} className={`rounded-xl border border-white/20 px-4 py-2 text-sm ${pointerClass}`}>Panel Barbero</button>
 
+            <button onClick={handleLogout} className="rounded-xl border border-white/20 px-4 py-2 text-sm">Cerrar sesión</button>
             <button onClick={enableLocation} className={`rounded-xl bg-amber-400 px-4 py-2 font-semibold text-black ${pointerClass}`}>Usar ubicación</button>
           </div>
         </div>
@@ -1666,7 +1469,7 @@ if (view === "admin" && adminAccess) {
                   <option>El Agustino</option>
                 </select>
               </div>
-              <p className="mt-2 text-neutral-400">La reserva confirmada pasa al panel del barbero, bloquea la hora y guarda el historial del cliente.</p>
+              <p className="mt-2 text-neutral-400">Solicita una cita. La confirmación requiere aceptación y verificación del adelanto por el servidor.</p>
             </div>
             <div className="rounded-2xl border border-white/10 bg-neutral-900 px-4 py-3 text-sm text-neutral-300">
               Ranking visible por cercanía, calificación y número de reseñas.
@@ -1726,7 +1529,7 @@ if (view === "admin" && adminAccess) {
             <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
               <div>
                 <h2 className="text-2xl font-black">Perfil del cliente</h2>
-                <p className="mt-2 text-neutral-400">Los clientes no inician sesión, pero sí pueden ver su historial reciente y calificar servicios.</p>
+                <p className="mt-2 text-neutral-400">Este historial es una demostración local; no acredita pagos ni citas confirmadas.</p>
               </div>
               <div className="rounded-2xl border border-white/10 bg-black/20 px-4 py-3 text-sm text-neutral-300">Historial guardado en la sesión actual</div>
             </div>
@@ -1759,8 +1562,8 @@ if (view === "admin" && adminAccess) {
         <section className="border-y border-white/10 bg-neutral-900 py-16">
           <div className="mx-auto grid max-w-7xl gap-8 px-6 md:grid-cols-2">
             <div className="rounded-3xl border border-white/10 bg-neutral-950 p-6">
-              <h2 className="text-2xl font-black">Pago dentro de la app</h2>
-              <p className="mt-3 text-neutral-400">El cliente elige el método y confirma la reserva desde una ventana emergente.</p>
+              <h2 className="text-2xl font-black">Pagos en preparación</h2>
+              <p className="mt-3 text-neutral-400">No se realizan cobros. El adelanto del 50 % estará disponible después de la aceptación y la validación del proveedor.</p>
               <div className="mt-6 grid gap-3 sm:grid-cols-3">
                 {["Tarjeta", "Yape", "Plin"].map((method) => (
                   <button key={method} onClick={() => setPaymentMethod(method)} className={`rounded-2xl border px-4 py-4 text-sm font-semibold transition ${pointerClass} ${paymentMethod === method ? "border-amber-400 bg-amber-400 text-black" : "border-white/10 bg-neutral-900 text-white"}`}>
@@ -1884,12 +1687,14 @@ if (view === "admin" && adminAccess) {
         setPaymentMethod={setPaymentMethod}
         activeSlots={activeSlots}
         finalPrice={finalPrice}
-        paymentConfirmed={paymentConfirmed}
-        confirmPayment={confirmPayment}
+        requestSaved={requestSaved}
+        submitReservation={submitReservation}
         closeBookingModal={closeBookingModal}
+        savingReservation={savingReservation}
+        reservationsEnabled={reservationsEnabled}
       />
 
-      <footer className="border-t border-white/10 py-6 text-center text-neutral-500">© 2026 Barber Pro</footer>
+      <footer className="border-t border-white/10 py-6 text-center text-neutral-500">© 2026 MERYO</footer>
     </div>
   );
 }
