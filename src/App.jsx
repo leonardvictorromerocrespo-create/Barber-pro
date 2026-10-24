@@ -392,6 +392,7 @@ function BookingModal({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4">
+      
       <div className="max-h-[92vh] w-full max-w-5xl overflow-auto rounded-[2rem] border border-white/10 bg-neutral-950 p-6 text-white shadow-2xl">
         <div className="mb-6 flex items-start justify-between gap-4">
           <div>
@@ -607,7 +608,12 @@ export default function BarberProApp() {
   const [paymentConfirmed, setPaymentConfirmed] = useState(false);
   const [barberLoggedIn, setBarberLoggedIn] = useState(false);
   const [barberLogin, setBarberLogin] = useState({ email: "", password: "" });
+  const [loggedBarber, setLoggedBarber] = useState(null);
+  const [barberReservations, setBarberReservations] = useState([]);
+  const [loadingBarberReservations, setLoadingBarberReservations] = useState(false);
   const [notification, setNotification] = useState(null);
+  const [notificaciones, setNotificaciones] = useState([]);
+  const [ultimaNoti, setUltimaNoti] = useState(null);
   const [customRequest, setCustomRequest] = useState("");
   const [customExtra, setCustomExtra] = useState(0);
   const [customerInfo, setCustomerInfo] = useState({ name: "", phone: "" });
@@ -632,35 +638,6 @@ export default function BarberProApp() {
       price: 48,
       rating: 4,
       customRequest: "Barba marcada",
-    },
-  ]);
-  const [barberAppointments, setBarberAppointments] = useState([
-    {
-      time: "3:30 pm",
-      service: "Corte",
-      client: "Luis",
-      shopId: 1,
-      date: "2026-03-15",
-      customRequest: "Sin pedido especial",
-      total: 30,
-    },
-    {
-      time: "4:10 pm",
-      service: "Corte + barba",
-      client: "Pedro",
-      shopId: 1,
-      date: "2026-03-15",
-      customRequest: "Barba bien definida",
-      total: 45,
-    },
-    {
-      time: "5:00 pm",
-      service: "Fade",
-      client: "Carlos",
-      shopId: 1,
-      date: "2026-03-15",
-      customRequest: "Sin pedido especial",
-      total: 35,
     },
   ]);
 
@@ -763,6 +740,56 @@ useEffect(() => {
   cargarBarberiasActivas();
 }, []);
 useEffect(() => {
+  if (notificaciones.length > 0) {
+    const nueva = notificaciones[0];
+
+    if (!ultimaNoti || ultimaNoti.id !== nueva.id) {
+      setUltimaNoti(nueva);
+
+      const audio = new Audio("https://actions.google.com/sounds/v1/alarms/beep_short.ogg");
+      audio.play();
+    }
+  }
+}, [notificaciones]);
+useEffect(() => {
+  const checkSession = async () => {
+    const { data } = await supabase.auth.getSession();
+
+    if (!data.session) return;
+
+    const user = data.session.user;
+
+    const { data: perfil } = await supabase
+      .from("profiles")
+      .select("*")
+      .eq("id", user.id)
+      .single();
+
+    if (!perfil) return;
+
+    if (perfil.rol === "admin") {
+      setAdminAccess(true);
+      setView("admin");
+      return;
+    }
+
+    if (perfil.rol === "barbero") {
+      setLoggedBarber({ id: perfil.barberia_id });
+      setBarberLoggedIn(true);
+      await cargarReservasDelBarbero(perfil.barberia_id);
+      setView("barber");
+      return;
+    }
+
+    if (perfil.rol === "cliente") {
+      setView("client");
+      return;
+    }
+  };
+
+  checkSession();
+}, []);
+useEffect(() => {
   async function cargarTodas() {
     const { data, error } = await supabase
       .from("barberias")
@@ -778,7 +805,17 @@ useEffect(() => {
 
   cargarTodas();
 }, []);
+useEffect(() => {
+  if (view === "barber") {
+    cargarNotificaciones();
 
+    const interval = setInterval(() => {
+      cargarNotificaciones();
+    }, 3000);
+
+    return () => clearInterval(interval);
+  }
+}, [view]);
   useEffect(() => {
     const timer = setInterval(() => {
       setHeroIndex((prev) => (prev + 1) % HERO_IMAGES.length);
@@ -787,10 +824,90 @@ useEffect(() => {
     return () => clearInterval(timer);
   }, []);
 
+  useEffect(() => {
+    if (barberLoggedIn && loggedBarber?.id) {
+      cargarReservasDelBarbero(loggedBarber.id);
+    }
+  }, [barberLoggedIn, loggedBarber]);
+
   const ranking = useMemo(
     () => [...shops].sort((a, b) => b.rating * 100 + b.reviews - (a.rating * 100 + a.reviews)),
     [shops]
   );
+
+  async function cargarReservasDelBarbero(barberiaId) {
+    if (!barberiaId) return;
+
+    setLoadingBarberReservations(true);
+
+    const { data, error } = await supabase
+      .from("reservas")
+      .select("*")
+      .eq("shop_id", barberiaId)
+      .order("fecha", { ascending: true })
+      .order("hora", { ascending: true });
+
+    if (error) {
+      console.log("ERROR CARGANDO RESERVAS DEL BARBERO:", error);
+      alert("No se pudieron cargar las reservas del barbero");
+      setBarberReservations([]);
+      setLoadingBarberReservations(false);
+      return;
+    }
+
+    setBarberReservations(data || []);
+    setLoadingBarberReservations(false);
+  }
+async function cargarNotificaciones() {
+  const { data: userData } = await supabase.auth.getUser();
+  const user = userData.user;
+
+  if (!user) return;
+
+  const { data, error } = await supabase
+    .from("notificaciones")
+    .select("*")
+    .eq("user_id", user.id)
+    .order("created_at", { ascending: false });
+
+  if (!error) {
+    setNotificaciones(data);
+
+// borrar notificaciones después de mostrarlas
+if (data.length > 0) {
+  setTimeout(async () => {
+    await supabase
+      .from("notificaciones")
+      .delete()
+      .in("id", data.map(n => n.id));
+
+    setNotificaciones([]);
+  }, 5000);
+}
+  }
+}
+  const cambiarEstadoReserva = async (reservaId, nuevoEstado) => {
+    const { data, error } = await supabase
+  .from("reservas")
+  .update({ estado: nuevoEstado })
+  .eq("id", reservaId)
+  .select();
+
+console.log("UPDATE RESERVA:", data, error, reservaId, nuevoEstado);
+
+    if (error) {
+      alert("Error al actualizar la reserva: " + error.message);
+      return;
+    }
+
+    setBarberReservations((prev) =>
+      prev.map((item) =>
+        item.id === reservaId ? { ...item, estado: nuevoEstado } : item
+      )
+    );
+
+    await cargarBarberiasActivas();
+  };
 
   const handleAffiliateSubmit = async () => {
     console.log("FORM DATA:", affiliateForm);
@@ -909,6 +1026,7 @@ setShowAffiliateForm(false);
   const { error } = await supabase.from("reservas").insert([
   {
     shop_id: selectedShop.id,
+    cliente_id: (await supabase.auth.getUser()).data.user?.id,
     cliente: customerInfo.name,
     servicio: selectedService.name,
     fecha: selectedDate,
@@ -919,7 +1037,22 @@ setShowAffiliateForm(false);
     estado: "pendiente"
   },
 ]);
+const { data: barberoPerfil } = await supabase
+  .from("profiles")
+  .select("id")
+  .eq("rol", "barbero")
+  .eq("barberia_id", selectedShop.id)
+  .single();
 
+if (barberoPerfil) {
+  await supabase.from("notificaciones").insert([
+    {
+      user_id: barberoPerfil.id,
+      titulo: "Nueva reserva",
+      mensaje: `${customerInfo.name} reservó ${selectedService.name} para ${selectedDate} a las ${selectedTime}`,
+    }
+  ]);
+}
   if (error) {
     alert("Error al guardar reserva: " + error.message);
     return;
@@ -943,17 +1076,6 @@ setShowAffiliateForm(false);
     })
   );
 
-  const appointment = {
-    time: selectedTime,
-    service: selectedService.name,
-    client: customerInfo.name,
-    shopId: selectedShop.id,
-    date: selectedDate,
-    customRequest: customRequest || "Sin pedido especial",
-    total: selectedService.price + customExtra,
-  };
-
-  setBarberAppointments((prev) => [appointment, ...prev]);
 
   setCustomerHistory((prev) => [
     {
@@ -976,11 +1098,96 @@ setShowAffiliateForm(false);
   setPaymentConfirmed(true);
 };
 
-  const handleBarberLogin = () => {
-    if (!barberLogin.email || !barberLogin.password) return;
-    setBarberLoggedIn(true);
-  };
+  const handleBarberLogin = async () => {
+  if (!barberLogin.email || !barberLogin.password) {
+    alert("Ingresa correo y contraseña");
+    return;
+  }
 
+  const { data, error } = await supabase.auth.signInWithPassword({
+    email: barberLogin.email,
+    password: barberLogin.password,
+  });
+
+  if (error) {
+    alert("Correo o contraseña incorrectos");
+    return;
+  }
+
+  const user = data.user;
+
+  const { data: perfil, error: perfilError } = await supabase
+    .from("profiles")
+    .select("*")
+    .eq("id", user.id)
+    .single();
+
+  if (perfilError || !perfil) {
+    alert("No existe perfil para este usuario");
+    return;
+  }
+
+  if (!perfil.activo) {
+    alert("Tu cuenta está inactiva");
+    return;
+  }
+
+  if (perfil.rol === "admin") {
+    setAdminAccess(true);
+    setView("admin");
+    return;
+  }
+
+  if (perfil.rol === "barbero") {
+    setLoggedBarber({ id: perfil.barberia_id });
+    setBarberLoggedIn(true);
+    await cargarReservasDelBarbero(perfil.barberia_id);
+    setView("barber");
+    return;
+  }
+  if (perfil.rol === "cliente") {
+  setView("client");
+  return;
+}
+
+  alert("Rol no permitido");
+};
+const handleCustomerLogin = async () => {
+  if (!customerInfo.email || !customerInfo.password) {
+    alert("Ingresa correo y contraseña");
+    return;
+  }
+
+  const { data, error } = await supabase.auth.signInWithPassword({
+    email: customerInfo.email,
+    password: customerInfo.password,
+  });
+
+  if (error) {
+    alert("Error: " + error.message);
+    return;
+  }
+
+  const user = data.user;
+
+  const { data: perfil } = await supabase
+    .from("profiles")
+    .select("*")
+    .eq("id", user.id)
+    .single();
+
+  if (!perfil) {
+    alert("No tienes perfil registrado");
+    return;
+  }
+
+  if (perfil.rol !== "cliente") {
+    alert("Este usuario no es cliente");
+    return;
+  }
+
+  setView("client");
+};
   const updateCustomerRating = (id, rating) => {
     setCustomerHistory((prev) =>
       prev.map((item) => (item.id === id ? { ...item, rating } : item))
@@ -1022,12 +1229,19 @@ const finalPrice = basePrice;
               Encuentra a los mejores barberos cerca de ti, descubre su trabajo real, revisa reseñas y reserva tu cita en segundos con Barber Pro.
             </p>
             <div className="mt-10 flex flex-wrap justify-center gap-4">
-              <button onClick={() => setView("client")} className={`rounded-2xl bg-amber-400 px-8 py-4 font-bold text-black transition hover:scale-105 ${pointerClass}`}>
-                Buscar barbería
-              </button>
-              <button onClick={() => setView("barber")} className={`rounded-2xl border border-white/20 px-8 py-4 font-bold text-white transition hover:bg-white/10 ${pointerClass}`}>
-                Soy barbero
-              </button>
+              <button
+  onClick={() => setView("client-auth")}
+  className="rounded-2xl bg-amber-400 px-8 py-4 font-bold text-black hover:scale-105 transition"
+>
+  Buscar barbería
+</button>
+
+<button
+  onClick={() => setView("barber-login")}
+  className="rounded-2xl border border-white/20 px-8 py-4 font-bold text-white hover:bg-white/10 transition"
+>
+  Soy barbero
+</button>
             </div>
             <div className="mt-14 grid gap-6 md:grid-cols-3">
               <div className="rounded-2xl border border-white/10 bg-black/40 p-5 backdrop-blur">
@@ -1050,8 +1264,14 @@ const finalPrice = basePrice;
   }
 
   if (view === "barber") {
-    
-    const currentBarberAppointments = barberAppointments.filter((item) => item.shopId === 1);
+    const currentBarberAppointments = barberReservations;
+    const pendientesCount = currentBarberAppointments.filter((item) => item.estado === "pendiente").length;
+    const confirmedTotal = currentBarberAppointments
+      .filter((item) => item.estado === "confirmada")
+      .reduce((acc, item) => acc + Number(item.total || 0), 0);
+    const platformTotal = currentBarberAppointments
+      .filter((item) => item.estado === "confirmada")
+      .length * COMISION;
 
     if (!barberLoggedIn) {
       return (
@@ -1083,35 +1303,100 @@ const finalPrice = basePrice;
 
     return (
       <div className="min-h-screen bg-neutral-950 p-8 text-white">
-        <h1 className="mb-8 text-3xl font-black">Panel Barbero <span className="text-amber-400">Barber Pro</span></h1>
+        <h1 className="mb-2 text-3xl font-black">Panel Barbero <span className="text-amber-400">Barber Pro</span></h1>
+        <div className="mb-4">
+  <h3 className="text-white font-bold mb-2">🔔 Notificaciones</h3>
+
+  {notificaciones.slice(0, 3).map((n, i) => (
+    <div key={i} className="bg-white/10 text-white p-2 rounded mb-2">
+      {n.titulo}
+    </div>
+  ))}
+</div>
+        <p className="mb-8 text-sm text-neutral-400">
+          {loggedBarber?.nombre || "Barbería"} • {loggedBarber?.correo || barberLogin.email}
+        </p>
         {notification && <div className="mb-6 rounded-2xl border border-amber-400/30 bg-amber-400/10 p-4 text-sm text-amber-200">🔔 {notification}</div>}
         <div className="mb-10 grid gap-6 md:grid-cols-3">
-          <div className="rounded-2xl bg-neutral-900 p-6"><p className="text-sm text-neutral-400">Citas hoy</p><p className="text-3xl font-black">{currentBarberAppointments.length}</p></div>
-          <div className="rounded-2xl bg-neutral-900 p-6"><p className="text-sm text-neutral-400">Ganancia hoy</p><p className="text-3xl font-black text-amber-400">S/ 168</p></div>
-          <div className="rounded-2xl bg-neutral-900 p-6"><p className="text-sm text-neutral-400">Comisión plataforma</p><p className="text-3xl font-black">S/ 28</p></div>
+          <div className="rounded-2xl bg-neutral-900 p-6"><p className="text-sm text-neutral-400">Reservas totales</p><p className="text-3xl font-black">{currentBarberAppointments.length}</p></div>
+          <div className="rounded-2xl bg-neutral-900 p-6"><p className="text-sm text-neutral-400">Pendientes</p><p className="text-3xl font-black text-amber-400">{pendientesCount}</p></div>
+          <div className="rounded-2xl bg-neutral-900 p-6"><p className="text-sm text-neutral-400">Confirmadas / Comisión</p><p className="text-3xl font-black">S/ {confirmedTotal} <span className="text-base text-neutral-400">/ S/ {platformTotal}</span></p></div>
         </div>
         <div className="rounded-2xl bg-neutral-900 p-6">
-          <h2 className="mb-4 text-xl font-bold">Próximas citas</h2>
-          <div className="space-y-2">
-            {currentBarberAppointments.map((item, index) => (
-              <div key={`${item.time}-${index}`} className="rounded-xl border border-white/10 px-4 py-3">
-                <div className="flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
-                  <span>{item.date} - {item.time} - {item.service}</span>
-                  <span>Cliente: {item.client}</span>
+          <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
+            <h2 className="text-xl font-bold">Reservas reales</h2>
+            <button
+              onClick={() => loggedBarber?.id && cargarReservasDelBarbero(loggedBarber.id)}
+              className={`rounded-xl border border-white/10 px-4 py-2 text-sm font-bold ${pointerClass}`}
+            >
+              Actualizar
+            </button>
+          </div>
+
+          {loadingBarberReservations && (
+            <p className="text-sm text-neutral-400">Cargando reservas...</p>
+          )}
+
+          {!loadingBarberReservations && barberReservations.length === 0 && (
+            <p className="text-sm text-neutral-400">Todavía no tienes reservas registradas.</p>
+          )}
+
+          <div className="space-y-3">
+            {barberReservations.map((item) => (
+              <div key={item.id} className="rounded-xl border border-white/10 px-4 py-4">
+                <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
+                  <div>
+                    <p className="font-semibold text-white">{item.fecha} • {String(item.hora).slice(0, 5)} • {item.servicio}</p>
+                    <p className="mt-1 text-sm text-neutral-300">Cliente: {item.cliente}</p>
+                    <p className="mt-1 text-sm text-neutral-400">Pedido especial: {item.pedido || "Sin pedido especial"}</p>
+                    <p className="mt-1 text-sm text-amber-400">Total: S/ {item.total}</p>
+                  </div>
+
+                  <div className="flex flex-col items-start gap-2 md:items-end">
+                    <span className={`rounded-full px-3 py-1 text-xs font-bold ${
+                      item.estado === "confirmada"
+                        ? "bg-emerald-500/20 text-emerald-300"
+                        : item.estado === "cancelada"
+                        ? "bg-red-500/20 text-red-300"
+                        : "bg-amber-400/20 text-amber-300"
+                    }`}>
+                      {item.estado}
+                    </span>
+
+                    <div className="flex gap-2">
+                      <button
+                        onClick={() => cambiarEstadoReserva(item.id, "confirmada")}
+                        disabled={item.estado !== "pendiente"}
+                        className={`rounded-xl px-4 py-2 text-sm font-bold ${
+                          item.estado === "pendiente"
+                            ? `${pointerClass} bg-emerald-500 text-white`
+                            : "cursor-not-allowed bg-neutral-700 text-neutral-400"
+                        }`}
+                      >
+                        Aceptar
+                      </button>
+
+                      <button
+                        onClick={() => cambiarEstadoReserva(item.id, "cancelada")}
+                        disabled={item.estado !== "pendiente"}
+                        className={`rounded-xl px-4 py-2 text-sm font-bold ${
+                          item.estado === "pendiente"
+                            ? `${pointerClass} bg-red-500 text-white`
+                            : "cursor-not-allowed bg-neutral-700 text-neutral-400"
+                        }`}
+                      >
+                        Rechazar
+                      </button>
+                    </div>
+                  </div>
                 </div>
-                <p className="mt-2 text-sm text-neutral-400">Pedido especial: {item.customRequest}</p>
-                <p className="mt-1 text-sm text-amber-400">Total: S/ {item.total}</p>
               </div>
             ))}
           </div>
         </div>
-        <div className="mt-6 rounded-2xl bg-neutral-900 p-6">
-          <h2 className="mb-4 text-xl font-bold">Promociones sugeridas</h2>
-          <p className="text-sm text-neutral-400">Ofrece 15% de descuento entre 2:00 pm y 4:00 pm para llenar horas vacías.</p>
-        </div>
         <div className="mt-10 flex flex-wrap gap-3">
           <button onClick={() => setView("client")} className={`rounded-xl bg-amber-400 px-4 py-2 font-bold text-black ${pointerClass}`}>Volver</button>
-          <button onClick={() => { setBarberLoggedIn(false); setBarberLogin({ email: "", password: "" }); }} className={`rounded-xl border border-white/10 px-4 py-2 font-bold ${pointerClass}`}>Cerrar sesión</button>
+          <button onClick={() => { setBarberLoggedIn(false); setLoggedBarber(null); setBarberReservations([]); setBarberLogin({ email: "", password: "" }); }} className={`rounded-xl border border-white/10 px-4 py-2 font-bold ${pointerClass}`}>Cerrar sesión</button>
         </div>
       </div>
     );
@@ -1135,11 +1420,8 @@ const finalPrice = basePrice;
 
           <button
             onClick={() => {
-              if (adminPassword === "BarberProAdmin2026") {
-                setAdminAccess(true);
-              } else {
-                alert("Clave incorrecta");
-              }
+              alert("Ahora el acceso admin es solo con login real");
+setView("barber");
             }}
             className={`w-full rounded-xl bg-amber-400 px-4 py-3 font-bold text-black ${pointerClass}`}
           >
@@ -1153,6 +1435,95 @@ const finalPrice = basePrice;
             Volver
           </button>
         </div>
+      </div>
+    </div>
+  );
+}
+if (view === "client-auth") {
+  return (
+    <div
+      className="min-h-screen bg-cover bg-center text-white"
+      style={{
+        backgroundImage:
+          "url(https://images.unsplash.com/photo-1503951914875-452162b0f3f1?auto=format&fit=crop&w=1800&q=80)",
+      }}
+    >
+      <div className="min-h-screen bg-black/70 flex items-center justify-center p-6">
+        <div className="w-full max-w-md rounded-[2rem] border border-white/10 bg-neutral-950/90 p-8 shadow-2xl">
+          <p className="text-sm uppercase tracking-[0.2em] text-amber-400">
+            Bienvenido a Barber Pro
+          </p>
+
+          <h1 className="mt-3 text-4xl font-black leading-tight">
+            Reserva, califica y habla con tu barbero.
+          </h1>
+
+          <p className="mt-4 text-sm text-neutral-300">
+            Crea tu cuenta una sola vez para ingresar a Barber Pro y acceder a una experiencia completa.
+          </p>
+
+          <div className="mt-8 space-y-3">
+            <button
+              onClick={() => setView("client-register")}
+              className="w-full rounded-2xl bg-amber-400 px-4 py-3 font-bold text-black"
+            >
+              Crear cuenta
+            </button>
+
+            <button
+              onClick={() => setView("client-login")}
+              className="w-full rounded-2xl border border-white/10 px-4 py-3 font-bold text-white"
+            >
+              Iniciar sesión
+            </button>
+
+            <button
+              onClick={() => setView("landing")}
+              className="w-full rounded-2xl border border-white/10 px-4 py-3 text-sm text-neutral-300"
+            >
+              Volver
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+if (view === "client-login") {
+  return (
+    <div className="min-h-screen flex items-center justify-center bg-black text-white p-6">
+      <div className="w-full max-w-md bg-neutral-900 p-8 rounded-2xl border border-white/10">
+        
+        <h2 className="text-2xl font-bold mb-6">Iniciar sesión</h2>
+
+        <input
+          type="email"
+          placeholder="Correo"
+          className="w-full mb-3 px-4 py-3 rounded-xl bg-black border border-white/10"
+          onChange={(e) => setCustomerInfo(prev => ({ ...prev, email: e.target.value }))}
+        />
+
+        <input
+          type="password"
+          placeholder="Contraseña"
+          className="w-full mb-6 px-4 py-3 rounded-xl bg-black border border-white/10"
+          onChange={(e) => setCustomerInfo(prev => ({ ...prev, password: e.target.value }))}
+        />
+
+        <button
+          onClick={handleCustomerLogin}
+          className="w-full bg-amber-400 text-black py-3 rounded-xl font-bold"
+        >
+          Entrar
+        </button>
+
+        <button
+          onClick={() => setView("client-auth")}
+          className="w-full mt-3 text-sm text-neutral-400"
+        >
+          Volver
+        </button>
+
       </div>
     </div>
   );
