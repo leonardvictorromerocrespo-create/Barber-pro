@@ -1,6 +1,10 @@
 import { savedOperation, endSession, commissionLabel, signInWithProfile } from "./lib/operations";
 import { supabase } from "./lib/supabase";
-import { useEffect, useMemo, useState } from "react";
+import { lazy, Suspense, useEffect, useMemo, useState } from "react";
+import CatalogFilters from "./components/CatalogFilters";
+import { selectShops, catalogMarkers, coordinates } from "./lib/catalog";
+import { listaDias } from "./lib/dates";
+const CatalogMap = lazy(() => import("./components/CatalogMap"));
 
 const pointerClass = "cursor-pointer";
 
@@ -196,17 +200,7 @@ const INITIAL_SHOPS = [
   },
 ];
 
-const today = new Date();
-
-const formatDate = (date) => {
-  return date.toISOString().split("T")[0];
-};
-
-const AVAILABLE_DATES = [
-  formatDate(today),
-  formatDate(new Date(today.getTime() + 24 * 60 * 60 * 1000)),
-  formatDate(new Date(today.getTime() + 2 * 24 * 60 * 60 * 1000)),
-];
+const AVAILABLE_DATES = listaDias(3);
 const HERO_IMAGES = [
   "https://images.unsplash.com/photo-1621605815971-fbc98d665033?auto=format&fit=crop&w=1600&q=80",
   "https://images.unsplash.com/photo-1517832606299-7ae9b720a186?auto=format&fit=crop&w=1600&q=80",
@@ -586,7 +580,12 @@ function BookingModal({
 }
 
 export default function BarberProApp() {
-  const [locationEnabled, setLocationEnabled] = useState(false);
+  const [location, setLocation] = useState(null);
+  const [locationError, setLocationError] = useState("");
+  const [showMap, setShowMap] = useState(false);
+  const [query, setQuery] = useState("");
+  const [district, setDistrict] = useState("");
+  const [order, setOrder] = useState("rating");
   const [view, setView] = useState("landing");
   const [adminAccess, setAdminAccess] = useState(false);
   const [shops, setShops] = useState([]);
@@ -678,6 +677,8 @@ const cargarBarberiasActivas = async () => {
     id: item.id,
     name: item.nombre,
     district: item.distrito,
+    lat: item.lat ?? null,
+    lng: item.lng ?? null,
     distance: "Cerca de ti",
     rating: item.rating ?? 5,
     reviews: item.total_resenas ?? 0,
@@ -851,9 +852,11 @@ useEffect(() => {
   }, []);
 
   const ranking = useMemo(
-    () => [...shops].sort((a, b) => b.rating * 100 + b.reviews - (a.rating * 100 + a.reviews)),
-    [shops]
+    () => selectShops(shops, { query, district, order, location }),
+    [shops, query, district, order, location]
   );
+
+  const markers = useMemo(() => catalogMarkers(ranking), [ranking]);
 
   async function cargarReservasDelBarbero(barberiaId) {
     if (!barberiaId) return;
@@ -920,9 +923,13 @@ async function cargarNotificaciones() {
   };
 
   const enableLocation = () => {
-    if (navigator.geolocation) {
-      navigator.geolocation.getCurrentPosition(() => setLocationEnabled(true));
-    }
+    setLocationError("");
+    if (!navigator.geolocation) return setLocationError("Este navegador no permite obtener tu ubicación.");
+    navigator.geolocation.getCurrentPosition(position => {
+      const point = coordinates({ lat: position.coords.latitude, lng: position.coords.longitude });
+      if (!point) return setLocationError("No se obtuvo una ubicación válida.");
+      setLocation(point); setOrder("distance");
+    }, () => setLocationError("No pudimos obtener tu ubicación. Puedes buscar por distrito."), { timeout: 10000 });
   };
 
   const openProfileModal = (shop) => {
@@ -1459,34 +1466,23 @@ if (view === "admin" && adminAccess) {
           <div className="mb-10 flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
             <div>
               <h2 className="text-3xl font-black">Barberías cerca de ti</h2>
-              <div className="mt-3">
-                <select className="rounded-xl border border-white/10 bg-neutral-900 px-3 py-2 text-sm">
-                  <option>Todos los distritos</option>
-                  <option>Ate</option>
-                  <option>Santa Anita</option>
-                  <option>La Molina</option>
-                  <option>San Juan de Lurigancho</option>
-                  <option>El Agustino</option>
-                </select>
-              </div>
+              <CatalogFilters query={query} district={district} order={order} hasLocation={!!location} onQuery={setQuery} onDistrict={setDistrict} onOrder={setOrder} />
               <p className="mt-2 text-neutral-400">Solicita una cita. La confirmación requiere aceptación y verificación del adelanto por el servidor.</p>
             </div>
             <div className="rounded-2xl border border-white/10 bg-neutral-900 px-4 py-3 text-sm text-neutral-300">
-              Ranking visible por cercanía, calificación y número de reseñas.
+              {ranking.length} barberías encontradas
             </div>
           </div>
 
-          {locationEnabled && (
-            <div className="mb-10 rounded-3xl border border-white/10 bg-neutral-900 p-6">
-              <p className="font-bold text-amber-400">Ubicación activada</p>
-              <div className="mt-4 flex h-[300px] w-full flex-col items-center justify-center rounded-2xl bg-black/40 text-center text-neutral-300">
-                <p className="font-semibold">Mapa de barberías cercanas</p>
-                <p className="mt-3">📍 Elite Fade Studio</p>
-                <p>📍 Black Gold Barber</p>
-                <p>📍 Urban King Barbershop</p>
-              </div>
-            </div>
-          )}
+          {locationError && <p role="alert" className="mb-4 text-sm text-amber-300">{locationError}</p>}
+          <button onClick={() => setShowMap(value => !value)} aria-expanded={showMap} className="mb-4 rounded-xl border border-white/10 px-4 py-2 text-sm">{showMap ? "Ocultar mapa" : "Ver mapa"}</button>
+          {showMap && <div className="mb-10 rounded-3xl border border-white/10 bg-neutral-900 p-6">
+            <Suspense fallback={<p role="status">Cargando mapa…</p>}>
+              <CatalogMap markers={markers} location={location} onSelect={id => { const shop = shops.find(item => item.id === id); if (shop) openProfileModal(shop); }} />
+            </Suspense>
+            {markers.length === 0 && <p className="mt-3 text-sm text-neutral-400">No hay ubicaciones verificables para estos resultados.</p>}
+          </div>}
+          {shops.length > 0 && ranking.length === 0 && <p role="status" className="mb-6 text-neutral-400">No encontramos barberías con esos filtros.</p>}
 
           <div className="grid gap-6 md:grid-cols-3">
             {ranking.map((shop, index) => (
@@ -1496,7 +1492,7 @@ if (view === "admin" && adminAccess) {
                   <div className="mb-2 flex items-start justify-between gap-3">
                     <div>
                       <h3 className="text-xl font-bold">{shop.name}</h3>
-                      <p className="text-sm text-neutral-400">#{index + 1} en ranking • {shop.district} • {shop.distance}</p>
+                      <p className="text-sm text-neutral-400">#{index + 1} en ranking • {shop.district}{shop.km != null ? ` • A ${shop.km.toFixed(1)} km` : ""}</p>
                     </div>
                     <span className="rounded-full bg-amber-400 px-3 py-1 text-xs font-bold text-black">{shop.discount}</span>
                   </div>
