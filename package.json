@@ -4,7 +4,10 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
-    "dev": "vite",
+    "dev": "powershell -NoProfile -File scripts/start-local.ps1",
+    "dev:local:server": "node scripts/serve-local.mjs",
+    "build:local": "vite build --mode localtest --outDir dist/local-app",
+    "test:local": "node --test tests/local-client.test.mjs tests/local-http.test.mjs",
     "build": "vite build",
     "lint": "eslint .",
     "preview": "vite preview",
