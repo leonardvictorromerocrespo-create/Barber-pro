@@ -167,10 +167,6 @@ export function BookingModal({
   setCustomerInfo,
   customRequest,
   setCustomRequest,
-  customExtra,
-  setCustomExtra,
-  paymentMethod,
-  setPaymentMethod,
   activeSlots,
   finalPrice,
   requestSaved,
@@ -202,7 +198,7 @@ export function BookingModal({
         <div className="grid gap-6 lg:grid-cols-[1.2fr_0.8fr]">
           <div className="space-y-6">
             <div className="rounded-3xl border border-white/10 bg-neutral-900 p-5">
-              <h4 className="text-xl font-bold">1. Elige tu corte</h4>
+              <h4 className="text-xl font-bold">1. Elige tu servicio y barbero</h4><label className="mt-3 block text-sm">Barbero / agenda de la barbería<select aria-label="Barbero" className="mt-2 block w-full rounded-xl border border-white/10 bg-neutral-900 p-3" value={selectedShop.id} onChange={()=>{}}><option value={selectedShop.id}>{selectedShop.name} · agenda única</option></select></label>
               <div className="mt-4 grid gap-3 md:grid-cols-3">
                 {selectedShop.services.map((service) => (
                   <button
@@ -300,42 +296,10 @@ export function BookingModal({
                 placeholder="Ej: degradado alto con línea al costado, barba marcada o cejas suaves"
                 className="mt-3 min-h-[110px] w-full rounded-xl border border-white/10 bg-black/20 px-4 py-3 text-sm outline-none"
               />
-              <p className="mt-4 text-sm font-semibold text-neutral-300">Costo adicional por personalización</p>
-              <div className="mt-2 grid grid-cols-4 gap-2">
-                {[0, 5, 10, 15].map((extra) => (
-                  <button
-                    key={extra}
-                    onClick={() => setCustomExtra(extra)}
-                    className={`rounded-xl border px-3 py-2 text-sm ${pointerClass} ${
-                      customExtra === extra
-                        ? "border-amber-400 bg-amber-400 text-black"
-                        : "border-white/10 bg-black/20 text-white"
-                    }`}
-                  >
-                    {extra === 0 ? "Sin extra" : `+ S/ ${extra}`}
-                  </button>
-                ))}
-              </div>
+
             </div>
 
-            <div className="rounded-3xl border border-white/10 bg-neutral-900 p-5">
-              <h4 className="text-xl font-bold">6. Pago disponible después de la aceptación</h4>
-              <div className="mt-4 grid gap-3 sm:grid-cols-3">
-                {["Tarjeta", "Yape", "Plin"].map((method) => (
-                  <button
-                    key={method}
-                    disabled onClick={() => setPaymentMethod(method)}
-                    className={`rounded-2xl border px-4 py-4 text-sm font-semibold transition ${pointerClass} ${
-                      paymentMethod === method
-                        ? "border-amber-400 bg-amber-400 text-black"
-                        : "border-white/10 bg-black/20 text-white"
-                    }`}
-                  >
-                    {method}
-                  </button>
-                ))}
-              </div>
-            </div>
+
           </div>
 
           <div className="rounded-3xl border border-amber-400/20 bg-amber-400/10 p-5">
@@ -346,12 +310,11 @@ export function BookingModal({
               <div className="flex justify-between"><span>Servicio</span><span>{selectedService?.name || "-"}</span></div>
               <div className="flex justify-between"><span>Fecha</span><span>{selectedDate}</span></div>
               <div className="flex justify-between"><span>Hora</span><span>{activeSlots.find(slot=>slot.time===selectedTime)?.label || "Selecciona una hora"}</span></div>
-              <div className="flex justify-between"><span>Pago</span><span>{paymentMethod}</span></div>
               <div className="flex justify-between"><span>Pedido especial</span><span className="max-w-[170px] text-right">{customRequest || "No"}</span></div>
-              <div className="flex justify-between"><span>Extra</span><span>S/ {customExtra}</span></div>
               <div className="flex justify-between"><span>Adelanto tras aceptar</span><span>S/ {(finalPrice * 0.5).toFixed(2)}</span></div>
               <div className="flex justify-between text-lg font-black"><span>Total</span><span className="text-amber-300">S/ {finalPrice}</span></div>
             </div>
+            <p className="mt-5 text-sm text-amber-200">El barbero tendrá hasta 15 minutos para aceptar tu solicitud. Te avisaremos cuando puedas pagar el adelanto del 50 %.</p>
             <button
               onClick={submitReservation}
               disabled={!reservationsEnabled || savingReservation || !selectedTime || !customerInfo.name.trim() || !customerInfo.phone.trim() || requestSaved}
@@ -361,7 +324,7 @@ export function BookingModal({
                   : "cursor-not-allowed bg-neutral-700 text-neutral-400"
               }`}
             >
-              {requestSaved ? "Solicitud guardada" : savingReservation ? "Guardando…" : reservationsEnabled ? "Solicitar reserva" : "Reservas en preparación"}
+              {requestSaved ? "Solicitud guardada" : savingReservation ? "Guardando…" : "Solicitar cita"}
             </button>
             {!reservationsEnabled&&<div className="mt-3 text-sm text-amber-300"><p>Se necesita una sesión real de cliente para solicitar. Pagos bloqueados.</p><button onClick={onLogin} className="mt-2 underline">Iniciar sesión</button></div>}
             {requestSaved && (
@@ -414,7 +377,6 @@ export default function BarberProApp() {
   const [selectedService, setSelectedService] = useState(null);
   const [selectedDate, setSelectedDate] = useState(AVAILABLE_DATES[0]);
   const [selectedTime, setSelectedTime] = useState("");
-  const [paymentMethod, setPaymentMethod] = useState("Tarjeta");
   const [showAffiliateForm, setShowAffiliateForm] = useState(false);
   const [showBookingModal, setShowBookingModal] = useState(false);
   const [showProfileModal, setShowProfileModal] = useState(false);
@@ -423,7 +385,6 @@ export default function BarberProApp() {
   const [notificaciones, setNotificaciones] = useState([]);
   const [ultimaNoti, setUltimaNoti] = useState(null);
   const [customRequest, setCustomRequest] = useState("");
-  const [customExtra, setCustomExtra] = useState(0);
   const [customerInfo, setCustomerInfo] = useState({ name: "", phone: "" });
   const [heroIndex, setHeroIndex] = useState(0);
   const cargarBarberiasActivas = async () => {
@@ -435,9 +396,10 @@ export default function BarberProApp() {
     let active=true;
     if(!showBookingModal || !selectedShop || !selectedService) return;
     setAgendaLoading(true);setAgendaError('');setActiveSlots([]);setSelectedTime('');
-    api.slots(selectedShop.id,selectedService.id,selectedDate).then(rows => {if(active)setActiveSlots(rows);})
+    const refreshSlots=()=>api.slots(selectedShop.id,selectedService.id,selectedDate).then(rows => {if(active){setActiveSlots(rows);setSelectedTime(current=>rows.some(s=>s.time===current)?current:"");}})
       .catch(error=>{if(active)setAgendaError(error.message);}).finally(()=>{if(active)setAgendaLoading(false);});
-    return()=>{active=false;};
+    refreshSlots();const timer=setInterval(refreshSlots,5000);
+    return()=>{active=false;clearInterval(timer);};
   },[showBookingModal,selectedShop,selectedService,selectedDate]);
 
 useEffect(() => {
@@ -535,9 +497,7 @@ async function cargarNotificaciones() {
     setSelectedService(shop.services[0]);
     setSelectedDate(AVAILABLE_DATES[0]);
     setSelectedTime("");
-    setPaymentMethod("Tarjeta");
     setCustomRequest("");
-    setCustomExtra(0);
     setCustomerInfo(prev=>({...prev,name:prev.name||identity.profile?.nombre||"",phone:prev.phone||identity.profile?.telefono||""}));
     setRequestSaved(false);
     setShowBookingModal(true);
@@ -554,10 +514,10 @@ async function cargarNotificaciones() {
     setSavingReservation(true);
     setRequestSaved(false);
     try {
-      await api.request({shop:selectedShop.id,service:selectedService.id,start:selectedTime,name:customerInfo.name,phone:customerInfo.phone,note:customRequest,extra:customExtra});
+      await api.request({shop:selectedShop.id,service:selectedService.id,start:selectedTime,name:customerInfo.name,phone:customerInfo.phone,note:customRequest});
       // Notification is written in the same database transaction, never by the browser.
       setRequestSaved(true);
-      await cargarBarberiasActivas();
+      setShowBookingModal(false);setView("my-bookings");
     } catch (error) { alert(error.message); }
     finally { setSavingReservation(false); }
   };
@@ -596,13 +556,13 @@ async function cargarNotificaciones() {
   };
 
   const basePrice =
-  (selectedService?.price || selectedShop?.basePrice || 0) + customExtra;
+  (selectedService?.price || selectedShop?.basePrice || 0);
 
 
 
 const finalPrice = basePrice;
   if(view === 'shop-manage') return <ShopManagement api={api} profile={identity.profile} onLogin={()=>setView('barber-login')} onBack={()=>setView('client')} onRegister={()=>{setShowAffiliateForm(true);setView('client');setTimeout(()=>document.getElementById('register-shop')?.scrollIntoView(),0);}}/>;
-  if(view === 'my-bookings') return <div className="min-h-screen bg-neutral-950 p-6 text-white"><div className="mx-auto max-w-5xl space-y-5"><h1 className="text-3xl font-black">Mis citas <span className="text-amber-400">MERYO</span></h1><button onClick={()=>setView('client')} className="rounded-xl border border-white/20 px-4 py-2">Volver</button><Reservations key={`${identity.profile?.id}-${identity.profile?.rol}`} api={api} profile={identity.profile} onLogin={()=>setView('client-login')}/></div></div>;
+  if(view === 'my-bookings') return <div className="min-h-screen bg-neutral-950 p-6 text-white"><div className="mx-auto max-w-5xl space-y-5"><h1 className="text-3xl font-black">Mis citas <span className="text-amber-400">MERYO</span></h1><button onClick={()=>setView('client')} className="rounded-xl border border-white/20 px-4 py-2">Volver</button><Reservations key={`${identity.profile?.id}-${identity.profile?.rol}`} api={api} profile={identity.profile} onLogin={()=>setView('client-login')} onSearch={()=>{setQuery('');setDistrict('');setShowBookingModal(false);setView('client');}}/></div></div>;
   if (view === "landing") {
     return (
       <div className="min-h-screen bg-neutral-950 text-white">
@@ -694,10 +654,10 @@ const finalPrice = basePrice;
     return (
       <div className="min-h-screen bg-neutral-950 p-8 text-white">
         <h1 className="mb-2 text-3xl font-black">Panel Barbero <span className="text-amber-400">MERYO</span></h1>
-        <p className="mb-6 text-neutral-400">Aceptación manual en 5 minutos. El estado y los vencimientos los determina el servidor.</p>
+        <p className="mb-6 text-neutral-400">Aceptación manual en 15 minutos. El estado y los vencimientos los determina el servidor.</p>
         {notificaciones.length>0&&<div className="mb-5 rounded-2xl border border-white/10 bg-neutral-900 p-5"><h2 className="font-bold">Notificaciones</h2>{notificaciones.slice(0,3).map(n=><p key={n.id} className="mt-2 text-sm text-neutral-300">{n.titulo}</p>)}</div>}
         <button onClick={()=>setView('shop-manage')} className="mb-6 rounded-xl bg-amber-400 px-4 py-2 font-bold text-black">Perfil, servicios y horarios</button>
-        <Reservations key={`${identity.profile?.id}-${identity.profile?.rol}`} api={api} profile={identity.profile} onLogin={()=>setView('barber-login')}/>
+        <Reservations key={`${identity.profile?.id}-${identity.profile?.rol}`} api={api} profile={identity.profile} onLogin={()=>setView('barber-login')} onSearch={()=>setView('client')}/>
         <div className="mt-10 flex flex-wrap gap-3">
           <button onClick={() => setView("client")} className={`rounded-xl bg-amber-400 px-4 py-2 font-bold text-black ${pointerClass}`}>Volver</button>
           <button onClick={handleLogout} className={`rounded-xl border border-white/10 px-4 py-2 font-bold ${pointerClass}`}>Cerrar sesión</button>
@@ -956,22 +916,14 @@ if (view === "admin" && adminAccess) {
 
         <section className="mx-auto max-w-7xl px-6 pb-4">
           <div className="rounded-3xl border border-white/10 bg-neutral-900 p-6">
-            <Reservations key={`${identity.profile?.id}-${identity.profile?.rol}`} api={api} profile={identity.profile} onLogin={()=>setView('client-login')}/>
+            <Reservations key={`${identity.profile?.id}-${identity.profile?.rol}`} api={api} profile={identity.profile} onLogin={()=>setView('client-login')} onSearch={()=>{setQuery('');setDistrict('');setShowBookingModal(false);setView('client');}}/>
           </div>
         </section>
 
         <section className="border-y border-white/10 bg-neutral-900 py-16">
           <div className="mx-auto grid max-w-7xl gap-8 px-6 md:grid-cols-2">
             <div className="rounded-3xl border border-white/10 bg-neutral-950 p-6">
-              <h2 className="text-2xl font-black">Pagos en preparación</h2>
-              <p className="mt-3 text-neutral-400">No se realizan cobros. El adelanto del 50 % estará disponible después de la aceptación y la validación del proveedor.</p>
-              <div className="mt-6 grid gap-3 sm:grid-cols-3">
-                {["Tarjeta", "Yape", "Plin"].map((method) => (
-                  <button key={method} onClick={() => setPaymentMethod(method)} className={`rounded-2xl border px-4 py-4 text-sm font-semibold transition ${pointerClass} ${paymentMethod === method ? "border-amber-400 bg-amber-400 text-black" : "border-white/10 bg-neutral-900 text-white"}`}>
-                    {method}
-                  </button>
-                ))}
-              </div>
+              <h2 className="text-2xl font-black">Solicita tu cita</h2><p className="mt-3 text-neutral-400">Elige un servicio en el catálogo. El adelanto del 50 % se solicita únicamente después de que el barbero acepte.</p>
             </div>
             <div className="rounded-3xl border border-white/10 bg-neutral-950 p-6">
               <div className="mb-6 flex items-center justify-between gap-3">
@@ -1086,10 +1038,6 @@ if (view === "admin" && adminAccess) {
         setCustomerInfo={setCustomerInfo}
         customRequest={customRequest}
         setCustomRequest={setCustomRequest}
-        customExtra={customExtra}
-        setCustomExtra={setCustomExtra}
-        paymentMethod={paymentMethod}
-        setPaymentMethod={setPaymentMethod}
         activeSlots={activeSlots}
         finalPrice={finalPrice}
         requestSaved={requestSaved}

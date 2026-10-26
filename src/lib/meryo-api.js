@@ -29,14 +29,19 @@ export function createMeryoApi(client) {
     profile:()=>verifiedProfile(client),
     catalog:async()=> (await readResult(client.from('barberias').select('*,servicios(id,nombre,descripcion,precio,duracion_min,activo)').eq('verificada',true))).map(mapShop),
     slots:async(shop,service,date)=>(await readResult(client.rpc('horarios_disponibles',{p_barberia_id:shop,p_servicio_id:service,p_fecha:date}))).map(s=>({id:s.hora_inicio,time:s.hora_inicio,label:new Date(s.hora_inicio).toLocaleTimeString('es-PE',{timeZone:'America/Lima',hour:'2-digit',minute:'2-digit',hour12:false}),occupied:false})),
-    request:async({shop,service,start,name,phone,note,extra})=>{
+    request:async({shop,service,start,name,phone,note})=>{
       await requireRole(['cliente']);
-      return savedOperation(()=>client.rpc('crear_reserva',{p_barberia_id:shop,p_servicio_id:service,p_inicio:start,p_nombre:name.trim(),p_telefono:phone.trim(),p_pedido:note||null,p_extra:extra}));
+      const config=await readResult(client.rpc('meryo_reservas_config'));
+      if(config.respuesta_segundos!==900||config.modelo_comercial!=='mensualidad')throw new Error('El servidor todavía no tiene el flujo de solicitudes de MERYO actualizado.');
+      return savedOperation(()=>client.rpc('crear_reserva',{p_barberia_id:shop,p_servicio_id:service,p_inicio:start,p_nombre:name.trim(),p_telefono:phone.trim(),p_pedido:note||null,p_extra:0}));
     },
     bookings:async()=>{
       const p=await requireRole(['cliente','barbero']);
       return readResult(client.from('reservas').select('*,barberias(nombre),pagos(proveedor,estado)').eq(p.rol==='barbero'?'barberia_id':'cliente_id',p.rol==='barbero'?p.barberia_id:p.id).order('inicio',{ascending:false}));
     },
+    bookingState:async()=>{await requireRole(['cliente','barbero']);return readResult(client.rpc('meryo_reservas_estado'));},
+    bookingConfig:()=>readResult(client.rpc('meryo_reservas_config')),
+    registerPush:async(subscription)=>{await requireRole(['cliente','barbero']);return savedOperation(()=>client.rpc('meryo_registrar_push',{p_subscription:subscription}));},
     respond:async(id,accept)=>{await requireRole(['barbero']);const result=await savedOperation(()=>client.rpc('responder_reserva',{p_reserva_id:id,p_aceptar:accept}));if(!['aceptada','rechazada','expirada'].includes(result))throw new Error('Respuesta de reserva inesperada');return result;},
     registerShop:async(form)=>{
       await requireRole(['cliente']);
@@ -49,5 +54,5 @@ export function createMeryoApi(client) {
 
 export function bookingLabel(row) {
   if(row.estado==='confirmada' && row.pagos?.some(p=>/prueba|fixture|simulad|sandbox|mock/i.test(p.proveedor)))return 'Registro de pruebas · no acredita un cobro';
-  return ({solicitada:'Solicitada · espera al barbero',aceptada:'Pendiente de pago',confirmada:'Confirmada',rechazada:'Rechazada',expirada:'Vencida',cancelada_cliente:'Cancelada por cliente',cancelada_barbero:'Cancelada por barbero',completada:'Completada',no_asistio:'No asistió'})[row.estado]??row.estado;
+  return ({solicitada:'Esperando respuesta',aceptada:'Aceptada · pendiente de pago',confirmada:'Confirmada',rechazada:'Rechazada',expirada:'Vencida',cancelada_cliente:'Cancelada por cliente',cancelada_barbero:'Cancelada por barbero',completada:'Completada',no_asistio:'No asistió'})[row.estado]??row.estado;
 }

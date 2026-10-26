@@ -3,9 +3,12 @@ import fs from 'node:fs';
 import path from 'node:path';
 import {createServer} from 'vite';
 import {nativeRoot,prepareDatabase,preparePublic,secrets} from './setup-real-auth.mjs';
+import pg from 'pg';
+import {realConfig} from './setup-real-auth.mjs';
+import {startReservationMaintenance} from '../server/reservation-maintenance.mjs';
 
-const children=[];let vite,stopping=false;
-async function stop(){if(stopping)return;stopping=true;if(vite)await vite.close();for(const child of children)child.kill();}
+const children=[];let vite,stopping=false,maintenance,pool;
+async function stop(){if(stopping)return;stopping=true;if(maintenance)await maintenance();if(pool)await pool.end();if(vite)await vite.close();for(const child of children)child.kill();}
 async function healthy(url,child){
  for(let i=0;i<120;i++){
   if(child.exitCode!==null)throw Error('El servicio nativo salió antes de iniciar');
@@ -38,13 +41,15 @@ try{
   PGRST_SERVER_HOST:'127.0.0.1',PGRST_SERVER_PORT:'55442',PGRST_DB_POOL:'4',PGRST_LOG_LEVEL:'error',GHCRTS:'-N2',
  },'postgrest');
  await healthy('http://127.0.0.1:55442/',rest);
+ pool=new pg.Pool({...realConfig,max:1});
+ maintenance=startReservationMaintenance(pool,{onError:message=>console.error(message)});
  vite=await createServer({mode:'localauth',define:{'import.meta.env.VITE_MERYO_LOCAL_ANON_KEY':JSON.stringify(s.anonKey)},server:{host:'127.0.0.1',port:5178,strictPort:true,proxy:{
   '/__supabase/auth/v1':{target:'http://127.0.0.1:55441',rewrite:p=>p.replace(/^\/__supabase\/auth\/v1/,'')},
   '/__supabase/rest/v1':{target:'http://127.0.0.1:55442',rewrite:p=>p.replace(/^\/__supabase\/rest\/v1/,'')},
  }},plugins:[{name:'real-auth-local-only',configureServer(server){server.middlewares.use((req,res,next)=>{
   if(req.headers.host!=='127.0.0.1:5178'||(req.headers.origin&&req.headers.origin!=='http://127.0.0.1:5178')){res.statusCode=403;res.end('Solo localhost');return;}
   if(req.url.startsWith('/__local/')||req.url.startsWith('/tests/browser/')){res.statusCode=410;res.end('No hay actores ni banco simulado');return;}
-  res.setHeader('Content-Security-Policy',"default-src 'self'; connect-src 'self' ws://127.0.0.1:5178; img-src 'self' data:; media-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; base-uri 'none'; form-action 'self'; frame-src 'none'; worker-src 'none'");next();
+  res.setHeader('Content-Security-Policy',"default-src 'self'; connect-src 'self' ws://127.0.0.1:5178; img-src 'self' data:; media-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; base-uri 'none'; form-action 'self'; frame-src 'none'; worker-src 'self'");next();
  });},transformIndexHtml(html){return html.replace('<body>','<body><aside style="background:#fbbf24;color:#000;padding:10px;text-align:center;font:14px sans-serif">MERYO LOCAL · Supabase Auth y PostgREST reales · Correo autoconfirmado solo en pruebas · Sin pagos</aside>');}}]});
  await vite.listen();console.log('MERYO con Auth real: http://127.0.0.1:5178/ · PostgreSQL existente, base meryo_auth_local');
  for(const signal of ['SIGINT','SIGTERM'])process.once(signal,()=>{stop().then(()=>process.exit(0));});

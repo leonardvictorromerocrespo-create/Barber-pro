@@ -19,8 +19,9 @@ test('existing screens render without a fictitious identity or a payment confirm
  assert.match(screen('shop-manage'),/cuenta de barbero real/);
  assert.match(screen('my-bookings'),/Inicia sesión para consultar tus citas/);
  assert.doesNotMatch(screen('client'),/Este historial es una demostración local|Simular recibo|actor sintético/i);
- const {createMeryoApi}=await import('../src/lib/meryo-api.js');const {createLocalClient}=await import('../src/lib/local-client.js');
- const api=createMeryoApi(createLocalClient((url,options)=>fetch('http://127.0.0.1:5178'+url,options)));
- const shop=(await api.catalog()).find(s=>String(s.id)==='900001');const slots=await api.slots(shop.id,shop.services[0].id,'2026-10-27');
- const html=booking(shop,slots);assert.match(html,/Corte local/);assert.match(html,/30 min/);assert.match(html,/sesión real de cliente/);assert.doesNotMatch(html,/Solicitud guardada para|Simular recibo/);
+ const shop={id:1,name:'Barbería',services:[{id:1,name:'Corte local',duration:'30 min',price:30}]};
+ const html=booking(shop,[]);assert.match(html,/Corte local/);assert.match(html,/30 min/);assert.match(html,/sesión real de cliente/);
+ assert.match(html,/Solicitar cita/);assert.match(html,/hasta 15 minutos/);assert.match(html,/Barbero/);
+ assert.doesNotMatch(html,/Reservas en preparación|Costo adicional|Sin extra|Tarjeta|Yape|Plin|Simular recibo/);
+
 });

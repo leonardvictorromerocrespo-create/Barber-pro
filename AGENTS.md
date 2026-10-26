@@ -5,4 +5,4 @@
 - Nunca usar producción para probar. No desplegar, aplicar migraciones a producción ni habilitar cobros sin demostrar el flujo real en staging y obtener autorización explícita.
 - Conservar el diseño y los avances existentes. Consultar docs/MERYO-estado-2026-10-24.md antes de repetir verificaciones.
 - El SQL en db/candidate es un esquema candidato local; no representa el esquema existente de Supabase. Contrastarlo con el export real antes de integrar.
-- No exponer ni registrar secretos. Comisión configurable S/1 o S/2, criterio pendiente; no implementar reparto de fondos sin validar al proveedor.
+- No exponer ni registrar secretos. Modelo vigente: mensualidad por barbería, sin comisión MERYO por corte. Conservar historial previo; precios de planes propuestos, sin activar suscripciones. No implementar reparto de fondos sin validar al proveedor.
