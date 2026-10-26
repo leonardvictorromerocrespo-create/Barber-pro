@@ -6,3 +6,6 @@
 - Conservar el diseño y los avances existentes. Consultar docs/MERYO-estado-2026-10-24.md antes de repetir verificaciones.
 - El SQL en db/candidate es un esquema candidato local; no representa el esquema existente de Supabase. Contrastarlo con el export real antes de integrar.
 - No exponer ni registrar secretos. Modelo vigente: mensualidad por barbería, sin comisión MERYO por corte. Conservar historial previo; precios de planes propuestos, sin activar suscripciones. No implementar reparto de fondos sin validar al proveedor.
+- Plazos aprobados: 15 minutos para aceptación manual y 10 minutos para pagar el adelanto del 50 %, siempre desde el servidor. Ningún pago simulado confirma una cita comercial.
+- Google OAuth local está configurado fuera de Git. Los roles vienen de profiles y administración exige MFA real/AAL2 en SQL. Nunca generar administradores desde metadatos de registro.
+- Respaldos de pruebas locales cifrados: AppData/Local/MERYO-backups, tarea diaria y retención 30 días. La copia independiente y los objetos de Storage de producción siguen pendientes de conexión; no presentarlos como activos sin ejecución/restauración verificadas.

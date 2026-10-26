@@ -16,9 +16,9 @@ test('native Auth/PostgREST: manual 15 minute requests, locks and payment gate',
  const available=async hour=>{const r=await a.customer.rpc('horarios_disponibles',{p_barberia_id:a.shop,p_servicio_id:a.service,p_fecha:date});assert.ifError(r.error);return r.data.some(s=>Date.parse(s.hora_inicio)===Date.parse(start(hour)));};
  const created=[];
  try{
-  await t.test('configuration is monthly, no fee or invented payment deadline; extras rejected',async()=>{
+  await t.test('configuration is monthly, no fee, approved 600-second deadline; extras rejected',async()=>{
    const {data,error}=await a.customer.rpc('meryo_reservas_config');assert.ifError(error);
-   assert.equal(data.respuesta_segundos,900);assert.equal(data.plazo_pago_segundos,null);assert.equal(data.modelo_comercial,'mensualidad');assert.equal(data.comision_por_corte,0);assert.equal(data.cobros_habilitados,false);assert.equal(data.push_disponible,false);
+   assert.equal(data.respuesta_segundos,900);assert.equal(data.plazo_pago_segundos,600);assert.equal(data.modelo_comercial,'mensualidad');assert.equal(data.comision_por_corte,0);assert.equal(data.cobros_habilitados,false);assert.equal(typeof data.push_disponible,'boolean');
    assert.ok((await request(9,5)).error);
   });
   let accepted;
@@ -35,7 +35,7 @@ test('native Auth/PostgREST: manual 15 minute requests, locks and payment gate',
   });
   await t.test('manual acceptance retains hold; no browser payment confirmation',async()=>{
    const result=await decide(accepted,true);assert.ifError(result.error);assert.equal(result.data,'aceptada');
-   const r=await row(accepted);assert.equal(r.expira_pago_en,null);assert.equal(r.estado,'aceptada');assert.equal(await available(10),false);
+   const r=await row(accepted);assert.ok(Math.abs((Date.parse(r.expira_pago_en)-Date.parse(r.aceptada_en))/1000-600)<1);assert.equal(r.estado,'aceptada');assert.equal(await available(10),false);
    assert.ok((await a.customer.from('reservas').update({estado:'confirmada'}).eq('id',accepted)).error);
    assert.ok((await a.customer.rpc('pagar_reserva_prueba',{p_reserva_id:accepted,p_metodo:'yape'})).error);
    assert.ok((await a.customer.rpc('confirmar_pago_reserva',{p_reserva_id:accepted,p_proveedor:'fake',p_ref:'fake',p_metodo:'yape'})).error);
@@ -53,17 +53,16 @@ test('native Auth/PostgREST: manual 15 minute requests, locks and payment gate',
    assert.equal((await row(r.data)).estado,'expirada');assert.equal(await available(12),true);
    assert.ok((await decide(r.data,true)).error,'An expired request cannot be revived');
   });
-  await t.test('configurable payment window works when explicitly set; expiry does not confirm',async()=>{
-   await db.query('update meryo_private.launch_settings set plazo_pago_segundos=120 where id=1');
-   try{
+  await t.test('approved ten-minute payment window expires without confirming',async()=>{
     const r=await request(13);assert.ifError(r.error);created.push(r.data);const result=await decide(r.data,true);assert.ifError(result.error);
-    const value=await row(r.data);assert.ok(Math.abs((Date.parse(value.expira_pago_en)-Date.parse(value.aceptada_en))/1000-120)<1);
+    const value=await row(r.data);assert.ok(Math.abs((Date.parse(value.expira_pago_en)-Date.parse(value.aceptada_en))/1000-600)<1);
     await db.query("update public.reservas set expira_pago_en=clock_timestamp()-interval '1 second' where id=$1",[r.data]);
     for(let i=0;i<30&&(await row(r.data)).estado!=='expirada';i++)await new Promise(resolve=>setTimeout(resolve,200));
     assert.equal((await row(r.data)).estado,'expirada');assert.equal(await available(13),true);
-   }finally{await db.query('update meryo_private.launch_settings set plazo_pago_segundos=null where id=1');}
   });
   await t.test('push events queued transactionally; no delivery or payment is invented',async()=>{
+   const identity=await a.customer.auth.getUser();assert.ifError(identity.error);
+   const contact=await a.customer.from('profiles').select('telefono').eq('id',identity.data.user.id).single();assert.ifError(contact.error);assert.equal(contact.data.telefono,'999999999');
    const events=(await db.query('select event,status from meryo_private.push_outbox where reserva_id=any($1::uuid[])',[created])).rows;
    assert.ok(events.some(e=>e.event==='reserva_solicitada'));assert.ok(events.some(e=>e.event==='reserva_aceptada'));assert.ok(events.some(e=>e.event==='reserva_rechazada'));assert.ok(events.some(e=>e.event==='reserva_expirada'));
    assert.ok(events.every(e=>e.status==='pending_provider'));

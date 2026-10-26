@@ -1,9 +1,12 @@
 import { endSession, signInWithProfile } from "./lib/operations";
-import { supabase } from "./lib/supabase";
-import { lazy, Suspense, useEffect, useMemo, useState } from "react";
+import { supabase, googleAuthEnabled } from "./lib/supabase";
+import { lazy, Suspense, useEffect, useMemo, useRef, useState } from "react";
 import { createMeryoApi, readResult } from './lib/meryo-api';
 import { useIdentity } from './lib/useIdentity';
 import Reservations from './components/Reservations';
+import AdminMfa from './components/AdminMfa';
+import {disableBookingPush} from './lib/push';
+import {saveDraft,readDraft,clearDraft,beginGoogle} from './lib/booking-draft';
 import ShopManagement from './components/management/ShopManagement';
 const api = createMeryoApi(supabase);
 import CatalogFilters from "./components/CatalogFilters";
@@ -174,7 +177,7 @@ export function BookingModal({
   closeBookingModal,
   savingReservation,
   reservationsEnabled,
-  agendaLoading,agendaError,onLogin,
+  agendaLoading,agendaError,onLogin,accessMessage,
 }) {
   if (!selectedShop) return null;
 
@@ -185,7 +188,7 @@ export function BookingModal({
         <div className="mb-6 flex items-start justify-between gap-4">
           <div>
             <p className="text-sm uppercase tracking-[0.2em] text-amber-300">Reserva tu cita</p>
-            <h3 className="mt-2 text-3xl font-black">{selectedShop.name}</h3>
+            <h3 className="mt-2 text-3xl font-black">{selectedShop.name}</h3>{accessMessage&&<p role="status" className="mt-3 text-amber-300">{accessMessage}</p>}
             <p className="mt-2 text-neutral-400">
               Elige el servicio y solicita un horario. No se realiza ningún cobro en esta pantalla.
             </p>
@@ -203,7 +206,7 @@ export function BookingModal({
                 {selectedShop.services.map((service) => (
                   <button
                     key={service.id}
-                    onClick={() => setSelectedService(service)}
+                    onClick={() => {setSelectedService(service);setSelectedTime("");}}
                     className={`rounded-2xl border p-4 text-left transition ${pointerClass} ${
                       selectedService?.id === service.id
                         ? "border-amber-400 bg-amber-400 text-black"
@@ -317,7 +320,7 @@ export function BookingModal({
             <p className="mt-5 text-sm text-amber-200">El barbero tendrá hasta 15 minutos para aceptar tu solicitud. Te avisaremos cuando puedas pagar el adelanto del 50 %.</p>
             <button
               onClick={submitReservation}
-              disabled={!reservationsEnabled || savingReservation || !selectedTime || !customerInfo.name.trim() || !customerInfo.phone.trim() || requestSaved}
+              disabled={savingReservation || !selectedTime || (reservationsEnabled&&(!customerInfo.name.trim() || !customerInfo.phone.trim())) || requestSaved}
               className={`mt-6 w-full rounded-xl py-3 font-bold ${
                 selectedTime && customerInfo.name.trim() && customerInfo.phone.trim() && !requestSaved
                   ? `${pointerClass} bg-amber-400 text-black`
@@ -326,7 +329,7 @@ export function BookingModal({
             >
               {requestSaved ? "Solicitud guardada" : savingReservation ? "Guardando…" : "Solicitar cita"}
             </button>
-            {!reservationsEnabled&&<div className="mt-3 text-sm text-amber-300"><p>Se necesita una sesión real de cliente para solicitar. Pagos bloqueados.</p><button onClick={onLogin} className="mt-2 underline">Iniciar sesión</button></div>}
+            {!reservationsEnabled&&<div className="mt-3 text-sm text-amber-300"><p>Al solicitar, continúa con Google o con correo y contraseña. Conservaremos tu selección; no se realiza ningún cobro.</p><button onClick={onLogin} className="mt-2 underline">Iniciar sesión</button></div>}
             {requestSaved && (
               <div className="mt-4 rounded-2xl border border-emerald-500/30 bg-emerald-500/10 p-4 text-sm text-emerald-300">
                 Solicitud guardada para {selectedDate} a las {activeSlots.find(slot=>slot.time===selectedTime)?.label}. Pendiente de aceptación del barbero. No se ha realizado ningún cobro.
@@ -351,6 +354,11 @@ export default function BarberProApp() {
   useEffect(()=>{window.history.replaceState(null,'',`#${view}`);},[view]);
   const identity = useIdentity(supabase);
   const adminAccess = identity.profile?.rol === 'admin' && identity.profile?.activo === true;
+  const [adminAal2,setAdminAal2]=useState(false);
+  const [adminSecurityOpen,setAdminSecurityOpen]=useState(false);
+  const [accessMessage,setAccessMessage]=useState('');
+  const resumed=useRef('');
+  useEffect(()=>{let active=true;setAdminAal2(false);if(adminAccess)supabase.auth.mfa.getAuthenticatorAssuranceLevel().then(({data,error})=>{if(active)setAdminAal2(!error&&data?.currentLevel==='aal2');});return()=>{active=false;};},[identity.profile,adminAccess]);
   const barberLoggedIn = identity.profile?.rol === 'barbero';
   const [catalogError,setCatalogError] = useState('');
   const [activeSlots,setActiveSlots] = useState([]);
@@ -395,7 +403,7 @@ export default function BarberProApp() {
   useEffect(() => {
     let active=true;
     if(!showBookingModal || !selectedShop || !selectedService) return;
-    setAgendaLoading(true);setAgendaError('');setActiveSlots([]);setSelectedTime('');
+    setAgendaLoading(true);setAgendaError('');setActiveSlots([]);
     const refreshSlots=()=>api.slots(selectedShop.id,selectedService.id,selectedDate).then(rows => {if(active){setActiveSlots(rows);setSelectedTime(current=>rows.some(s=>s.time===current)?current:"");}})
       .catch(error=>{if(active)setAgendaError(error.message);}).finally(()=>{if(active)setAgendaLoading(false);});
     refreshSlots();const timer=setInterval(refreshSlots,5000);
@@ -423,8 +431,8 @@ useEffect(() => {
     catch(error){setAllBarbers([]);setAdminError(error.message);}
   }
 
-  if(adminAccess) cargarTodas();
-}, [adminAccess]);
+  if(adminAccess&&adminAal2) cargarTodas();
+}, [adminAccess,adminAal2]);
 useEffect(() => {
   if (view === "barber") {
     cargarNotificaciones();
@@ -509,22 +517,35 @@ async function cargarNotificaciones() {
     setRequestSaved(false);
   };
 
+  const requireBookingLogin=()=>{try{saveDraft(sessionStorage,{shop:selectedShop.id,service:selectedService.id,date:selectedDate,time:selectedTime,name:customerInfo.name,phone:customerInfo.phone,note:customRequest});setShowBookingModal(false);setView('client-login');}catch(error){setAccessMessage(error.message);}};
+  useEffect(()=>{const url=new URL(window.location.href);if(url.searchParams.get('auth_callback')!=='1'||identity.loading)return;if(identity.profile){url.searchParams.delete('auth_callback');window.history.replaceState(null,'',url.pathname+url.search+url.hash);}else{setAccessMessage('Google no completó el acceso. Tu reserva sigue guardada: puedes reintentar o continuar con correo.');setView('client-login');}},[identity.loading,identity.profile]);
+  const handleGoogle=async()=>{setAccessMessage('');try{await beginGoogle(supabase,{enabled:googleAuthEnabled,origin:window.location.origin});}catch(error){setAccessMessage(error.message);}};
+  useEffect(()=>{
+    const profile=identity.profile;if(!profile||resumed.current===profile.id)return;
+    if(new URLSearchParams(window.location.search).get('cita')){resumed.current=profile.id;setView('my-bookings');return;}
+    const draft=readDraft(sessionStorage);if(!draft||profile.rol!=='cliente')return;
+    let active=true;
+    api.catalog().then(catalog=>{if(!active)return;const shop=catalog.find(s=>String(s.id)===draft.shop),service=shop?.services.find(s=>String(s.id)===draft.service);if(!shop||!service)throw Error('El servicio ya no está disponible. Elige otro.');setSelectedShop(shop);setSelectedService(service);setSelectedDate(draft.date);setSelectedTime(draft.time);setCustomRequest(draft.note);setCustomerInfo(prev=>({...prev,name:draft.name||profile.nombre||'',phone:draft.phone||profile.telefono||''}));resumed.current=profile.id;setView('client');setShowBookingModal(true);clearDraft(sessionStorage);setAccessMessage('Recuperamos tu reserva. Revisa el horario y completa solo los datos que faltan.');}).catch(error=>{if(active)setAccessMessage(error.message);});
+    return()=>{active=false;};
+  },[identity.profile]);
   const submitReservation = async () => {
-    if (!reservationsEnabled || savingReservation || !selectedTime || !selectedService) return;
+    if(!reservationsEnabled){requireBookingLogin();return;}
+    if (savingReservation || !selectedTime || !selectedService) return;
     setSavingReservation(true);
     setRequestSaved(false);
     try {
       await api.request({shop:selectedShop.id,service:selectedService.id,start:selectedTime,name:customerInfo.name,phone:customerInfo.phone,note:customRequest});
       // Notification is written in the same database transaction, never by the browser.
       setRequestSaved(true);
-      setShowBookingModal(false);setView("my-bookings");
+      clearDraft(sessionStorage);setShowBookingModal(false);setView("my-bookings");
     } catch (error) { alert(error.message); }
     finally { setSavingReservation(false); }
   };
 
   const handleLogout = async () => {
     try {
-      await endSession(supabase, () => {setNotificaciones([]);setUltimaNoti(null);setCustomerInfo({name:'',phone:''});setBarberLogin({email:'',password:''});setView('landing');});
+      await disableBookingPush(api).catch(()=>{});
+      await endSession(supabase, () => {setNotificaciones([]);setUltimaNoti(null);setCustomerInfo({name:'',phone:''});setBarberLogin({email:'',password:''});clearDraft(sessionStorage);resumed.current='';setView('landing');});
       await identity.refresh();
     } catch (error) { alert("No se pudo cerrar sesión: " + error.message); }
   };
@@ -665,6 +686,7 @@ const finalPrice = basePrice;
       </div>
     );
   }
+  if(view === "admin"&&adminAccess&&(!adminAal2||adminSecurityOpen))return <AdminMfa client={supabase} onVerified={async()=>{await identity.refresh();setAdminAal2(true);setAdminSecurityOpen(false);}} onBack={()=>{setAdminSecurityOpen(false);if(!adminAal2)setView("client");}}/>;
   if (view === "admin" && !adminAccess) {
     return <div className="min-h-screen bg-neutral-950 p-8 text-white"><button onClick={() => setView("barber-login")} className="rounded-xl bg-amber-400 px-4 py-3 text-black">Iniciar sesión como administrador</button></div>;
   }
@@ -721,7 +743,7 @@ if (view === "client-auth") {
 if (view === "client-register") {
   return <div className="min-h-screen flex items-center justify-center bg-black text-white p-6">
     <form onSubmit={handleRegister} className="w-full max-w-md bg-neutral-900 p-8 rounded-2xl border border-white/10">
-      <h2 className="text-2xl font-bold mb-6">Crear cuenta</h2>
+      <h2 className="text-2xl font-bold mb-6">Crear cuenta</h2><button type="button" onClick={handleGoogle} className="mb-4 w-full rounded-xl border border-white/20 p-3">Continuar con Google</button>{accessMessage&&<p role="status" className="mb-4 text-amber-300">{accessMessage}</p>}
       {supabase.authUnavailable&&<p role="status" className="mb-4 text-amber-300">Registro bloqueado hasta conectar Supabase Auth de pruebas. Tus credenciales no se enviarán a producción.</p>}
       <input aria-label="Correo" type="email" required autoComplete="email" value={registerForm.email} onChange={e => setRegisterForm(prev => ({...prev, email:e.target.value}))} placeholder="Correo" className="w-full mb-3 px-4 py-3 rounded-xl bg-black border border-white/10" />
       <input aria-label="Contraseña" type="password" required minLength={8} autoComplete="new-password" value={registerForm.password} onChange={e => setRegisterForm(prev => ({...prev, password:e.target.value}))} placeholder="Contraseña (mínimo 8 caracteres)" className="w-full mb-6 px-4 py-3 rounded-xl bg-black border border-white/10" />
@@ -735,7 +757,7 @@ if (view === "client-login") {
     <div className="min-h-screen flex items-center justify-center bg-black text-white p-6">
       <div className="w-full max-w-md bg-neutral-900 p-8 rounded-2xl border border-white/10">
         
-        <h2 className="text-2xl font-bold mb-6">Iniciar sesión</h2>
+        <h2 className="text-2xl font-bold mb-6">Iniciar sesión</h2><button onClick={handleGoogle} className="mb-4 w-full rounded-xl border border-white/20 p-3">Continuar con Google</button>{accessMessage&&<p role="status" className="mb-4 text-amber-300">{accessMessage}</p>}
         {supabase.authUnavailable&&<p role="status" className="mb-4 text-amber-300">Falta conectar Supabase Auth de pruebas. No se admite un acceso simulado.</p>}
 
         <input
@@ -774,7 +796,7 @@ if (view === "admin" && adminAccess) {
   return (
     <div className="min-h-screen bg-neutral-950 p-8 text-white">
       <h1 className="mb-8 text-3xl font-black">
-        Panel Admin <span className="text-amber-400">MERYO</span>
+        Panel Admin <span className="text-amber-400">MERYO</span><button onClick={()=>setAdminSecurityOpen(true)} className="ml-4 rounded-xl border border-white/20 px-3 py-2 text-sm">Authenticator y recuperación</button>
         <button onClick={handleLogout} className="ml-4 text-sm">Cerrar sesión</button>
       </h1>
 
@@ -853,6 +875,7 @@ if (view === "admin" && adminAccess) {
       <main>
         {supabase.authUnavailable&&<p role="status" className="mx-auto max-w-7xl px-6 pt-5 text-amber-300">Puedes consultar perfiles, servicios y calendario. Registro, acceso y operaciones privadas requieren Supabase Auth de pruebas; no hay sesiones ficticias.</p>}
         {identity.error&&<p role="alert" className="px-6 text-red-300">{identity.error}</p>}
+        {accessMessage&&<p role="status" className="px-6 text-amber-300">{accessMessage}</p>}
         {catalogError&&<p role="alert" className="px-6 text-red-300">{catalogError}</p>}
         <section className="mx-auto max-w-7xl px-6 py-16">
           <ClientHero heroIndex={heroIndex} setHeroIndex={setHeroIndex} setView={setView} shops={shops} />
@@ -1045,7 +1068,7 @@ if (view === "admin" && adminAccess) {
         closeBookingModal={closeBookingModal}
         savingReservation={savingReservation}
         reservationsEnabled={reservationsEnabled}
-        agendaLoading={agendaLoading} agendaError={agendaError} onLogin={()=>{setShowBookingModal(false);setView('client-login');}}
+        agendaLoading={agendaLoading} agendaError={agendaError} accessMessage={accessMessage} onLogin={requireBookingLogin}
       />
 
       <footer className="border-t border-white/10 py-6 text-center text-neutral-500">© 2026 MERYO</footer>

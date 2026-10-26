@@ -9,5 +9,11 @@ export async function enableBookingPush(api,config){
  const key=Uint8Array.from(atob(config.push_public_key.replaceAll('-','+').replaceAll('_','/')),c=>c.charCodeAt(0));
  const subscription=await worker.pushManager.subscribe({userVisibleOnly:true,applicationServerKey:key});
  await api.registerPush(subscription.toJSON());
- return 'Dispositivo registrado. La recepción debe verificarse en este teléfono.';
+ return 'Dispositivo registrado. Falta verificar la recepción real con MERYO cerrado y el sonido de este teléfono.';
+}
+export async function disableBookingPush(api){
+ if(!('serviceWorker' in navigator))return;
+ const worker=await navigator.serviceWorker.getRegistration('/meryo-push-sw.js');
+ const subscription=await worker?.pushManager.getSubscription();if(!subscription)return;
+ try{await api.removePush(subscription.endpoint);}finally{await subscription.unsubscribe();}
 }

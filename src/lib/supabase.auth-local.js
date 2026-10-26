@@ -4,5 +4,6 @@ if(window.location.hostname!=='127.0.0.1'||window.location.port!=='5178')throw E
 const anonKey=import.meta.env.VITE_MERYO_LOCAL_ANON_KEY;
 if(!anonKey)throw Error('Falta la clave anon del servicio local; no hay fallback remoto');
 export const supabase=createClient(`${window.location.origin}/__supabase`,anonKey,{
- auth:{storageKey:'meryo-real-local-auth',autoRefreshToken:true,persistSession:true,detectSessionInUrl:true},
+ auth:{storageKey:'meryo-real-local-auth',flowType:'pkce',autoRefreshToken:true,persistSession:true,detectSessionInUrl:true},
 });
+export const googleAuthEnabled=import.meta.env.VITE_MERYO_GOOGLE_ENABLED===true;

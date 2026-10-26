@@ -42,6 +42,7 @@ export function createMeryoApi(client) {
     bookingState:async()=>{await requireRole(['cliente','barbero']);return readResult(client.rpc('meryo_reservas_estado'));},
     bookingConfig:()=>readResult(client.rpc('meryo_reservas_config')),
     registerPush:async(subscription)=>{await requireRole(['cliente','barbero']);return savedOperation(()=>client.rpc('meryo_registrar_push',{p_subscription:subscription}));},
+    removePush:async(endpoint)=>{const {error}=await client.rpc('meryo_quitar_push',{p_endpoint:endpoint});if(error)throw error;},
     respond:async(id,accept)=>{await requireRole(['barbero']);const result=await savedOperation(()=>client.rpc('responder_reserva',{p_reserva_id:id,p_aceptar:accept}));if(!['aceptada','rechazada','expirada'].includes(result))throw new Error('Respuesta de reserva inesperada');return result;},
     registerShop:async(form)=>{
       await requireRole(['cliente']);
