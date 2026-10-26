@@ -17,8 +17,8 @@ export function createLocalClient(fetchImpl = (...args) => fetch(...args)) {
       upsert() { forbidden = true; return query; },
       async then(resolve, reject) {
         try {
-          if (forbidden || table !== 'barberias') return resolve(blocked('Escritura o tabla bloqueada en el adaptador local. Usa el banco de pruebas de reservas.'));
-          const response = await fetchImpl('/__local/catalog', { redirect: 'error' });
+          if (forbidden || !['barberias','servicios','horarios'].includes(table)) return resolve(blocked('Falta Supabase Auth de pruebas para esta operación. No se envió ninguna escritura.'));
+          const response = await fetchImpl(table==='barberias'?'/__local/catalog':`/__local/public/${table}`, { redirect: 'error' });
           if (!response.ok) return resolve(blocked('El servidor PostgreSQL local no respondió'));
           let rows = await response.json();
           for (const [key, value] of filters) rows = rows.filter(row => row[key] === value);
@@ -29,8 +29,16 @@ export function createLocalClient(fetchImpl = (...args) => fetch(...args)) {
     return query;
   }
   const client = {
+    authUnavailable: true,
     from,
-    rpc: async () => blocked(),
+    rpc: async (name,args) => {
+      if(name!=='horarios_disponibles')return blocked();
+      try {
+        const params=new URLSearchParams({shop:args.p_barberia_id,service:args.p_servicio_id,day:args.p_fecha});
+        const response=await fetchImpl(`/__local/agenda?${params}`,{redirect:'error'});const body=await response.json();
+        return response.ok?{data:body,error:null}:blocked(body.error);
+      }catch{return blocked('No se pudo consultar la agenda local');}
+    },
     schema: () => ({ rpc: async () => blocked() }),
     auth: {
       getSession: async () => ({ data: { session: null }, error: null }),

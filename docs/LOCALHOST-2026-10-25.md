@@ -1,5 +1,7 @@
 # MERYO en localhost aislado
 
+**Actualización:** las pantallas integradas y restricciones vigentes están en `PANTALLAS-2026-10-25.md`. El banco separado y las rutas por actores/recibos descritas más abajo son históricos y ya no están disponibles en el servidor de la aplicación.
+
 Continuación de `cc2f369`, reutilizando el cluster nativo y el contrato incremental que ya pasó las pruebas. No se creó un proyecto, cluster o contenedor nuevo. No se reinstalaron paquetes ni se repitieron las suites previas de reservas/operaciones/catálogo/servidor. No se consultó producción.
 
 ## Inicio

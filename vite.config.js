@@ -12,6 +12,6 @@ export default defineConfig(({ mode }) => ({
     },
   }] : [])],
   resolve: mode === 'localtest' ? { alias: [
-    { find: /^\.\/lib\/supabase(?:\.js)?$/, replacement: fileURLToPath(new URL('./src/lib/supabase.local.js', import.meta.url)) },
+    { find: /^(?:\.\.?\/)+lib\/supabase(?:\.js)?$/, replacement: fileURLToPath(new URL('./src/lib/supabase.local.js', import.meta.url)) },
   ] } : {},
 }))
