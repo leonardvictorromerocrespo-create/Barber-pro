@@ -51,3 +51,13 @@ Referencias oficiales: [OAuth y caducidad](https://developers.google.com/identit
 ## Authenticator personal verificado
 
 Después de que el propietario introdujera el código directamente en MERYO, la consulta de solo lectura a Auth nativo confirmó **un factor `verified`** para su identidad Google. Su rol sigue siendo `cliente`; no se concedieron permisos administrativos. Esta comprobación sustituye el estado pendiente anterior. La recuperación por pérdida del celular y la copia independiente de Drive siguen pendientes de sus pasos personales y pruebas; no se da por completada ninguna de ellas por haber verificado el factor.
+
+## Custodia USB preparada
+
+Se detectó `E:` KINGSTON (FAT32, disco USB físico saludable, aproximadamente 50 GiB libres). No se formateó ni modificó ningún archivo previo. `scripts/save-recovery-usb.ps1` valida que el destino sea USB y crea una carpeta nueva con fecha y sufijo aleatorio. Se abrió su ventana interactiva para que el propietario introduzca personalmente una contraseña, dos veces, sin chat ni argumentos del proceso.
+
+La clave del respaldo se protege con AES-256-GCM y PBKDF2-SHA256 de 600 000 iteraciones, salt aleatorio y contraseña de al menos 14 caracteres. La contraseña nunca se escribe al USB ni a un archivo de configuración. Se envía al helper únicamente por su entrada estándar privada. Tras guardar, el proceso vuelve a leer y descifrar la envoltura y compara la clave recuperada con la original; solo entonces escribe `MERYO-backups/usb-recovery-status.json` y muestra éxito. Incluye instrucciones y un helper portable sin dependencias para recuperación con Node.js oficial; el descifrado no sobrescribe un archivo existente.
+
+La prueba nueva aprobada verifica igualdad de la clave recuperada y rechazo de contraseña incorrecta, contenido alterado y parámetros de derivación inesperados. Ambas fuentes PowerShell pasaron validación sintáctica. No hay cambios de frontend ni SQL que requieran repetir sus suites.
+
+Al preparar este bloque aún faltaba completar la contraseña en la ventana, por lo que **no se declara la clave USB verificada**. Esta carpeta no contiene dumps ni archivos `.meryo.enc`: su función es mantener la clave separada de los respaldos. Tampoco contiene secretos de Authenticator ni sustituye la recuperación de MFA. El propietario debe guardar USB y contraseña por separado; perder ambos medios de recuperación impide descifrar los respaldos.
