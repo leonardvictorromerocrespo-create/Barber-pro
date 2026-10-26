@@ -37,3 +37,13 @@ Si se pierden todos los factores, se conserva el procedimiento del operador auto
 - No se modificó producción, desplegó, hizo push ni activó facturación.
 
 Referencias oficiales: [OAuth y caducidad](https://developers.google.com/identity/protocols/oauth2#expiration), [límites y umbrales actuales de Drive](https://developers.google.com/workspace/drive/api/guides/limits), [MFA de Supabase](https://supabase.com/docs/guides/auth/auth-mfa/totp). Se debe volver a revisar costo/capacidad si cambia el volumen; no se autoriza comprar almacenamiento ni aumentar cuotas.
+
+## Continuación: cliente Drive creado con autorización expresa
+
+- El propietario autorizó crear `MERYO Backups Drive local`. Google confirmó la creación del cliente de escritorio; se guardó privadamente en `MERYO-backups/drive-client.json`. No se añadió a Git. Se habilitó exclusivamente Google Drive API, sin vincular facturación.
+- Se abrió el consentimiento de la cuenta del propietario con el alcance único `drive.file`. La pantalla dice que permite ver/editar/crear/eliminar **solo archivos usados en esta aplicación**. Se dejó visible para que el propietario pulse Continuar; aún no existe `drive-connection.json`. No se da por activa la copia independiente.
+- La descarga automatizada del JSON no produjo un archivo verificable; se guardaron los valores del diálogo privado en el archivo privado y se cerró ese diálogo. No usar capturas de la pantalla que contiene el secreto como evidencia pública.
+- El propietario informó que verificó MFA; la lectura posterior del servidor todavía devolvió un factor `unverified` para su identidad Google, rol cliente. La pantalla conserva ese factor y su formulario. Se solicitó completar allí la verificación y comunicar solo cualquier mensaje de error. No se afirma MFA personal completado hasta que el servidor coincida.
+- Solo tiene un celular. Para recomendar la restauración compatible se pidió identificar la aplicación Authenticator. No se retiró ningún factor, crearon códigos maestros ni cambiaron roles.
+- Indicó USB como medio de custodia, pero no se detectó volumen removible conectado. No se copió ninguna clave. Esa respuesta no se interpreta como sesión/acceso a Supabase; la exportación del backend y Storage reales sigue pendiente.
+- Se evita conservar una segunda descarga cifrada en cada ejecución diaria de Drive después de comparar hashes; la copia original local conserva su retención. Comprobación de sintaxis aprobada para este cambio, sin repetir pruebas históricas.

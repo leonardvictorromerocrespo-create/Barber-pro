@@ -60,7 +60,8 @@ try{
   let independent=false;const retentionDirs=[root];
   if(config.independentDestination?.kind==='google-drive'){
    const remote=await uploadAndVerifyDrive(root,encrypted);
-   await fs.writeFile(path.join(root,'drive-status.json'),JSON.stringify(remote));
+   await fs.rm(remote.downloaded,{force:true});
+   await fs.writeFile(path.join(root,'drive-status.json'),JSON.stringify({...remote,downloadRetained:false}));
    independent=true;
   }else if(config.independentDestination){
    const target=config.independentDestination;
