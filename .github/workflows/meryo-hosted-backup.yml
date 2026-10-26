@@ -1,0 +1,76 @@
+name: MERYO hosted backup
+on:
+  workflow_dispatch:
+  schedule:
+    # 08:17 UTC = 03:17 Lima. Best effort; not a guaranteed 24-hour RPO.
+    - cron: '17 8 * * *'
+permissions:
+  contents: read
+concurrency:
+  group: meryo-hosted-backup
+  cancel-in-progress: false
+jobs:
+  backup:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: '24'
+      - name: Install locked dependencies without lifecycle scripts
+        run: npm ci --ignore-scripts --no-audit --no-fund
+      - name: Install native PostgreSQL 17 on the ephemeral runner (no Docker)
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq postgresql-common ca-certificates
+          sudo /usr/share/postgresql-common/pgdg/apt.postgresql.org.sh -y
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq postgresql-17 postgresql-client-17
+          sudo pg_conftool 17 main set port 55440
+          sudo pg_ctlcluster 17 main restart
+          sudo -u postgres createuser --port=55440 --superuser "$USER"
+      - name: Read hosted source and build authenticated encrypted archive
+        id: snapshot
+        env:
+          MERYO_DB_CONFIG: ${{ secrets.MERYO_DB_CONFIG }}
+          MERYO_STORAGE_CONFIG: ${{ secrets.MERYO_STORAGE_CONFIG }}
+          MERYO_BACKUP_KEY: ${{ secrets.MERYO_BACKUP_KEY }}
+        run: node scripts/backup-hosted-cloud.mjs
+      - name: Verify isolated restore from the encrypted archive
+        env:
+          MERYO_BACKUP_ROOT: ${{ steps.snapshot.outputs.root }}
+          MERYO_BACKUP_KEY: ${{ secrets.MERYO_BACKUP_KEY }}
+        run: node scripts/restore-hosted-check.mjs
+      - name: Keep only the encrypted archive off-site for thirty days
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: meryo-hosted-${{ github.run_id }}-${{ github.run_attempt }}
+          path: ${{ steps.snapshot.outputs.archive }}
+          retention-days: 30
+          if-no-files-found: error
+          compression-level: 0
+  failure-notice:
+    needs: backup
+    if: failure()
+    runs-on: ubuntu-24.04
+    timeout-minutes: 3
+    permissions:
+      contents: read
+      issues: write
+    steps:
+      - name: Record a visible failure for the repository owner
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          OWNER: ${{ github.repository_owner }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          existing=$(gh issue list --state open --search 'in:title "MERYO hosted backup failed"' --json number --jq '.[0].number // empty')
+          if [ -n "$existing" ]; then
+            gh issue comment "$existing" --body "No se verificó el respaldo. Revisa la ejecución: $RUN_URL"
+          else
+            gh issue create --title 'MERYO hosted backup failed' --assignee "$OWNER" --body "No se verificó el respaldo. Revisa la ejecución: $RUN_URL. La copia anterior no debe darse por actualizada."
+          fi

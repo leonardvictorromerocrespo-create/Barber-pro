@@ -22,10 +22,11 @@ try {
  $start.Arguments='"'+$HelperFile+'" '+$Mode+' "'+$SourceFile+'" "'+$DestinationFile+'"'
  $start.UseShellExecute=$false;$start.CreateNoWindow=$true
  $start.RedirectStandardInput=$true;$start.RedirectStandardOutput=$true;$start.RedirectStandardError=$true
- $start.StandardInputEncoding=New-Object System.Text.UTF8Encoding($false)
  $proc=New-Object System.Diagnostics.Process;$proc.StartInfo=$start
  [void]$proc.Start()
- $proc.StandardInput.WriteLine((@{password=$password}|ConvertTo-Json -Compress));$proc.StandardInput.Close()
+ $bytes=[Text.Encoding]::UTF8.GetBytes((@{password=$password}|ConvertTo-Json -Compress)+"`n")
+ try {$proc.StandardInput.BaseStream.Write($bytes,0,$bytes.Length);$proc.StandardInput.BaseStream.Flush();$proc.StandardInput.Close()}
+ finally {[Array]::Clear($bytes,0,$bytes.Length)}
  $result=$proc.StandardOutput.ReadToEnd();$failure=$proc.StandardError.ReadToEnd();$proc.WaitForExit()
  if($proc.ExitCode -ne 0){throw $failure}
  $result
