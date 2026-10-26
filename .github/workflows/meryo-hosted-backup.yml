@@ -29,8 +29,7 @@ jobs:
           sudo /usr/share/postgresql-common/pgdg/apt.postgresql.org.sh -y
           sudo apt-get update -qq
           sudo apt-get install -y -qq postgresql-17 postgresql-client-17
-          sudo pg_conftool 17 main set port 55440
-          sudo pg_ctlcluster 17 main restart
+          sudo pg_createcluster 17 meryo_backup --port=55440 --start
           sudo -u postgres createuser --port=55440 --superuser "$USER"
       - name: Read hosted source and build authenticated encrypted archive
         id: snapshot
