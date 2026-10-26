@@ -47,3 +47,7 @@ Referencias oficiales: [OAuth y caducidad](https://developers.google.com/identit
 - Solo tiene un celular. Para recomendar la restauración compatible se pidió identificar la aplicación Authenticator. No se retiró ningún factor, crearon códigos maestros ni cambiaron roles.
 - Indicó USB como medio de custodia, pero no se detectó volumen removible conectado. No se copió ninguna clave. Esa respuesta no se interpreta como sesión/acceso a Supabase; la exportación del backend y Storage reales sigue pendiente.
 - Se evita conservar una segunda descarga cifrada en cada ejecución diaria de Drive después de comparar hashes; la copia original local conserva su retención. Comprobación de sintaxis aprobada para este cambio, sin repetir pruebas históricas.
+
+## Authenticator personal verificado
+
+Después de que el propietario introdujera el código directamente en MERYO, la consulta de solo lectura a Auth nativo confirmó **un factor `verified`** para su identidad Google. Su rol sigue siendo `cliente`; no se concedieron permisos administrativos. Esta comprobación sustituye el estado pendiente anterior. La recuperación por pérdida del celular y la copia independiente de Drive siguen pendientes de sus pasos personales y pruebas; no se da por completada ninguna de ellas por haber verificado el factor.
