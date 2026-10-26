@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "powershell -NoProfile -File scripts/start-local.ps1",
-    "dev:local:server": "node scripts/serve-local.mjs",
+    "dev:local:server": "node scripts/serve-real-auth.mjs",
     "build:local": "vite build --mode localtest --outDir dist/local-app",
     "test:local": "node --test tests/local-client.test.mjs tests/local-http.test.mjs",
     "test:screens": "node --test tests/meryo-api.test.mjs tests/local-client.test.mjs tests/local-http.test.mjs tests/screens-render.test.mjs",
