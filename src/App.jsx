@@ -637,6 +637,7 @@ const finalPrice = basePrice;
                 <p className="text-sm text-neutral-400">Buscar · Reservar · Cortar</p>
               </div>
             </div>
+            <div className="mt-8 flex justify-center gap-5 text-xs text-neutral-400"><a href="/privacidad.html" className="hover:text-amber-400">Privacidad</a><a href="/condiciones.html" className="hover:text-amber-400">Condiciones</a></div>
           </div>
         </section>
       </div>
@@ -1072,7 +1073,7 @@ if (view === "admin" && adminAccess) {
         agendaLoading={agendaLoading} agendaError={agendaError} accessMessage={accessMessage} onLogin={requireBookingLogin}
       />
 
-      <footer className="border-t border-white/10 py-6 text-center text-neutral-500">© 2026 MERYO</footer>
+      <footer className="border-t border-white/10 py-6 text-center text-neutral-500">© 2026 MERYO <a href="/privacidad.html" className="ml-4 hover:text-amber-400">Privacidad</a><a href="/condiciones.html" className="ml-4 hover:text-amber-400">Condiciones</a></footer>
     </div>
   );
 }
