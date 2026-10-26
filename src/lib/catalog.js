@@ -15,14 +15,14 @@ export function distanciaKm(a, b) {
 
 const normalize = value => String(value ?? '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLocaleLowerCase('es-PE').trim();
 const price = value => value != null && value !== '' && Number.isFinite(Number(value)) ? Number(value) : Infinity;
-export function selectShops(shops, { query = '', district = '', order = 'rating', location = null } = {}) {
+export function selectShops(shops, { query = '', district = '', order = 'name', location = null } = {}) {
   const text = normalize(query);
   return shops.filter(shop => (!district || normalize(shop.district) === normalize(district)) && normalize(`${shop.name} ${shop.district}`).includes(text))
     .map(shop => ({ ...shop, km: distanciaKm(location, shop) }))
     .sort((a, b) => {
       if (order === 'distance' && coordinates(location)) return (a.km ?? Infinity) - (b.km ?? Infinity);
       if (order === 'price') return price(a.basePrice) - price(b.basePrice);
-      return (Number(b.rating) || 0) - (Number(a.rating) || 0) || (Number(b.reviews) || 0) - (Number(a.reviews) || 0);
+      return a.name.localeCompare(b.name,'es',{sensitivity:'base'})||String(a.id).localeCompare(String(b.id));
     });
 }
 

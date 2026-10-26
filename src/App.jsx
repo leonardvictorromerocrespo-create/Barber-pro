@@ -1,5 +1,5 @@
 import { endSession, signInWithProfile } from "./lib/operations";
-import { supabase, googleAuthEnabled } from "./lib/supabase";
+import { supabase, googleAuthEnabled, emailSignupEnabled } from "./lib/supabase";
 import { lazy, Suspense, useEffect, useMemo, useRef, useState } from "react";
 import { createMeryoApi, readResult } from './lib/meryo-api';
 import { useIdentity } from './lib/useIdentity';
@@ -10,6 +10,7 @@ import {saveDraft,readDraft,clearDraft,beginGoogle} from './lib/booking-draft';
 import ShopManagement from './components/management/ShopManagement';
 const api = createMeryoApi(supabase);
 import CatalogFilters from "./components/CatalogFilters";
+import CatalogStatus from './components/CatalogStatus';
 import { selectShops, catalogMarkers, coordinates } from "./lib/catalog";
 import { listaDias } from "./lib/dates";
 const CatalogMap = lazy(() => import("./components/CatalogMap"));
@@ -24,7 +25,7 @@ const HERO_IMAGES = [
   "https://images.unsplash.com/photo-1503951914875-452162b0f3f1?auto=format&fit=crop&w=1600&q=80",
 ];
 
-function ClientHero({ heroIndex, setHeroIndex, setView, shops }) {
+function ClientHero({ heroIndex, setHeroIndex, setView }) {
   return (
     <>
       <div className="mb-10 overflow-hidden rounded-3xl border border-white/10 bg-black">
@@ -67,18 +68,6 @@ function ClientHero({ heroIndex, setHeroIndex, setView, shops }) {
         </div>
       </div>
 
-      <div className="mb-8">
-        <h3 className="text-xl font-bold text-white">⭐ Barberos más reservados esta semana</h3>
-        <div className="mt-4 grid gap-4 md:grid-cols-3">
-          {shops.slice(0, 3).map((shop) => (
-            <div key={shop.id} className="rounded-2xl border border-white/10 bg-neutral-900 p-4">
-              <p className="font-bold text-white">{shop.name}</p>
-              <p className="text-sm text-neutral-400">{shop.district}</p>
-              <p className="mt-2 text-sm text-amber-400">⭐ {shop.rating} • {shop.reviews} reservas</p>
-            </div>
-          ))}
-        </div>
-      </div>
     </>
   );
 }
@@ -142,7 +131,7 @@ export function ProfileModal({ selectedShop, onClose, onReserve }) {
 
             <div className="mt-4 rounded-2xl border border-white/10 bg-black/30 p-6">
               <p className="text-lg font-bold text-white">Reseñas de clientes</p>
-              <p className="mt-2 text-neutral-400">⭐ {selectedShop.rating} basado en {selectedShop.reviews} opiniones</p>
+              <p className="mt-2 text-neutral-400">{selectedShop.reviews>0?`⭐ ${selectedShop.rating} basado en ${selectedShop.reviews} reseñas registradas`:'Aún no hay reseñas registradas.'}</p>
               <p className="mt-4 text-sm text-neutral-400">Las reseñas verificadas se incorporarán desde las citas completadas. No se muestran opiniones de demostración.</p>
             </div>
           </div>
@@ -348,7 +337,7 @@ export default function BarberProApp() {
   const [showMap, setShowMap] = useState(false);
   const [query, setQuery] = useState("");
   const [district, setDistrict] = useState("");
-  const [order, setOrder] = useState("rating");
+  const [order, setOrder] = useState("name");
   const allowedViews=['landing','client','client-auth','client-register','client-login','barber','barber-login','admin','account-security','shop-manage','my-bookings'];
   const [view, setView] = useState(()=>{const hash=typeof window==='undefined'?'':window.location.hash.slice(1);return allowedViews.includes(hash)?hash:'landing';});
   useEffect(()=>{window.history.replaceState(null,'',`#${view}`);},[view]);
@@ -361,6 +350,7 @@ export default function BarberProApp() {
   useEffect(()=>{let active=true;setAdminAal2(false);if(adminAccess)supabase.auth.mfa.getAuthenticatorAssuranceLevel().then(({data,error})=>{if(active)setAdminAal2(!error&&data?.currentLevel==='aal2');});return()=>{active=false;};},[identity.profile,adminAccess]);
   const barberLoggedIn = identity.profile?.rol === 'barbero';
   const [catalogError,setCatalogError] = useState('');
+  const [catalogLoading,setCatalogLoading]=useState(true);
   const [activeSlots,setActiveSlots] = useState([]);
   const [agendaError,setAgendaError] = useState('');
   const [agendaLoading,setAgendaLoading] = useState(false);
@@ -396,8 +386,10 @@ export default function BarberProApp() {
   const [customerInfo, setCustomerInfo] = useState({ name: "", phone: "" });
   const [heroIndex, setHeroIndex] = useState(0);
   const cargarBarberiasActivas = async () => {
+    setCatalogLoading(true);
     try { const data = await api.catalog(); setShops(data); setCatalogError(''); }
     catch(error) { setCatalogError(error.message); }
+    finally{setCatalogLoading(false);}
   };
 
   useEffect(() => {
@@ -552,6 +544,7 @@ async function cargarNotificaciones() {
 
   const handleRegister = async (event) => {
     event.preventDefault();
+    if(!emailSignupEnabled){setRegisterMessage('El registro por correo está pendiente del servicio de confirmación. Crea tu cuenta con Google.');return;}
     if (registerBusy) return;
     setRegisterBusy(true); setRegisterMessage("");
     try {
@@ -625,12 +618,12 @@ const finalPrice = basePrice;
             </div>
             <div className="mt-14 grid gap-6 md:grid-cols-3">
               <div className="rounded-2xl border border-white/10 bg-black/40 p-5 backdrop-blur">
-                <p className="text-2xl font-black text-amber-400">+120</p>
-                <p className="text-sm text-neutral-400">Barberías afiliadas</p>
+                <p className="text-2xl font-black text-amber-400">Catálogo</p>
+                <p className="text-sm text-neutral-400">Perfiles y servicios</p>
               </div>
               <div className="rounded-2xl border border-white/10 bg-black/40 p-5 backdrop-blur">
-                <p className="text-2xl font-black text-amber-400">24/7</p>
-                <p className="text-sm text-neutral-400">Reservas online</p>
+                <p className="text-2xl font-black text-amber-400">En línea</p>
+                <p className="text-sm text-neutral-400">Solicitudes de cita</p>
               </div>
               <div className="rounded-2xl border border-white/10 bg-black/40 p-5 backdrop-blur">
                 <p className="text-2xl font-black text-amber-400">3 pasos</p>
@@ -747,9 +740,10 @@ if (view === "client-register") {
     <form onSubmit={handleRegister} className="w-full max-w-md bg-neutral-900 p-8 rounded-2xl border border-white/10">
       <h2 className="text-2xl font-bold mb-6">Crear cuenta</h2><button type="button" onClick={handleGoogle} className="mb-4 w-full rounded-xl border border-white/20 p-3">Continuar con Google</button>{accessMessage&&<p role="status" className="mb-4 text-amber-300">{accessMessage}</p>}
       {supabase.authUnavailable&&<p role="status" className="mb-4 text-amber-300">Registro bloqueado hasta conectar Supabase Auth de pruebas. Tus credenciales no se enviarán a producción.</p>}
-      <input aria-label="Correo" type="email" required autoComplete="email" value={registerForm.email} onChange={e => setRegisterForm(prev => ({...prev, email:e.target.value}))} placeholder="Correo" className="w-full mb-3 px-4 py-3 rounded-xl bg-black border border-white/10" />
-      <input aria-label="Contraseña" type="password" required minLength={8} autoComplete="new-password" value={registerForm.password} onChange={e => setRegisterForm(prev => ({...prev, password:e.target.value}))} placeholder="Contraseña (mínimo 8 caracteres)" className="w-full mb-6 px-4 py-3 rounded-xl bg-black border border-white/10" />
-      <button disabled={registerBusy} className="w-full bg-amber-400 text-black py-3 rounded-xl font-bold">{registerBusy ? "Enviando…" : "Crear cuenta"}</button>
+      {!emailSignupEnabled&&<p role="status" className="mb-4 text-sm text-amber-300">Crea tu cuenta con Google. El registro por correo está pendiente del servicio de confirmación; el acceso por correo de cuentas existentes se conserva.</p>}
+      <input aria-label="Correo" type="email" required disabled={!emailSignupEnabled} autoComplete="email" value={registerForm.email} onChange={e => setRegisterForm(prev => ({...prev, email:e.target.value}))} placeholder="Correo" className="w-full mb-3 px-4 py-3 rounded-xl bg-black border border-white/10 disabled:opacity-50" />
+      <input aria-label="Contraseña" type="password" required disabled={!emailSignupEnabled} minLength={8} autoComplete="new-password" value={registerForm.password} onChange={e => setRegisterForm(prev => ({...prev, password:e.target.value}))} placeholder="Contraseña (mínimo 8 caracteres)" className="w-full mb-6 px-4 py-3 rounded-xl bg-black border border-white/10 disabled:opacity-50" />
+      <button disabled={registerBusy||!emailSignupEnabled} className="w-full bg-amber-400 text-black py-3 rounded-xl font-bold disabled:opacity-50">{registerBusy ? "Enviando…" : "Crear cuenta"}</button>
       {registerMessage && <p role="status" className="mt-4 text-sm">{registerMessage}</p>}
       <button type="button" onClick={() => setView("client-auth")} className="w-full mt-3 text-sm text-neutral-400">Volver</button>
     </form></div>;
@@ -902,27 +896,27 @@ if (view === "admin" && adminAccess) {
             {markers.length === 0 && <p className="mt-3 text-sm text-neutral-400">No hay ubicaciones verificables para estos resultados.</p>}
           </div>}
           {shops.length > 0 && ranking.length === 0 && <p role="status" className="mb-6 text-neutral-400">No encontramos barberías con esos filtros.</p>}
+          <CatalogStatus loading={catalogLoading} error={catalogError} empty={shops.length===0}/>
 
           <div className="grid gap-6 md:grid-cols-3">
-            {ranking.map((shop, index) => (
-              <div key={shop.name} className="overflow-hidden rounded-2xl border border-white/10 bg-neutral-900">
+            {ranking.map((shop) => (
+              <div key={shop.id} className="overflow-hidden rounded-2xl border border-white/10 bg-neutral-900">
                 <img src={shop.image} className="h-56 w-full object-cover" alt={shop.name} />
                 <div className="p-5">
                   <div className="mb-2 flex items-start justify-between gap-3">
                     <div>
                       <h3 className="text-xl font-bold">{shop.name}</h3>
-                      <p className="text-sm text-neutral-400">#{index + 1} en ranking • {shop.district}{shop.km != null ? ` • A ${shop.km.toFixed(1)} km` : ""}</p>
+                      <p className="text-sm text-neutral-400">{shop.district}{shop.km != null ? ` • A ${shop.km.toFixed(1)} km` : ""}</p>
                     </div>
-                    <span className="rounded-full bg-amber-400 px-3 py-1 text-xs font-bold text-black">{shop.discount}</span>
+                    {shop.discount && <span className="rounded-full bg-amber-400 px-3 py-1 text-xs font-bold text-black">{shop.discount}</span>}
                   </div>
                   <div className="mt-3 flex flex-wrap gap-2">
                     {shop.tags.map((tag) => <span key={tag} className="rounded-full border border-white/10 px-3 py-1 text-xs text-neutral-300">{tag}</span>)}
                   </div>
                   <div className="mt-4 flex items-center justify-between text-sm">
-                    <span>⭐ {shop.rating} <span className="text-neutral-500">({shop.reviews})</span></span>
+                    <span>{shop.reviews>0?`⭐ ${shop.rating} (${shop.reviews})`:'Aún sin reseñas'}</span>
                     <div className="text-right">
-                      <p className="text-xs text-neutral-500 line-through">S/ {shop.originalBasePrice}</p>
-                      <p className="font-semibold text-amber-400">Desde S/ {shop.basePrice}</p>
+                      <p className="font-semibold text-amber-400">{shop.basePrice==null?'Servicios por publicar':`Desde S/ ${shop.basePrice}`}</p>
                     </div>
                   </div>
                   <div className="mt-4 rounded-2xl border border-white/10 bg-black/20 p-3 text-sm text-neutral-300">

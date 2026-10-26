@@ -12,3 +12,4 @@ if(!local){
 
 export const supabase = local ? createLocalClient() : createClient(supabaseUrl, supabaseKey,{auth:{flowType:'pkce',persistSession:true,autoRefreshToken:true,detectSessionInUrl:true}});
 export const googleAuthEnabled=import.meta.env.VITE_MERYO_GOOGLE_ENABLED===true||import.meta.env.VITE_MERYO_GOOGLE_ENABLED==='true';
+export const emailSignupEnabled=import.meta.env.VITE_MERYO_EMAIL_SIGNUP_ENABLED==='true';

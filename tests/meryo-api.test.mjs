@@ -1,6 +1,6 @@
 import {test} from 'node:test';
 import assert from 'node:assert/strict';
-import {createMeryoApi,verifiedProfile,bookingLabel} from '../src/lib/meryo-api.js';
+import {createMeryoApi,verifiedProfile,bookingLabel,mapShop} from '../src/lib/meryo-api.js';
 import {createLocalClient} from '../src/lib/local-client.js';
 
 // Unit doubles only. These do not create an application session or test Supabase Auth.
@@ -11,6 +11,16 @@ function clientFor(profile,answer={data:'saved-id',error:null}){
   rpc:async(name,args)=>{calls.push({name,args});return name==='meryo_reservas_config'?{data:{respuesta_segundos:900,modelo_comercial:'mensualidad'},error:null}:answer;}};
  return client;
 }
+
+test('catalog rejects legacy counters and reads only the server public catalogue',async()=>{
+ const legacy={id:1,nombre:'Legacy',rating:4.9,total_resenas:324};
+ assert.equal(mapShop(legacy).rating,null);assert.equal(mapShop(legacy).reviews,0);
+ assert.equal(mapShop({...legacy,reviews_verified:true,total_resenas:0}).rating,null);
+ assert.equal(mapShop({...legacy,reviews_verified:true,total_resenas:2}).reviews,2);
+ const c=clientFor(null,{data:[],error:null});assert.deepEqual(await createMeryoApi(c).catalog(),[]);
+ assert.deepEqual(c.calls,[{name:'meryo_catalogo_publico',args:undefined}]);
+ await assert.rejects(createMeryoApi(clientFor(null,{data:null,error:{message:'Unavailable'}})).catalog(),/Unavailable/);
+});
 test('no identity fallback: local private operations never send a request',async()=>{
  let sent=0;const api=createMeryoApi(createLocalClient(async()=>{sent++;throw Error('unexpected');}));
  await assert.rejects(api.request({}),/Auth de pruebas/);await assert.rejects(api.respond('id',true),/Auth de pruebas/);await assert.rejects(api.registerShop({}),/Auth de pruebas/);await assert.rejects(api.bookings(),/Auth de pruebas/);assert.equal(sent,0);

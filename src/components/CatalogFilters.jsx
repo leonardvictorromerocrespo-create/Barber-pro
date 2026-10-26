@@ -9,7 +9,7 @@ export default function CatalogFilters({ query, district, order, hasLocation, on
       {DISTRITOS.map(value => <option key={value} value={value}>{value}</option>)}
     </select>
     <select aria-label="Ordenar barberías" value={order} onChange={event => onOrder(event.target.value)} className={style}>
-      <option value="rating">Mejor calificadas</option><option value="price">Menor precio</option>
+      <option value="name">Por nombre</option><option value="price">Menor precio</option>
       <option value="distance" disabled={!hasLocation}>Más cercanas</option>
     </select>
   </div>;

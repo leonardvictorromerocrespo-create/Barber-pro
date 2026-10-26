@@ -7,3 +7,4 @@ export const supabase=createClient(`${window.location.origin}/__supabase`,anonKe
  auth:{storageKey:'meryo-real-local-auth',flowType:'pkce',autoRefreshToken:true,persistSession:true,detectSessionInUrl:true},
 });
 export const googleAuthEnabled=import.meta.env.VITE_MERYO_GOOGLE_ENABLED===true;
+export const emailSignupEnabled=true;

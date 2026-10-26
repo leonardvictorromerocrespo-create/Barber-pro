@@ -10,12 +10,12 @@ const shops = [
 ];
 test('search ignores accents/case and combines district without mutating source', () => {
   const before = structuredClone(shops);
-  assert.deepEqual(selectShops(shops, { query: ' RIMAC ', district: 'Rímac' }).map(s => s.id), [3, 1]);
+  assert.deepEqual(selectShops(shops, { query: ' RIMAC ', district: 'Rímac' }).map(s => s.id), [1, 3]);
   assert.deepEqual(selectShops(shops, { query: 'estilo', district: 'Rímac' }), []);
   assert.deepEqual(shops, before);
 });
-test('rating is primary; reviews break ties; unavailable prices are last', () => {
-  assert.deepEqual(selectShops(shops).map(s => s.id), [3, 1, 2]);
+test('default order is alphabetical; unavailable prices are last', () => {
+  assert.deepEqual(selectShops(shops).map(s => s.id), [1, 2, 3]);
   assert.deepEqual(selectShops(shops, { order: 'price' }).map(s => s.id), [2, 1, 3]);
 });
 test('distance needs real coordinates; absent points are never placed at zero', () => {
@@ -25,7 +25,7 @@ test('distance needs real coordinates; absent points are never placed at zero', 
   assert.ok(distanciaKm(shops[0], shops[2]) > 4 && distanciaKm(shops[0], shops[2]) < 5);
   assert.deepEqual(selectShops(shops, { order: 'distance', location: shops[0] }).map(s => s.id), [1, 3, 2]);
   assert.deepEqual(catalogMarkers(shops).map(s => s.id), [1, 3]);
-  assert.deepEqual(selectShops(shops, { order: 'distance' }).map(s => s.id), [3, 1, 2]);
+  assert.deepEqual(selectShops(shops, { order: 'distance' }).map(s => s.id), [1, 2, 3]);
 });
 test('Lima day remains previous date before 05:00 UTC and crosses year/leap boundaries', () => {
   assert.equal(fechaLima('2026-10-25T04:59:59Z'), '2026-10-24');
