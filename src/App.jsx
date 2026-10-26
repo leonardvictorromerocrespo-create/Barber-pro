@@ -349,7 +349,7 @@ export default function BarberProApp() {
   const [query, setQuery] = useState("");
   const [district, setDistrict] = useState("");
   const [order, setOrder] = useState("rating");
-  const allowedViews=['landing','client','client-auth','client-register','client-login','barber','barber-login','admin','shop-manage','my-bookings'];
+  const allowedViews=['landing','client','client-auth','client-register','client-login','barber','barber-login','admin','account-security','shop-manage','my-bookings'];
   const [view, setView] = useState(()=>{const hash=typeof window==='undefined'?'':window.location.hash.slice(1);return allowedViews.includes(hash)?hash:'landing';});
   useEffect(()=>{window.history.replaceState(null,'',`#${view}`);},[view]);
   const identity = useIdentity(supabase);
@@ -582,6 +582,7 @@ async function cargarNotificaciones() {
 
 
 const finalPrice = basePrice;
+  if(view === 'account-security')return identity.profile?<AdminMfa client={supabase} onVerified={async()=>{await identity.refresh();setAccessMessage('Authenticator verificado por Supabase. Tu rol no cambia. Registra un segundo factor en otro dispositivo para recuperación.');setView('client');}} onBack={()=>setView('client')}/>:<div className="min-h-screen bg-neutral-950 p-8 text-white"><button onClick={()=>setView('client-login')}>Iniciar sesión para proteger mi cuenta</button></div>;
   if(view === 'shop-manage') return <ShopManagement api={api} profile={identity.profile} onLogin={()=>setView('barber-login')} onBack={()=>setView('client')} onRegister={()=>{setShowAffiliateForm(true);setView('client');setTimeout(()=>document.getElementById('register-shop')?.scrollIntoView(),0);}}/>;
   if(view === 'my-bookings') return <div className="min-h-screen bg-neutral-950 p-6 text-white"><div className="mx-auto max-w-5xl space-y-5"><h1 className="text-3xl font-black">Mis citas <span className="text-amber-400">MERYO</span></h1><button onClick={()=>setView('client')} className="rounded-xl border border-white/20 px-4 py-2">Volver</button><Reservations key={`${identity.profile?.id}-${identity.profile?.rol}`} api={api} profile={identity.profile} onLogin={()=>setView('client-login')} onSearch={()=>{setQuery('');setDistrict('');setShowBookingModal(false);setView('client');}}/></div></div>;
   if (view === "landing") {
@@ -863,7 +864,7 @@ if (view === "admin" && adminAccess) {
             <button onClick={() => setView("barber")} className={`rounded-xl border border-white/20 px-4 py-2 text-sm ${pointerClass}`}>Panel Barbero</button>
             <button onClick={()=>setView('my-bookings')} className="rounded-xl border border-white/20 px-4 py-2 text-sm">Mis citas</button>
             <button onClick={()=>setView('shop-manage')} className="rounded-xl border border-white/20 px-4 py-2 text-sm">Mi barbería</button>
-            <button onClick={()=>setView('client-auth')} className="rounded-xl border border-white/20 px-4 py-2 text-sm">Mi cuenta</button>
+            <button onClick={()=>setView(identity.profile?'account-security':'client-auth')} className="rounded-xl border border-white/20 px-4 py-2 text-sm">Mi cuenta</button>
             {adminAccess&&<button onClick={()=>setView('admin')} className="rounded-xl border border-white/20 px-4 py-2 text-sm">Administración</button>}
 
             <button onClick={handleLogout} className="rounded-xl border border-white/20 px-4 py-2 text-sm">Cerrar sesión</button>

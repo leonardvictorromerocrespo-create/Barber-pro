@@ -18,6 +18,7 @@ test('existing screens render without a fictitious identity or a payment confirm
  assert.match(screen('admin'),/Iniciar sesión como administrador/);assert.doesNotMatch(screen('admin'),/Barberías registradas/);
  assert.match(screen('shop-manage'),/cuenta de barbero real/);
  assert.match(screen('my-bookings'),/Inicia sesión para consultar tus citas/);
+ assert.match(screen('account-security'),/Iniciar sesión para proteger mi cuenta/);
  assert.doesNotMatch(screen('client'),/Este historial es una demostración local|Simular recibo|actor sintético/i);
  const shop={id:1,name:'Barbería',services:[{id:1,name:'Corte local',duration:'30 min',price:30}]};
  const html=booking(shop,[]);assert.match(html,/Corte local/);assert.match(html,/30 min/);assert.match(html,/continúa con Google/);

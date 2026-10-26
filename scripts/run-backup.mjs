@@ -7,6 +7,7 @@ import {createHash,randomBytes} from 'node:crypto';
 import pg from 'pg';
 import net from 'node:net';
 import {encryptBackup,decryptBackup} from '../server/backup-crypto.mjs';
+import {uploadAndVerifyDrive} from '../server/drive-backup.mjs';
 import {realConfig,nativeRoot} from './setup-real-auth.mjs';
 const root=path.join(process.env.LOCALAPPDATA,'MERYO-backups'),repo=path.resolve(fileURLToPath(new URL('..',import.meta.url)));
 const bin='C:/Program Files/PostgreSQL/17/bin',cluster=path.join(process.env.LOCALAPPDATA,'MERYO-tests','pg17-20261024');
@@ -57,7 +58,11 @@ try{
   // Verify authenticated decryption before reporting a successful local snapshot.
   const verify=path.join(work,'verify.tar');await decryptBackup(encrypted,verify,key);if(await hash(tar)!==await hash(verify))throw Error('Encrypted backup verification failed');
   let independent=false;const retentionDirs=[root];
-  if(config.independentDestination){
+  if(config.independentDestination?.kind==='google-drive'){
+   const remote=await uploadAndVerifyDrive(root,encrypted);
+   await fs.writeFile(path.join(root,'drive-status.json'),JSON.stringify(remote));
+   independent=true;
+  }else if(config.independentDestination){
    const target=config.independentDestination;
    if(typeof target!=='object'||!['external-disk','nas'].includes(target.kind)||target.confirmedIndependentDevice!==true)throw Error('Choose and confirm the independent device first; cloud targets need remote verification');
    const dest=path.resolve(target.path);
