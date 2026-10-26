@@ -7,6 +7,7 @@ import Reservations from './components/Reservations';
 import AdminMfa from './components/AdminMfa';
 import {disableBookingPush} from './lib/push';
 import {saveDraft,readDraft,clearDraft,beginGoogle} from './lib/booking-draft';
+import {rememberAccess,consumeAccess,accessView} from './lib/access-navigation';
 import ShopManagement from './components/management/ShopManagement';
 const api = createMeryoApi(supabase);
 import CatalogFilters from "./components/CatalogFilters";
@@ -338,6 +339,7 @@ export default function BarberProApp() {
   const [query, setQuery] = useState("");
   const [district, setDistrict] = useState("");
   const [order, setOrder] = useState("name");
+  const [loginDestination,setLoginDestination]=useState('client');
   const allowedViews=['landing','client','client-auth','client-register','client-login','barber','barber-login','admin','account-security','shop-manage','my-bookings'];
   const [view, setView] = useState(()=>{const hash=typeof window==='undefined'?'':window.location.hash.slice(1);return allowedViews.includes(hash)?hash:'landing';});
   useEffect(()=>{window.history.replaceState(null,'',`#${view}`);},[view]);
@@ -509,9 +511,11 @@ async function cargarNotificaciones() {
     setRequestSaved(false);
   };
 
-  const requireBookingLogin=()=>{try{saveDraft(sessionStorage,{shop:selectedShop.id,service:selectedService.id,date:selectedDate,time:selectedTime,name:customerInfo.name,phone:customerInfo.phone,note:customRequest});setShowBookingModal(false);setView('client-login');}catch(error){setAccessMessage(error.message);}};
-  useEffect(()=>{const url=new URL(window.location.href);if(url.searchParams.get('auth_callback')!=='1'||identity.loading)return;if(identity.profile){url.searchParams.delete('auth_callback');window.history.replaceState(null,'',url.pathname+url.search+url.hash);}else{setAccessMessage('Google no completó el acceso. Tu reserva sigue guardada: puedes reintentar o continuar con correo.');setView('client-login');}},[identity.loading,identity.profile]);
-  const handleGoogle=async()=>{setAccessMessage('');try{await beginGoogle(supabase,{enabled:googleAuthEnabled,origin:window.location.origin});}catch(error){setAccessMessage(error.message);}};
+  const requireBookingLogin=()=>{try{saveDraft(sessionStorage,{shop:selectedShop.id,service:selectedService.id,date:selectedDate,time:selectedTime,name:customerInfo.name,phone:customerInfo.phone,note:customRequest});setShowBookingModal(false);openLogin('client');}catch(error){setAccessMessage(error.message);}};
+  useEffect(()=>{const url=new URL(window.location.href);if(url.searchParams.get('auth_callback')!=='1'||identity.loading)return;if(identity.profile){const destination=consumeAccess(sessionStorage);url.searchParams.delete('auth_callback');window.history.replaceState(null,'',url.pathname+url.search+url.hash);setView(accessView(destination,identity.profile.rol));}else{setAccessMessage('Google no completó el acceso. Tu reserva sigue guardada: puedes reintentar o continuar con correo.');setView('client-login');}},[identity.loading,identity.profile]);
+  const openLogin=destination=>{setLoginDestination(destination);setView('client-login');};
+  const handleGoogle=async()=>{setAccessMessage('');try{rememberAccess(sessionStorage,view==='admin'?'admin':['barber','barber-login'].includes(view)?'barber':view==='client-login'?loginDestination:'client');await beginGoogle(supabase,{enabled:googleAuthEnabled,origin:window.location.origin});}catch(error){setAccessMessage(error.message);}};
+  useEffect(()=>{if(adminAccess&&['barber','barber-login'].includes(view))setView('admin');},[adminAccess,view]);
   useEffect(()=>{
     const profile=identity.profile;if(!profile||resumed.current===profile.id)return;
     if(new URLSearchParams(window.location.search).get('cita')){resumed.current=profile.id;setView('my-bookings');return;}
@@ -565,7 +569,7 @@ async function cargarNotificaciones() {
   };
   const handleCustomerLogin = async () => {
     if(!customerInfo.email||!customerInfo.password)return alert('Ingresa correo y contraseña');
-    try{await signInWithProfile(supabase,{email:customerInfo.email,password:customerInfo.password},['cliente','barbero','admin']);await identity.refresh();setCustomerInfo(prev=>({...prev,password:''}));setView('client');}
+    try{const profile=await signInWithProfile(supabase,{email:customerInfo.email,password:customerInfo.password},['cliente','barbero','admin']);await identity.refresh();setCustomerInfo(prev=>({...prev,password:''}));setView(accessView(loginDestination,profile.rol));}
     catch(error){alert(error.message);}
   };
 
@@ -644,7 +648,10 @@ const finalPrice = basePrice;
           <div className="mx-auto mt-12 max-w-md rounded-[2rem] border border-white/10 bg-neutral-900 p-8 shadow-2xl">
             <p className="text-sm uppercase tracking-[0.2em] text-amber-400">Acceso barbero</p>
             <h1 className="mt-2 text-3xl font-black">Login MERYO</h1>
-            <p className="mt-3 text-sm text-neutral-400">Ingresa con tu cuenta de barbero o administrador.</p>
+            <p className="mt-3 text-sm text-neutral-400">Ingresa con tu cuenta de barbero. Los permisos se verifican con tu cuenta existente.</p>
+            <button onClick={handleGoogle} className="mt-4 w-full rounded-xl border border-white/20 p-3">Continuar con Google</button>
+            {accessMessage&&<p role="status" className="mt-3 text-amber-300">{accessMessage}</p>}
+            <button onClick={()=>setView('admin')} className="mt-3 text-sm text-amber-300">Acceso administrador</button>
             {supabase.authUnavailable&&<p role="status" className="mt-3 text-amber-300">Falta Supabase Auth de pruebas. No hay acceso local por rol ni administrador ficticio.</p>}
             <div className="mt-6 space-y-3">
             <input
@@ -683,7 +690,7 @@ const finalPrice = basePrice;
   }
   if(view === "admin"&&adminAccess&&(!adminAal2||adminSecurityOpen))return <AdminMfa client={supabase} onVerified={async()=>{await identity.refresh();setAdminAal2(true);setAdminSecurityOpen(false);}} onBack={()=>{setAdminSecurityOpen(false);if(!adminAal2)setView("client");}}/>;
   if (view === "admin" && !adminAccess) {
-    return <div className="min-h-screen bg-neutral-950 p-8 text-white"><button onClick={() => setView("barber-login")} className="rounded-xl bg-amber-400 px-4 py-3 text-black">Iniciar sesión como administrador</button></div>;
+    return <div className="min-h-screen bg-neutral-950 p-8 text-white"><div className="mx-auto mt-12 max-w-md rounded-[2rem] border border-white/10 bg-neutral-900 p-8 shadow-2xl"><h1 className="text-3xl font-black">Administración MERYO</h1><p className="mt-3 text-sm text-neutral-400">Iniciar sesión como administrador requiere tu cuenta autorizada y Authenticator. Google no asigna permisos administrativos.</p>{identity.loading?<p role="status" className="mt-4">Comprobando sesión…</p>:identity.profile?<p role="alert" className="mt-4 text-amber-300">Esta cuenta no tiene permisos administrativos.</p>:<><button onClick={handleGoogle} className="mt-6 w-full rounded-xl border border-white/20 p-3">Continuar con Google</button><button onClick={()=>openLogin('admin')} className="mt-3 w-full rounded-xl border border-white/10 px-4 py-3">Usar correo y contraseña</button></>}{accessMessage&&<p role="status" className="mt-3 text-amber-300">{accessMessage}</p>}<button onClick={()=>setView('client')} className="mt-4 text-sm text-neutral-400">Volver al catálogo</button></div></div>;
   }
 if (view === "client-auth") {
   return (
@@ -717,7 +724,7 @@ if (view === "client-auth") {
             </button>
 
             <button
-              onClick={() => setView("client-login")}
+              onClick={() => openLogin('client')}
               className="w-full rounded-2xl border border-white/10 px-4 py-3 font-bold text-white"
             >
               Iniciar sesión
@@ -856,7 +863,7 @@ if (view === "admin" && adminAccess) {
           <span className="text-3xl font-black">MER<span className="text-amber-400">YO</span></span>
           <div className="flex flex-wrap gap-3">
             <button onClick={() => setView("landing")} className={`rounded-xl border border-white/20 px-4 py-2 text-sm ${pointerClass}`}>Inicio</button>
-            <button onClick={() => setView("barber")} className={`rounded-xl border border-white/20 px-4 py-2 text-sm ${pointerClass}`}>Panel Barbero</button>
+            <button onClick={() => setView(adminAccess?'admin':"barber")} className={`rounded-xl border border-white/20 px-4 py-2 text-sm ${pointerClass}`}>{adminAccess?'Panel Administrador':'Panel Barbero'}</button>
             <button onClick={()=>setView('my-bookings')} className="rounded-xl border border-white/20 px-4 py-2 text-sm">Mis citas</button>
             <button onClick={()=>setView('shop-manage')} className="rounded-xl border border-white/20 px-4 py-2 text-sm">Mi barbería</button>
             <button onClick={()=>setView(identity.profile?'account-security':'client-auth')} className="rounded-xl border border-white/20 px-4 py-2 text-sm">Mi cuenta</button>

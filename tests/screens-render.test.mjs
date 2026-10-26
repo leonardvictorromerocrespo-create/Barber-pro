@@ -16,6 +16,9 @@ test('existing screens render without a fictitious identity or a payment confirm
  assert.match(screen('client-register'),/Crear cuenta/);assert.match(screen('client-login'),/Iniciar sesión/);
  assert.match(screen('client-register'),/registro por correo está pendiente/);
  assert.match(screen('barber'),/Acceso barbero/);assert.doesNotMatch(screen('barber'),/Reservas reales/);
+ assert.match(screen('barber-login'),/Continuar con Google/);
+ assert.match(screen('admin'),/Comprobando sesión/);
+ assert.doesNotMatch(screen('admin'),/Acceso barbero/);
  assert.match(screen('admin'),/Iniciar sesión como administrador/);assert.doesNotMatch(screen('admin'),/Barberías registradas/);
  assert.match(screen('shop-manage'),/cuenta de barbero real/);
  assert.match(screen('my-bookings'),/Inicia sesión para consultar tus citas/);
