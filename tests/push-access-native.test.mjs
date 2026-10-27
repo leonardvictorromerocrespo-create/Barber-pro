@@ -1,0 +1,15 @@
+import {test} from 'node:test';import assert from 'node:assert/strict';import fs from 'node:fs/promises';import path from 'node:path';import crypto from 'node:crypto';import pg from 'pg';import webpush from 'web-push';import {createClient} from '@supabase/supabase-js';import {realConfig,nativeRoot,secrets} from '../scripts/setup-real-auth.mjs';import {totp} from './helpers/totp.mjs';
+test('personal push works at AAL1; only administrative diagnostics require real MFA',{skip:process.env.MERYO_REAL_AUTH_TEST!=='1'},async()=>{
+ const team=JSON.parse(await fs.readFile(path.join(nativeRoot,'team-scheduling-accounts.json'),'utf8')),old=JSON.parse(await fs.readFile(path.join(nativeRoot,'shop-operations-accounts.json'),'utf8')),{anonKey}=await secrets();
+ const make=()=>createClient('http://127.0.0.1:5178/__supabase',anonKey,{auth:{persistSession:false,autoRefreshToken:false}}),client=make(),admin=make(),anon=make(),db=new pg.Pool(realConfig),subscriptions=[];
+ const sub=()=>({endpoint:'https://fcm.googleapis.com/native-access/'+crypto.randomUUID(),keys:{p256dh:webpush.generateVAPIDKeys().publicKey,auth:crypto.randomBytes(16).toString('base64url')}});
+ try{
+  assert.ifError((await client.auth.signInWithPassword(team.customerB)).error);assert.equal((await client.auth.mfa.getAuthenticatorAssuranceLevel()).data.currentLevel,'aal1');
+  const own=sub();subscriptions.push(own);assert.ifError((await client.rpc('meryo_registrar_push',{p_subscription:own})).error);
+  assert.equal((await client.rpc('meryo_push_dispositivo',{p_endpoint:own.endpoint})).data,true);const state=await client.rpc('meryo_push_estado');assert.ifError(state.error);assert.ok(state.data.dispositivos>=1);assert.equal(state.data.ultimos,undefined);
+  assert.ok((await client.rpc('meryo_push_admin_estado')).error);assert.ok((await client.rpc('meryo_probar_push')).error);assert.ok((await anon.rpc('meryo_push_dispositivo',{p_endpoint:own.endpoint})).error);
+  assert.ifError((await admin.auth.signInWithPassword(old.admin)).error);const personal=sub();subscriptions.push(personal);assert.ifError((await admin.rpc('meryo_registrar_push',{p_subscription:personal})).error);assert.ifError((await admin.rpc('meryo_push_estado')).error);
+  assert.equal((await admin.rpc('meryo_push_dispositivo',{p_endpoint:own.endpoint})).data,false);assert.ok((await admin.rpc('meryo_registrar_push',{p_subscription:own})).error);assert.equal((await admin.rpc('es_admin')).data,false);assert.ok((await admin.rpc('meryo_push_admin_estado')).error);assert.ok((await admin.rpc('meryo_probar_push')).error);
+  assert.ifError((await admin.auth.mfa.challengeAndVerify({factorId:old.admin.factorId,code:totp(old.admin.totpSecret)})).error);assert.equal((await admin.rpc('es_admin')).data,true);assert.ifError((await admin.rpc('meryo_push_admin_estado')).error);assert.ifError((await admin.rpc('meryo_probar_push')).error);
+ }finally{for(const s of subscriptions)await db.query('delete from meryo_private.push_subscriptions where endpoint=$1',[s.endpoint]);await client.auth.signOut({scope:'local'});await admin.auth.signOut({scope:'local'});await db.end();}
+});

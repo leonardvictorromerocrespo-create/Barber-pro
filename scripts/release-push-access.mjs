@@ -1,0 +1,16 @@
+import fs from 'node:fs/promises';import path from 'node:path';import crypto from 'node:crypto';import pg from 'pg';
+const root=path.join(process.env.LOCALAPPDATA,'MERYO-deployment'),apply=process.argv.includes('--apply-hosted'),source=await fs.readFile('db/incremental/018_separate_push_access.sql','utf8'),sha256=crypto.createHash('sha256').update(source).digest('hex');
+const restore=JSON.parse(await fs.readFile(path.join(root,'backups/hosted-restore-status.json'),'utf8')),backup=JSON.parse(await fs.readFile(path.join(root,'push-access-backup-proof.json'),'utf8'));
+if(restore.archive!==backup.archive||restore.tableCountsVerified<67||!backup.independentDownloadRestored)throw Error('Matching independent backup with 016/017 restored schema required');
+const config=apply?JSON.parse(await fs.readFile(path.join(root,'hosted-source.json'),'utf8')):{host:'127.0.0.1',port:55440,user:'meryo_test_admin',database:restore.database};
+if(apply){const proof=JSON.parse(await fs.readFile(path.join(root,'push-access-rehearsal.json'),'utf8'));if(proof.sha256!==sha256||!proof.rolledBack||config.projectRef!=='prdmcjykjpxpcomonwuy'||config.ssl?.rejectUnauthorized!==true)throw Error('Matching rehearsal and verified destination required');}
+const db=new pg.Client(config);await db.connect();
+try{
+ await db.query('begin');await db.query("set local lock_timeout='10s';set local statement_timeout='60s';select pg_advisory_xact_lock(hashtextextended('meryo-operations-release',0))");
+ const fingerprint=async()=>{const out={};for(const t of ['profiles','barberias','reservas','pagos','notificaciones'])out[t]=(await db.query(`select md5(coalesce(jsonb_agg(to_jsonb(r) order by to_jsonb(r)::text),'[]'::jsonb)::text) value from public.${t} r`)).rows[0].value;return JSON.stringify(out);};const before=await fingerprint(),mfa=(await db.query("select pg_get_functiondef('public.es_admin()'::regprocedure) source")).rows[0].source;
+ await db.query(source.replace(/^begin;\s*$/gmi,'').replace(/^commit;\s*$/gmi,''));
+ if(await fingerprint()!==before||(await db.query("select pg_get_functiondef('public.es_admin()'::regprocedure) source")).rows[0].source!==mfa)throw Error('Business records or admin MFA changed');
+ const gates=(await db.query("select public.es_admin() admin_without_session,has_function_privilege('anon','public.meryo_push_admin_estado()','execute') anonymous_diagnostic,has_column_privilege('authenticated','public.profiles','rol','update') may_change_role,(public.meryo_reservas_config()->>'cobros_habilitados')::boolean payments")).rows[0];if(Object.values(gates).some(Boolean))throw Error('Security gate mismatch');
+ if(apply){await db.query('insert into supabase_migrations.schema_migrations(version,name,statements) values($1,$2,$3)',['20261027000818','meryo_separate_push_access',[source]]);await db.query('commit');}else await db.query('rollback');
+ const result={at:new Date().toISOString(),sha256,productionApplied:apply,rolledBack:!apply,adminMfaPreserved:true,businessDataPreserved:true,gates};await fs.writeFile(path.join(root,apply?'push-access-applied.json':'push-access-rehearsal.json'),JSON.stringify(result,null,2));console.log(result);
+}catch(e){await db.query('rollback');console.error('Push access migration rolled back: '+e.message);process.exitCode=1;}finally{await db.end();}

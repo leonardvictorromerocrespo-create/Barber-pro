@@ -1,0 +1,6 @@
+import {test} from 'node:test';import assert from 'node:assert/strict';import fs from 'node:fs/promises';import path from 'node:path';import {pathToFileURL} from 'node:url';import {build} from 'esbuild';
+test('normal notifications never show diagnostic controls or infer a disabled sender before loading',async()=>{
+ const output=path.resolve('dist/push-center-render/view.mjs');await fs.mkdir(path.dirname(output),{recursive:true});
+ await build({stdin:{contents:`import React from 'react';import {renderToStaticMarkup} from 'react-dom/server';import Center from './src/components/PushCenter.jsx';export const view=diagnostic=>renderToStaticMarkup(React.createElement(Center,{api:{},profile:{id:'own',rol:diagnostic?'admin':'cliente'},diagnostic}));`,resolveDir:process.cwd(),loader:'jsx'},outfile:output,bundle:true,format:'esm',platform:'node',jsx:'automatic',external:['react','react-dom/server']});
+ const {view}=await import(pathToFileURL(output).href);const client=view(false);assert.match(client,/Activar notificaciones/);assert.doesNotMatch(client,/Probar push|Comprobación administrativa|El emisor del servidor está temporalmente desactivado|Evidencia/);assert.match(view(true),/Comprobación administrativa/);
+});

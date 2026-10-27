@@ -7,3 +7,8 @@ test('service worker deduplicates the same delivery, acknowledges display and cl
  handlers.push(event);await promise;handlers.push(event);await promise;assert.equal(shown.length,1);assert.equal(shown[0].options.silent,false);assert.equal(acks.length,2);assert.equal(acks[0].url,'/api/push/ack');
  handlers.notificationclick({notification:{close(){},data:shown[0].options.data},waitUntil:p=>{promise=p;}});await promise;assert.equal(acks.at(-1).body.kind,'clicked');assert.equal(opened[0],'https://meryo.example/?cita=10000000-0000-0000-0000-000000000001#my-bookings');
 });
+test('diagnostic notification returns to protected administration and OAuth preserves that view',async()=>{
+ let request;await beginGoogle({auth:{signInWithOAuth:async args=>{request=args;return {};}}},{enabled:true,origin:'https://meryo.example',adminView:'avisos'});assert.equal(new URL(request.options.redirectTo).searchParams.get('admin_view'),'avisos');assert.equal(JSON.stringify(request).includes('rol'),false);
+ const handlers={},shown=[];const self={location:{origin:'https://meryo.example'},addEventListener:(k,fn)=>{handlers[k]=fn;},registration:{showNotification:async(_t,o)=>shown.push(o)}};
+ vm.runInNewContext(await fs.readFile('public/meryo-push-sw.js','utf8'),{self,URL,Response,fetch:async()=>{}});let task;handlers.push({data:{json:()=>({event:'push_diagnostico',notificationId:123,body:'Comprobación propia'})},waitUntil:p=>{task=p;}});await task;assert.equal(shown[0].data.url,'/?admin_view=avisos&aviso=123#admin');
+});

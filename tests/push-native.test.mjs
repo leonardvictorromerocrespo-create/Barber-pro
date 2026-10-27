@@ -14,10 +14,10 @@ test('push native contract: actual Auth roles and bookings; mocked transport is 
  const request=async()=>{const slots=await client.rpc('meryo_horarios_barbero',{p_shop:f.shop,p_service:f.service,p_date:date,p_member:f.member});assert.ifError(slots.error);assert.ok(slots.data.length);const r=await client.rpc('meryo_solicitar_cita',{p_barberia_id:f.shop,p_servicio_id:f.service,p_barbero_id:f.member,p_inicio:slots.data[0].hora_inicio,p_nombre:'Cliente push aislado',p_telefono:'999999999',p_pedido:'Prueba aislada push',p_extra:0});assert.ifError(r.error);bookings.push(r.data);return r.data;};
  try{
   await pool.query("update meryo_private.push_outbox set status='expired' where status not in ('accepted','failed','expired')");
-  await t.test('subscription belongs to the authenticated account; admin requires actual MFA',async()=>{
+  await t.test('subscription belongs to the authenticated account; administrative diagnostics require MFA',async()=>{
    assert.ifError((await owner.rpc('meryo_registrar_push',{p_subscription:subOwner})).error);assert.ok((await client.rpc('meryo_registrar_push',{p_subscription:subOwner})).error);
    for(const [c,s] of [[staff,subStaff],[client,subClient],[client,subRetry],[client,subBad],[stranger,subStranger]])assert.ifError((await c.rpc('meryo_registrar_push',{p_subscription:s})).error);
-   assert.ok((await admin.rpc('meryo_registrar_push',{p_subscription:subAdmin})).error);
+   assert.ifError((await admin.rpc('meryo_registrar_push',{p_subscription:subAdmin})).error);assert.ok((await admin.rpc('meryo_push_admin_estado')).error);
   });
   let booking;
   await t.test('new request reaches assigned barber and remains visible to owner, never a foreign user',async()=>{
@@ -31,7 +31,7 @@ test('push native contract: actual Auth roles and bookings; mocked transport is 
    assert.equal(sent.filter(s=>s.endpoint===subClient.endpoint&&s.data.event==='reserva_aceptada').length,1);assert.equal(sent.filter(s=>s.endpoint===subRetry.endpoint&&s.data.event==='reserva_aceptada').length,1);
    assert.equal((await pool.query('select count(*)::int n from meryo_private.push_subscriptions where endpoint=$1',[subBad.endpoint])).rows[0].n,0);
    assert.equal(await acknowledgePush(pool,{...accepted.data.receipt,token:'x'.repeat(43)}),false);assert.equal(await acknowledgePush(pool,accepted.data.receipt),true);assert.equal(await acknowledgePush(pool,{...accepted.data.receipt,kind:'clicked'}),true);
-   const status=await client.rpc('meryo_push_estado');assert.ifError(status.error);assert.ok(status.data.ultimos.some(j=>j.recibida_en&&j.abierta_en));assert.ok(!JSON.stringify(status.data).includes('endpoint'));
+   const status=await client.rpc('meryo_push_estado');assert.ifError(status.error);assert.equal(status.data.ultimos,undefined);const delivered=(await pool.query('select received_at,clicked_at from meryo_private.push_deliveries where id=$1',[accepted.data.receipt.id])).rows[0];assert.ok(delivered.received_at&&delivered.clicked_at);assert.ok(!JSON.stringify(status.data).includes('endpoint'));
   });
   await t.test('rejection and server expiry create customer pushes, stale acceptance is not sent',async()=>{
    const rejected=await request();assert.ifError((await staff.rpc('responder_reserva',{p_reserva_id:rejected,p_aceptar:false})).error);await drain();assert.ok(sent.some(s=>s.data.bookingId===rejected&&s.data.event==='reserva_rechazada'));

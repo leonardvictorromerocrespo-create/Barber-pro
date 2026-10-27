@@ -8,7 +8,7 @@ self.addEventListener('push',event=>event.waitUntil((async()=>{
  let data={};try{data=event.data?.json()||{};}catch{}
  const id=/^[\da-f-]{36}$/i.test(data.bookingId||'')?data.bookingId:null;
  const notification=/^\d+$/.test(String(data.notificationId||''))?data.notificationId:null;
- const url=id?`/?cita=${id}#my-bookings`:notification?`/?aviso=${notification}#notifications`:'/#notifications';
+ const url=id?`/?cita=${id}#my-bookings`:data.event==='push_diagnostico'?`/?admin_view=avisos${notification?'&aviso='+notification:''}#admin`:notification?`/?aviso=${notification}#notifications`:'/#notifications';
  const delivery=/^[\da-f-]{36}$/i.test(data.receipt?.id||'')?data.receipt.id:null;
  if(!await alreadyShown(delivery).catch(()=>false)){
   await self.registration.showNotification(typeof data.title==='string'?data.title.slice(0,70):'MERYO · Tu cita',{

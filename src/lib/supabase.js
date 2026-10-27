@@ -1,3 +1,4 @@
+import {browserAuthLockOptions} from './auth-lock';
 import { createLocalClient, isLoopbackHost } from "./local-client";
 import { createClient } from "@supabase/supabase-js";
 
@@ -10,6 +11,6 @@ if(!local){
   if(target.protocol!=='https:'||target.username||target.password)throw new Error('El backend de destino debe usar HTTPS y no contener credenciales en la URL.');
 }
 
-export const supabase = local ? createLocalClient() : createClient(supabaseUrl, supabaseKey,{auth:{flowType:'pkce',persistSession:true,autoRefreshToken:true,detectSessionInUrl:true}});
+export const supabase = local ? createLocalClient() : createClient(supabaseUrl, supabaseKey,{auth:{...browserAuthLockOptions(),flowType:'pkce',persistSession:true,autoRefreshToken:true,detectSessionInUrl:true}});
 export const googleAuthEnabled=import.meta.env.VITE_MERYO_GOOGLE_ENABLED===true||import.meta.env.VITE_MERYO_GOOGLE_ENABLED==='true';
 export const emailSignupEnabled=import.meta.env.VITE_MERYO_EMAIL_SIGNUP_ENABLED==='true';

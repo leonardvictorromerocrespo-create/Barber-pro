@@ -1,6 +1,6 @@
 // Called only from an explicit user gesture, after a sender is configured.
 export async function enableBookingPush(api,config){
- if(!config?.push_disponible||!config.push_public_key)throw Error('Push pendiente: faltan VAPID/proveedor y un emisor de servidor.');
+ if(!config?.push_disponible||!config.push_public_key)throw Error('Los avisos del celular no están disponibles por el momento.');
  if(!('serviceWorker' in navigator)||!('PushManager' in window)||!('Notification' in window))throw Error('Este navegador no admite push.');
  const permission=await Notification.requestPermission();
  if(permission!=='granted')throw Error('No se autorizaron las notificaciones.');
@@ -9,7 +9,7 @@ export async function enableBookingPush(api,config){
  const key=Uint8Array.from(atob(config.push_public_key.replaceAll('-','+').replaceAll('_','/')),c=>c.charCodeAt(0));
  const subscription=await worker.pushManager.getSubscription()||await worker.pushManager.subscribe({userVisibleOnly:true,applicationServerKey:key});
  await api.registerPush(subscription.toJSON());
- return 'Dispositivo registrado. Falta verificar la recepción real con MERYO cerrado y el sonido de este teléfono.';
+ return 'Notificaciones activadas para esta cuenta en este dispositivo.';
 }
 export async function disableBookingPush(api){
  if(!('serviceWorker' in navigator))return;
@@ -20,5 +20,5 @@ export async function disableBookingPush(api){
 
 export async function pushDeviceState(){
  if(!('Notification' in window)||!('serviceWorker' in navigator)||!('PushManager' in window))return {permission:'no compatible',subscribed:false};
- const registration=await navigator.serviceWorker.getRegistration('/meryo-push-sw.js');return {permission:Notification.permission,subscribed:Boolean(await registration?.pushManager.getSubscription())};
+ const registration=await navigator.serviceWorker.getRegistration('/meryo-push-sw.js'),subscription=await registration?.pushManager.getSubscription();return {permission:Notification.permission,subscribed:Boolean(subscription),endpoint:subscription?.endpoint};
 }

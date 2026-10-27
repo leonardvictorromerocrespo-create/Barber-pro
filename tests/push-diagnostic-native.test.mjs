@@ -2,7 +2,8 @@ import {test} from 'node:test';import assert from 'node:assert/strict';import fs
 test('self diagnostic requires real admin MFA, waits server delay and never creates a booking',{skip:process.env.MERYO_REAL_AUTH_TEST!=='1'},async()=>{
  const f=JSON.parse(await fs.readFile(path.join(nativeRoot,'shop-operations-accounts.json'),'utf8')),{anonKey}=await secrets(),db=new pg.Pool(realConfig),c=createClient('http://127.0.0.1:5178/__supabase',anonKey,{auth:{persistSession:false,autoRefreshToken:false}}),subscription={endpoint:'https://fcm.googleapis.com/native-diagnostic/'+crypto.randomUUID(),keys:{p256dh:webpush.generateVAPIDKeys().publicKey,auth:crypto.randomBytes(16).toString('base64url')}};
  try{
-  assert.ifError((await c.auth.signInWithPassword(f.admin)).error);assert.ok((await c.rpc('meryo_push_estado')).error);assert.ok((await c.rpc('meryo_probar_push')).error);
+  await db.query("update meryo_private.push_outbox set status='expired' where user_id=$1 and event='push_diagnostico' and status not in ('accepted','failed','expired')",[f.admin.id]);
+  assert.ifError((await c.auth.signInWithPassword(f.admin)).error);assert.ifError((await c.rpc('meryo_push_estado')).error);assert.ok((await c.rpc('meryo_push_admin_estado')).error);assert.ok((await c.rpc('meryo_probar_push')).error);
   assert.ifError((await c.auth.mfa.challengeAndVerify({factorId:f.admin.factorId,code:totp(f.admin.totpSecret)})).error);
   assert.ifError((await c.rpc('meryo_registrar_push',{p_subscription:subscription})).error);
   const before=(await db.query('select count(*)::int n from public.reservas')).rows[0].n,r=await c.rpc('meryo_probar_push');assert.ifError(r.error);assert.ok(r.data);
