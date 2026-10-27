@@ -17,10 +17,11 @@ jobs:
           node-version: '24'
           cache: npm
       - name: Install native PostgreSQL 17 and synthetic media tools
+        timeout-minutes: 8
         run: |
           sudo /usr/share/postgresql-common/pgdg/apt.postgresql.org.sh -y
           sudo apt-get update -qq
-          sudo apt-get install -y postgresql-17 postgresql-contrib-17 ffmpeg
+          sudo apt-get install -y --no-install-recommends -o Acquire::Retries=2 -o Acquire::http::Timeout=30 postgresql-17 postgresql-contrib-17 ffmpeg
           sudo pg_createcluster 17 meryo_storage --port 55440 --start
           sudo -u postgres createuser --host=/var/run/postgresql --port=55440 --superuser "$USER"
           createdb --host=/var/run/postgresql --port=55440 meryo_ci_storage

@@ -6,6 +6,7 @@ import { useIdentity } from './lib/useIdentity';
 import Reservations from './components/Reservations';
 import AdminMfa from './components/AdminMfa';
 import AdminShops from './components/AdminShops';
+import TeamInvite from './components/TeamInvite';
 import {disableBookingPush} from './lib/push';
 import {saveDraft,readDraft,clearDraft,beginGoogle} from './lib/booking-draft';
 import {rememberAccess,consumeAccess,accessView} from './lib/access-navigation';
@@ -14,7 +15,7 @@ const api = createMeryoApi(supabase);
 import CatalogFilters from "./components/CatalogFilters";
 import CatalogStatus from './components/CatalogStatus';
 import { selectShops, catalogMarkers, coordinates } from "./lib/catalog";
-import { listaDias } from "./lib/dates";
+import { listaDias,sumarDias } from "./lib/dates";
 const CatalogMap = lazy(() => import("./components/CatalogMap"));
 
 const pointerClass = "cursor-pointer";
@@ -155,6 +156,7 @@ export function BookingModal({
   selectedShop,
   selectedService,
   setSelectedService,
+  selectedBarber,setSelectedBarber,
   selectedDate,
   setSelectedDate,
   selectedTime,
@@ -173,6 +175,7 @@ export function BookingModal({
   agendaLoading,agendaError,onLogin,accessMessage,
 }) {
   if (!selectedShop) return null;
+  const eligible=(selectedShop.equipo??[]).filter(m=>m.servicios?.some(id=>String(id)===String(selectedService?.id)));
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4">
@@ -194,7 +197,7 @@ export function BookingModal({
         <div className="grid gap-6 lg:grid-cols-[1.2fr_0.8fr]">
           <div className="space-y-6">
             <div className="rounded-3xl border border-white/10 bg-neutral-900 p-5">
-              <h4 className="text-xl font-bold">1. Elige tu servicio y barbero</h4><label className="mt-3 block text-sm">Barbero / agenda de la barbería<select aria-label="Barbero" className="mt-2 block w-full rounded-xl border border-white/10 bg-neutral-900 p-3" value={selectedShop.id} onChange={()=>{}}><option value={selectedShop.id}>{selectedShop.name} · agenda única</option></select></label>
+              <h4 className="text-xl font-bold">1. Elige tu servicio y barbero</h4><label className="mt-3 block text-sm">Barbero<select aria-label="Barbero" className="mt-2 block w-full rounded-xl border border-white/10 bg-neutral-900 p-3" value={selectedBarber||''} onChange={e=>{setSelectedBarber(e.target.value);setSelectedTime('');}}><option value="">Selecciona un barbero</option>{eligible.map(m=><option key={m.id} value={m.id}>{m.nombre}</option>)}</select></label>{!eligible.length&&<p className="mt-3 text-sm text-amber-300">Este servicio todavía no tiene un integrante habilitado.</p>}
               <div className="mt-4 grid gap-3 md:grid-cols-3">
                 {selectedShop.services.map((service) => (
                   <button
@@ -217,7 +220,7 @@ export function BookingModal({
             </div>
 
             <div className="rounded-3xl border border-white/10 bg-neutral-900 p-5">
-              <h4 className="text-xl font-bold">2. Elige la fecha</h4>
+              <h4 className="text-xl font-bold">2. Elige la fecha</h4><label className="mt-3 block text-sm">Otra fecha (hasta 30 días)<input aria-label="Fecha de la cita" type="date" min={AVAILABLE_DATES[0]} max={sumarDias(AVAILABLE_DATES[0],30)} value={selectedDate} onChange={e=>{setSelectedDate(e.target.value);setSelectedTime("");}} className="mt-2 w-full rounded-xl border border-white/10 bg-neutral-900 p-3"/></label>
               <div className="mt-4 grid gap-3 sm:grid-cols-3">
                 {AVAILABLE_DATES.map((date) => (
                   <button
@@ -304,6 +307,7 @@ export function BookingModal({
             <div className="mt-5 space-y-3 text-sm">
               <div className="flex justify-between"><span>Cliente</span><span>{customerInfo.name || "-"}</span></div>
               <div className="flex justify-between"><span>Servicio</span><span>{selectedService?.name || "-"}</span></div>
+              <div className="flex justify-between"><span>Barbero</span><span>{eligible.find(m=>m.id===selectedBarber)?.nombre||'Selecciona un barbero'}</span></div>
               <div className="flex justify-between"><span>Fecha</span><span>{selectedDate}</span></div>
               <div className="flex justify-between"><span>Hora</span><span>{activeSlots.find(slot=>slot.time===selectedTime)?.label || "Selecciona una hora"}</span></div>
               <div className="flex justify-between"><span>Pedido especial</span><span className="max-w-[170px] text-right">{customRequest || "No"}</span></div>
@@ -313,7 +317,7 @@ export function BookingModal({
             <p className="mt-5 text-sm text-amber-200">El barbero tendrá hasta 15 minutos para aceptar tu solicitud. Te avisaremos cuando puedas pagar el adelanto del 50 %.</p>
             <button
               onClick={submitReservation}
-              disabled={savingReservation || !selectedTime || (reservationsEnabled&&(!customerInfo.name.trim() || !customerInfo.phone.trim())) || requestSaved}
+              disabled={savingReservation || !selectedTime || !selectedBarber || (reservationsEnabled&&(!customerInfo.name.trim() || !customerInfo.phone.trim())) || requestSaved}
               className={`mt-6 w-full rounded-xl py-3 font-bold ${
                 selectedTime && customerInfo.name.trim() && customerInfo.phone.trim() && !requestSaved
                   ? `${pointerClass} bg-amber-400 text-black`
@@ -343,8 +347,8 @@ export default function BarberProApp() {
   const [district, setDistrict] = useState("");
   const [order, setOrder] = useState("name");
   const [loginDestination,setLoginDestination]=useState('client');
-  const allowedViews=['landing','client','client-auth','client-register','client-login','barber','barber-login','admin','account-security','shop-manage','my-bookings'];
-  const [view, setView] = useState(()=>{const hash=typeof window==='undefined'?'':window.location.hash.slice(1);return allowedViews.includes(hash)?hash:'landing';});
+  const allowedViews=['landing','client','client-auth','client-register','client-login','barber','barber-login','admin','account-security','shop-manage','my-bookings','team-invite'];
+  const [view, setView] = useState(()=>{const raw=typeof window==='undefined'?'':window.location.hash.slice(1);const hash=raw.startsWith('team-invite/')?'team-invite':raw;return allowedViews.includes(hash)?hash:'landing';});
   useEffect(()=>{window.history.replaceState(null,'',`#${view}`);},[view]);
   const identity = useIdentity(supabase);
   const adminAccess = identity.profile?.rol === 'admin' && identity.profile?.activo === true;
@@ -376,6 +380,8 @@ export default function BarberProApp() {
   const [affiliateBusy,setAffiliateBusy]=useState(false);
   const [selectedShop, setSelectedShop] = useState(null);
   const [selectedService, setSelectedService] = useState(null);
+  const [selectedBarber,setSelectedBarber]=useState('');
+  useEffect(()=>{const eligible=(selectedShop?.equipo??[]).filter(m=>m.servicios?.some(id=>String(id)===String(selectedService?.id)));setSelectedBarber(current=>eligible.some(m=>m.id===current)?current:eligible[0]?.id||'');},[selectedShop,selectedService]);
   const [selectedDate, setSelectedDate] = useState(AVAILABLE_DATES[0]);
   const [selectedTime, setSelectedTime] = useState("");
   const [showAffiliateForm, setShowAffiliateForm] = useState(false);
@@ -397,13 +403,13 @@ export default function BarberProApp() {
 
   useEffect(() => {
     let active=true;
-    if(!showBookingModal || !selectedShop || !selectedService) return;
+    if(!showBookingModal || !selectedShop || !selectedService || !selectedBarber){setActiveSlots([]);setAgendaLoading(false);return;}
     setAgendaLoading(true);setAgendaError('');setActiveSlots([]);
-    const refreshSlots=()=>api.slots(selectedShop.id,selectedService.id,selectedDate).then(rows => {if(active){setActiveSlots(rows);setSelectedTime(current=>rows.some(s=>s.time===current)?current:"");}})
-      .catch(error=>{if(active)setAgendaError(error.message);}).finally(()=>{if(active)setAgendaLoading(false);});
+    const refreshSlots=()=>api.slots(selectedShop.id,selectedService.id,selectedDate,selectedBarber).then(rows => {if(active){setActiveSlots(rows);setSelectedTime(current=>rows.some(s=>s.time===current)?current:"");}})
+      .catch(error=>{if(active){setAgendaError(error.message);setActiveSlots([]);setSelectedTime('');}}).finally(()=>{if(active)setAgendaLoading(false);});
     refreshSlots();const timer=setInterval(refreshSlots,5000);
     return()=>{active=false;clearInterval(timer);};
-  },[showBookingModal,selectedShop,selectedService,selectedDate]);
+  },[showBookingModal,selectedShop,selectedService,selectedDate,selectedBarber]);
 
 useEffect(() => {
   cargarBarberiasActivas();
@@ -504,26 +510,26 @@ async function cargarNotificaciones() {
     setRequestSaved(false);
   };
 
-  const requireBookingLogin=()=>{try{saveDraft(sessionStorage,{shop:selectedShop.id,service:selectedService.id,date:selectedDate,time:selectedTime,name:customerInfo.name,phone:customerInfo.phone,note:customRequest});setShowBookingModal(false);openLogin('client');}catch(error){setAccessMessage(error.message);}};
+  const requireBookingLogin=()=>{try{saveDraft(sessionStorage,{shop:selectedShop.id,service:selectedService.id,barber:selectedBarber,date:selectedDate,time:selectedTime,name:customerInfo.name,phone:customerInfo.phone,note:customRequest});setShowBookingModal(false);openLogin('client');}catch(error){setAccessMessage(error.message);}};
   useEffect(()=>{const url=new URL(window.location.href);if(url.searchParams.get('auth_callback')!=='1'||identity.loading)return;if(identity.profile){const destination=consumeAccess(sessionStorage);url.searchParams.delete('auth_callback');window.history.replaceState(null,'',url.pathname+url.search+url.hash);setView(accessView(destination,identity.profile.rol));}else{setAccessMessage('Google no completó el acceso. Tu reserva sigue guardada: puedes reintentar o continuar con correo.');setView('client-login');}},[identity.loading,identity.profile]);
   const openLogin=destination=>{setLoginDestination(destination);setView('client-login');};
-  const handleGoogle=async()=>{setAccessMessage('');try{rememberAccess(sessionStorage,view==='admin'?'admin':['barber','barber-login'].includes(view)?'barber':view==='client-login'?loginDestination:'client');await beginGoogle(supabase,{enabled:googleAuthEnabled,origin:window.location.origin});}catch(error){setAccessMessage(error.message);}};
+  const handleGoogle=async()=>{setAccessMessage('');try{rememberAccess(sessionStorage,view==='team-invite'?'team-invite':view==='admin'?'admin':['barber','barber-login'].includes(view)?'barber':view==='client-login'?loginDestination:'client');await beginGoogle(supabase,{enabled:googleAuthEnabled,origin:window.location.origin});}catch(error){setAccessMessage(error.message);}};
   useEffect(()=>{if(adminAccess&&['barber','barber-login'].includes(view))setView('admin');},[adminAccess,view]);
   useEffect(()=>{
     const profile=identity.profile;if(!profile||resumed.current===profile.id)return;
     if(new URLSearchParams(window.location.search).get('cita')){resumed.current=profile.id;setView('my-bookings');return;}
     const draft=readDraft(sessionStorage);if(!draft||profile.rol!=='cliente')return;
     let active=true;
-    api.catalog().then(catalog=>{if(!active)return;const shop=catalog.find(s=>String(s.id)===draft.shop),service=shop?.services.find(s=>String(s.id)===draft.service);if(!shop||!service)throw Error('El servicio ya no está disponible. Elige otro.');setSelectedShop(shop);setSelectedService(service);setSelectedDate(draft.date);setSelectedTime(draft.time);setCustomRequest(draft.note);setCustomerInfo(prev=>({...prev,name:draft.name||profile.nombre||'',phone:draft.phone||profile.telefono||''}));resumed.current=profile.id;setView('client');setShowBookingModal(true);clearDraft(sessionStorage);setAccessMessage('Recuperamos tu reserva. Revisa el horario y completa solo los datos que faltan.');}).catch(error=>{if(active)setAccessMessage(error.message);});
+    api.catalog().then(catalog=>{if(!active)return;const shop=catalog.find(s=>String(s.id)===draft.shop),service=shop?.services.find(s=>String(s.id)===draft.service);if(!shop||!service)throw Error('El servicio ya no está disponible. Elige otro.');setSelectedShop(shop);setSelectedService(service);setSelectedBarber(draft.barber||'');setSelectedDate(draft.date);setSelectedTime(draft.barber&&!(shop.equipo??[]).some(m=>m.id===draft.barber&&m.servicios?.some(id=>String(id)===String(service.id)))?'':draft.time);setCustomRequest(draft.note);setCustomerInfo(prev=>({...prev,name:draft.name||profile.nombre||'',phone:draft.phone||profile.telefono||''}));resumed.current=profile.id;setView('client');setShowBookingModal(true);clearDraft(sessionStorage);setAccessMessage('Recuperamos tu reserva. Revisa el horario y completa solo los datos que faltan.');}).catch(error=>{if(active)setAccessMessage(error.message);});
     return()=>{active=false;};
   },[identity.profile]);
   const submitReservation = async () => {
     if(!reservationsEnabled){requireBookingLogin();return;}
-    if (savingReservation || !selectedTime || !selectedService) return;
+    if (savingReservation || !selectedTime || !selectedService || !selectedBarber) return;
     setSavingReservation(true);
     setRequestSaved(false);
     try {
-      await api.request({shop:selectedShop.id,service:selectedService.id,start:selectedTime,name:customerInfo.name,phone:customerInfo.phone,note:customRequest});
+      await api.request({shop:selectedShop.id,service:selectedService.id,barber:selectedBarber,start:selectedTime,name:customerInfo.name,phone:customerInfo.phone,note:customRequest});
       // Notification is written in the same database transaction, never by the browser.
       setRequestSaved(true);
       clearDraft(sessionStorage);setShowBookingModal(false);setView("my-bookings");
@@ -572,8 +578,9 @@ async function cargarNotificaciones() {
 
 
 const finalPrice = basePrice;
+  if(view === 'team-invite')return <TeamInvite api={api} profile={identity.profile} onGoogle={handleGoogle} onEmail={()=>openLogin('team-invite')} onAccepted={async()=>{await identity.refresh();setView('barber');}} onBack={()=>setView('client')}/>;
   if(view === 'account-security')return identity.profile?<AdminMfa client={supabase} onVerified={async()=>{await identity.refresh();setAccessMessage('Authenticator verificado por Supabase. Tu rol no cambia. Registra un segundo factor en otro dispositivo para recuperación.');setView('client');}} onBack={()=>setView('client')}/>:<div className="min-h-screen bg-neutral-950 p-8 text-white"><button onClick={()=>setView('client-login')}>Iniciar sesión para proteger mi cuenta</button></div>;
-  if(view === 'shop-manage') return <ShopManagement api={api} profile={identity.profile} onLogin={()=>setView('barber-login')} onBack={async()=>{await cargarBarberiasActivas();setView('client');}} onRegister={()=>{setShowAffiliateForm(true);setView('client');setTimeout(()=>document.getElementById('register-shop')?.scrollIntoView(),0);}}/>;
+  if(view === 'shop-manage') return <ShopManagement key={identity.profile?.id||'anonymous'} api={api} profile={identity.profile} onLogin={()=>setView('barber-login')} onBack={async()=>{await cargarBarberiasActivas();setView('client');}} onRegister={()=>{setShowAffiliateForm(true);setView('client');setTimeout(()=>document.getElementById('register-shop')?.scrollIntoView(),0);}}/>;
   if(view === 'my-bookings') return <div className="min-h-screen bg-neutral-950 p-6 text-white"><div className="mx-auto max-w-5xl space-y-5"><h1 className="text-3xl font-black">Mis citas <span className="text-amber-400">MERYO</span></h1><button onClick={()=>setView('client')} className="rounded-xl border border-white/20 px-4 py-2">Volver</button><Reservations key={`${identity.profile?.id}-${identity.profile?.rol}`} api={api} profile={identity.profile} onLogin={()=>setView('client-login')} onSearch={()=>{setQuery('');setDistrict('');setShowBookingModal(false);setView('client');}}/></div></div>;
   if (view === "landing") {
     return (
@@ -988,6 +995,7 @@ if (view === "admin" && adminAccess) return <AdminShops api={api} onSecurity={()
       <BookingModal
         selectedShop={showBookingModal ? selectedShop : null}
         selectedService={selectedService}
+        selectedBarber={selectedBarber} setSelectedBarber={setSelectedBarber}
         setSelectedService={setSelectedService}
         selectedDate={selectedDate}
         setSelectedDate={setSelectedDate}

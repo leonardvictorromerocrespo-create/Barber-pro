@@ -36,12 +36,12 @@ export function createMeryoApi(client) {
       catch(error){shop.assets=[];shop.contentError=error.message;}
       return shop;
     })),
-    slots:async(shop,service,date)=>(await readResult(client.rpc('horarios_disponibles',{p_barberia_id:shop,p_servicio_id:service,p_fecha:date}))).map(s=>({id:s.hora_inicio,time:s.hora_inicio,label:new Date(s.hora_inicio).toLocaleTimeString('es-PE',{timeZone:'America/Lima',hour:'2-digit',minute:'2-digit',hour12:false}),occupied:false})),
-    request:async({shop,service,start,name,phone,note})=>{
+    slots:async(shop,service,date,barber)=>(await readResult(barber?client.rpc('meryo_horarios_barbero',{p_shop:shop,p_service:service,p_date:date,p_member:barber}):client.rpc('horarios_disponibles',{p_barberia_id:shop,p_servicio_id:service,p_fecha:date}))).map(s=>({id:s.hora_inicio,time:s.hora_inicio,label:new Date(s.hora_inicio).toLocaleTimeString('es-PE',{timeZone:'America/Lima',hour:'2-digit',minute:'2-digit',hour12:false}),occupied:false})),
+    request:async({shop,service,barber,start,name,phone,note})=>{
       await requireRole(['cliente']);
       const config=await readResult(client.rpc('meryo_reservas_config'));
       if(config.respuesta_segundos!==900||config.modelo_comercial!=='mensualidad')throw new Error('El servidor todavía no tiene el flujo de solicitudes de MERYO actualizado.');
-      return savedOperation(()=>client.rpc('crear_reserva',{p_barberia_id:shop,p_servicio_id:service,p_inicio:start,p_nombre:name.trim(),p_telefono:phone.trim(),p_pedido:note||null,p_extra:0}));
+      return savedOperation(()=>client.rpc(barber?'meryo_solicitar_cita':'crear_reserva',{p_barberia_id:shop,p_servicio_id:service,p_inicio:start,p_nombre:name.trim(),p_telefono:phone.trim(),p_pedido:note||null,p_extra:0,...(barber?{p_barbero_id:barber}:{})}));
     },
     bookings:async()=>{
       const p=await requireRole(['cliente','barbero']);
@@ -57,6 +57,17 @@ export function createMeryoApi(client) {
       return savedOperation(()=>client.rpc('registrar_barberia',{p_nombre:form.nombre.trim(),p_distrito:form.distrito.trim(),p_direccion:form.direccion.trim(),p_descripcion:form.descripcion||'',p_lat:form.lat===''||form.lat==null?null:Number(form.lat),p_lng:form.lng===''||form.lng==null?null:Number(form.lng),p_whatsapp:form.whatsapp||null,p_correo:form.correo||null}));
     },
     ownerShop:async()=>{const p=await requireRole(['barbero']);return readResult(client.from('barberias').select('*').eq('id',p.barberia_id).single());},
+    ownerServices:async()=>{const p=await requireRole(['barbero']);return readResult(client.from('servicios').select('*').eq('barberia_id',p.barberia_id).order('nombre'));},
+    team:async()=>{await requireRole(['barbero']);return readResult(client.rpc('meryo_equipo'));},
+    inviteMember:async(email,name)=>{await requireRole(['barbero']);return savedOperation(()=>client.rpc('meryo_invitar_integrante',{p_email:email,p_name:name}));},
+    revokeInvite:async(id)=>{await requireRole(['barbero']);return savedOperation(()=>client.rpc('meryo_revocar_invitacion',{p_id:id}));},
+    acceptInvite:async(token)=>{await requireRole(['cliente','barbero']);return savedOperation(()=>client.rpc('meryo_aceptar_invitacion',{p_token:token}));},
+    saveMember:async(m,services)=>{await requireRole(['barbero']);return savedOperation(()=>client.rpc('meryo_actualizar_integrante',{p_member:m.id,p_name:m.display_name,p_active:m.active,p_services:services.map(Number)}));},
+    addWorkWindow:async(member,day,kind,start,end)=>{await requireRole(['barbero']);return savedOperation(()=>client.rpc('meryo_agregar_tramo',{p_member:member,p_day:Number(day),p_kind:kind,p_start:start,p_end:end}));},
+    removeWorkWindow:async(id)=>{await requireRole(['barbero']);return savedOperation(()=>client.rpc('meryo_retirar_tramo',{p_id:id}));},
+    editWorkWindow:async(id,start,end)=>{await requireRole(['barbero']);return savedOperation(()=>client.rpc('meryo_editar_tramo',{p_id:id,p_start:start,p_end:end}));},
+    addMemberBlock:async(member,start,end,reason)=>{await requireRole(['barbero']);return savedOperation(()=>client.rpc('meryo_agregar_bloqueo',{p_member:member,p_start:start,p_end:end,p_reason:reason}));},
+    removeMemberBlock:async(id)=>{await requireRole(['barbero']);return savedOperation(()=>client.rpc('meryo_retirar_bloqueo',{p_id:id}));},
     saveShop:async(data)=>{await requireRole(['barbero']);return savedOperation(()=>client.rpc('meryo_guardar_perfil',{p_data:data}));},
     shopHistory:async(id)=>readResult(client.rpc('meryo_historial_barberia',{p_id:id})),
     shopAssets:async(id)=>{const rows=await readResult(client.from('meryo_shop_assets').select('*').eq('barberia_id',id).eq('active',true).order('created_at'));return signContent(client,rows);},
