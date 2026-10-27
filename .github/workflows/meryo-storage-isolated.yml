@@ -1,0 +1,47 @@
+name: MERYO isolated Storage verification
+on:
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: meryo-isolated-storage
+  cancel-in-progress: false
+jobs:
+  storage:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1
+        with:
+          node-version: '24'
+          cache: npm
+      - name: Install native PostgreSQL 17 and synthetic media tools
+        run: |
+          sudo /usr/share/postgresql-common/pgdg/apt.postgresql.org.sh -y
+          sudo apt-get update -qq
+          sudo apt-get install -y postgresql-17 postgresql-contrib-17 ffmpeg
+          sudo pg_createcluster 17 meryo_storage --port 55440 --start
+          sudo -u postgres createuser --host=/var/run/postgresql --port=55440 --superuser "$USER"
+          createdb --host=/var/run/postgresql --port=55440 meryo_ci_storage
+      - name: Compile pinned official Supabase services, without Docker
+        run: |
+          mkdir -p "$RUNNER_TEMP/meryo-official"
+          git clone --filter=blob:none --no-checkout https://github.com/supabase/auth.git "$RUNNER_TEMP/meryo-official/auth"
+          git -C "$RUNNER_TEMP/meryo-official/auth" checkout c3348e8f1cb31454e9783e4eb9eab1e71ad9652f
+          cd "$RUNNER_TEMP/meryo-official/auth"
+          go build -o "$RUNNER_TEMP/meryo-official/gotrue" .
+          git clone --filter=blob:none --no-checkout https://github.com/supabase/storage.git "$RUNNER_TEMP/meryo-official/storage"
+          git -C "$RUNNER_TEMP/meryo-official/storage" checkout 3a88e1f74b7082d83a456449806a222e3e6c3bfa
+          cd "$RUNNER_TEMP/meryo-official/storage"
+          npm ci
+          npm run build
+          curl -fL https://github.com/PostgREST/postgrest/releases/download/v16.5/postgrest-v16.5-linux-static-x86-64.tar.xz -o "$RUNNER_TEMP/meryo-official/rest.tar.xz"
+          tar -xJf "$RUNNER_TEMP/meryo-official/rest.tar.xz" -C "$RUNNER_TEMP/meryo-official"
+      - name: Install MERYO dependencies
+        run: npm ci
+      - name: Verify real Storage upload, read, replacement, withdrawal and tenant permissions
+        run: node scripts/verify-storage-ci.mjs
+      - name: Publish non-secret verification result
+        if: success()
+        run: cat "$RUNNER_TEMP/meryo-storage-proof.json" >> "$GITHUB_STEP_SUMMARY"
