@@ -15,6 +15,9 @@ jobs:
       - name: Official native pg_net and pg_cron, no Docker
         timeout-minutes: 7
         run: |
+          # The runner's Azure mirror stalled while downloading LLVM. Use the
+          # official Ubuntu archive, still with bounded connection/retry limits.
+          sudo sed -i 's|http://azure.archive.ubuntu.com/ubuntu|https://archive.ubuntu.com/ubuntu|g' /etc/apt/sources.list.d/ubuntu.sources
           sudo /usr/share/postgresql-common/pgdg/apt.postgresql.org.sh -y
           sudo apt-get update -qq
           sudo apt-get install -y --no-install-recommends -o Acquire::Retries=2 -o Acquire::http::Timeout=30 postgresql-17 postgresql-server-dev-17 postgresql-17-cron libcurl4-openssl-dev build-essential
