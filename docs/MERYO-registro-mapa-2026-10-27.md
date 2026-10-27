@@ -18,3 +18,9 @@ Ruta pública prevista: https://barber-pro-phi-taupe.vercel.app/#shop-register .
 - Verificación específica Google con otra cuenta: pendiente de intervención del usuario. Se abrió el selector real de Google desde Acceso barbero local, con retorno al Auth local `127.0.0.1:5178` y `access=barber`. Solo estaba disponible la cuenta habitual administradora; se solicitó Usar otra cuenta. No se eligió la cuenta administradora ni se alteró su rol para simular la prueba. No declarar este recorrido Google físico completo hasta el retorno y registro desde esa cuenta.
 
 La cuenta y barbería del test automatizado son exclusivamente locales. Sus credenciales y pruebas quedan fuera de Git, en el directorio privado ya existente. No se crearon servicios, proyectos o contenedores adicionales.
+
+## Publicación y paso pendiente
+
+Corrección publicada en `c8599fc`, despliegue `dpl_G9zYrQgFWg7vpQJ32uRBwmRv7h5W` promovido al dominio existente. Lectura pública 2026-10-27 20:46 UTC: HTTP 200, bundle `index-BSz9MTgI.js`, ruta de registro, estado pendiente, módulo de marcador arrastrable y Usar mi ubicación presentes. Evidencia privada: `shop-onboarding-publication-proof.json`.
+
+El usuario pidió mostrar la selección porque no veía la pestaña. Se hizo visible el navegador existente y se abrió Usar otra cuenta en Google. La verificación Google no administradora continúa pendiente de que introduzca su cuenta. El Auth/PostgREST/PostgreSQL local permanece temporalmente encendido para ese retorno; detener únicamente esos procesos al finalizar la comprobación, sin Docker ni otras instancias.
