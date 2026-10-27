@@ -6,4 +6,7 @@ db
 docs
 tests
 scripts
-server
+server/*
+!server/web-push.mjs
+!server/push-http.mjs
+!server/hosted-push-runtime.mjs
