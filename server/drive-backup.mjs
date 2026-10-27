@@ -31,7 +31,15 @@ export async function uploadAndVerifyDrive(root,archive,connect=driveConnection)
  if(size>250*1024*1024)throw Error('Archive exceeds the approved 250 MiB per-run safety cap; review free capacity before increasing it');
  const {limit,usage}=quota.storageQuota||{};
  if(!limit||!usage||BigInt(limit)-BigInt(usage)<BigInt(size))throw Error('Free Drive capacity could not be verified or is insufficient; no capacity purchased');
- if(!saved.folderId){const folder=await (await request(`${base}/files?fields=id`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({name:'MERYO Backups',mimeType:'application/vnd.google-apps.folder',appProperties:{meryoBackup:'v1'}})})).json();saved.folderId=folder.id;await save();}
+ if(!saved.folderId){
+  // Ephemeral runners must reuse the same folder so thirty-day retention works.
+  const lookup=new URLSearchParams({q:"name = 'MERYO Backups' and mimeType = 'application/vnd.google-apps.folder' and trashed = false and appProperties has { key='meryoBackup' and value='v1' }",fields:'files(id)',pageSize:'2'});
+  const existing=await (await request(`${base}/files?${lookup}`)).json();
+  if(existing.files?.length>1)throw Error('Multiple MERYO backup folders found; select the existing destination explicitly');
+  if(existing.files?.length===1)saved.folderId=existing.files[0].id;
+  else {const folder=await (await request(`${base}/files?fields=id`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({name:'MERYO Backups',mimeType:'application/vnd.google-apps.folder',appProperties:{meryoBackup:'v1'}})})).json();saved.folderId=folder.id;}
+  await save();
+ }
  const folder=await (await request(`${base}/files/${encodeURIComponent(saved.folderId)}?fields=id,mimeType,trashed,shared`)).json();
  if(folder.trashed||folder.shared||folder.mimeType!=='application/vnd.google-apps.folder')throw Error('Backup folder must be private and active');
  const meta={name:path.basename(archive),parents:[saved.folderId],appProperties:{meryoBackup:'v1'}};

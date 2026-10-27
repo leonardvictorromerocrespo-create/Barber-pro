@@ -30,3 +30,22 @@ test('transport unit check: downloaded bytes must match before remote verificati
   assert.equal(result.fileId,'uploaded');assert.equal(result.retentionDays,30);assert.equal(retentionCalls,1);
  }finally{await fs.rm(root,{recursive:true,force:true});}
 });
+
+test('ephemeral backup runners reuse the app-owned folder instead of creating a new destination daily',async()=>{
+ const root=await fs.mkdtemp(path.join(os.tmpdir(),'meryo-drive-folder-'));
+ try{
+  const archive=path.join(root,'2026-10-27T12-00-00Z.hosted.meryo.enc');await fs.writeFile(archive,'encrypted-fixture');
+  const saved={},calls=[];let persisted=false;
+  const connect=async()=>({saved,save:async()=>{persisted=true;},request:async(url,options={})=>{
+   calls.push({url,method:options.method});
+   if(url.includes('/about?'))return Response.json({storageQuota:{limit:'15000000000',usage:'1000'}});
+   if(url.includes('uploadType=resumable'))return new Response('',{headers:{location:'https://www.googleapis.com/upload/unit'}});
+   if(options.method==='PUT')return Response.json({id:'archive'});
+   if(url.includes('alt=media'))return new Response('encrypted-fixture');
+   if(url.includes('/files?'))return Response.json({files:url.includes('pageSize=2')?[{id:'same-private-folder'}]:[]});
+   return Response.json({id:'same-private-folder',mimeType:'application/vnd.google-apps.folder',shared:false,trashed:false});
+  }});
+  await uploadAndVerifyDrive(root,archive,connect);assert.equal(saved.folderId,'same-private-folder');assert.equal(persisted,true);
+  assert.ok(!calls.some(c=>c.method==='POST'&&new URL(c.url).pathname==='/drive/v3/files'),'Existing app folder is reused');
+ }finally{await fs.rm(root,{recursive:true,force:true});}
+});
