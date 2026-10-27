@@ -28,10 +28,14 @@ Se solicita sonido estándar y vibración mediante silent:false. El sistema oper
 - pg_net y pg_cron oficiales en PostgreSQL 17 aislado, sin Docker: https://github.com/leonardvictorromerocrespo-create/Barber-pro/actions/runs/40534975745 . HTTP solo después del commit, reintento programado y permisos privados comprobados.
 - Copia externa previa descargada y restaurada: https://github.com/leonardvictorromerocrespo-create/Barber-pro/actions/runs/40531730090 . Sesenta y seis tablas y cero objetos de Storage. Migraciones 016 y 017 preservaron los registros de negocio.
 - Build local/Vercel aprobado. El primer empaquetado excluía server/ y el endpoint fallaba; se pausó el emisor y se corrigió la inclusión de sus tres dependencias. La comprobación alojada posterior devolvió 401 sin credencial y 200 con ella. Todavía no equivalía a recepción en teléfono.
+- En producción se observaron respuestas HTTP 200 del endpoint protegido a solicitudes reales de pg_net/pg_cron (IDs 11, 12 y 13), sin error de red. El servidor está habilitado; esto tampoco demuestra recepción física. Despliegue final: `dpl_2UEPpdSiXe1fPqjrHxKvHxxWo8MV`.
+- El respaldo posterior a pg_net y las migraciones también se descargó y restauró: https://github.com/leonardvictorromerocrespo-create/Barber-pro/actions/runs/40537254629 . Sesenta y siete tablas, cero objetos de Storage existentes; se conserva el workflow externo diario.
 
 ## Prueba física pendiente
 
 Dispositivo declarado por el usuario: Android con Chrome; modelo y versión aún no informados. Se solicitó abrir Avisos, permitir notificaciones, programar la comprobación propia, cerrar todas las pestañas MERYO, bloquear pantalla y tocar el aviso al recibirlo. Debe confirmarse si sonó antes de abrir la aplicación. Hasta registrar acuse real y respuesta del usuario, recepción, sonido y condiciones quedan pendientes.
+
+Al cerrar la implementación todavía había cero suscripciones en producción y ninguna comprobación propia solicitada desde el celular. No se generó una entrega ficticia para completar esta evidencia. El paso restante corresponde al usuario en su Android; el servidor y la pantalla ya están disponibles.
 
 La comprobación diagnóstica de una cuenta administrativa no demuestra por sí sola el recorrido completo entre un cliente y un barbero en dos dispositivos reales. Los destinatarios de esos eventos están comprobados en el entorno aislado; no se inventaron barberías ni reservas en producción para suplir esa prueba.
 
