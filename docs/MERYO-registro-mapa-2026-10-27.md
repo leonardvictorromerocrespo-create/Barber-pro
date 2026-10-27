@@ -34,3 +34,5 @@ Desde las pantallas se completó MERYO Google Mapa Local (datos explícitos de p
 Evidencia privada: `shop-google-onboarding-proof.json`, `shop-google-map-registration.png`, `shop-google-pending.png` y `shop-google-approved.png`. No hay credenciales de Google en el repositorio ni barberías de prueba creadas en producción.
 
 El error vencido reveló que GoTrue puede devolver errores sin `auth_callback`. Se añadió `oauthFailure` para reconocer errores en query/hash, mostrar un aviso de reintento claro y conservar el destino recordado, sin extender ni evadir la vigencia del estado OAuth. La regresión específica y el build pasaron; no se repitió la auditoría ni pruebas ajenas al cambio.
+
+Publicación final: `1f65ada`, despliegue `dpl_22cd63Sge6TEej4qsFaZWp2vGtwN`, promovido al mismo dominio. Verificada por lectura pública la ruta y el mensaje de acceso vencido; el comprobante privado de publicación ya indica la prueba Google completada. Al terminar se detuvieron solo Auth, PostgREST y PostgreSQL locales del proyecto, conservando datos y evidencia. No quedan pasos pendientes de login Google para este bloque.
