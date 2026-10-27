@@ -62,7 +62,7 @@ try{
    req.on('end',async()=>{try{const ok=await acknowledgePush(pool,JSON.parse(body));res.statusCode=ok?204:403;}catch{res.statusCode=400;}res.end();});return;
   }
   if(req.url.startsWith('/__local/')||req.url.startsWith('/tests/browser/')){res.statusCode=410;res.end('No hay actores ni banco simulado');return;}
-  res.setHeader('Content-Security-Policy',"default-src 'self'; connect-src 'self' ws://127.0.0.1:5178; img-src 'self' data:; media-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; base-uri 'none'; form-action 'self'; frame-src 'none'; worker-src 'self'");next();
+  res.setHeader('Content-Security-Policy',"default-src 'self'; connect-src 'self' ws://127.0.0.1:5178; img-src 'self' data: https://tile.openstreetmap.org; media-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; base-uri 'none'; form-action 'self'; frame-src 'none'; worker-src 'self'");next();
  });},transformIndexHtml(html){return html.replace('<body>','<body><aside style="background:#fbbf24;color:#000;padding:10px;text-align:center;font:14px sans-serif">MERYO LOCAL · Supabase Auth y PostgREST reales · Correo autoconfirmado solo en pruebas · Sin pagos</aside>');}}]});
  await vite.listen();console.log('MERYO con Auth real: http://127.0.0.1:5178/ · PostgreSQL existente, base meryo_auth_local');
  for(const signal of ['SIGINT','SIGTERM'])process.once(signal,()=>{stop().then(()=>process.exit(0));});

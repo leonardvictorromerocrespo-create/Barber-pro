@@ -8,7 +8,7 @@ test('OAuth returns to the requested existing screen once; arbitrary URLs are di
 });
 test('admin navigation keeps the existing admin gate; barber link routes real admins correctly',()=>{
  assert.equal(accessView('barber','admin'),'admin');
- assert.equal(accessView('barber','barbero'),'barber');
+ assert.equal(accessView('barber','barbero'),'shop-manage');
  assert.equal(accessView('admin','cliente'),'admin'); // App still denies permission; no role assignment.
  assert.equal(accessView('client','admin'),'client');
 });

@@ -1,4 +1,5 @@
 import PushCenter from './components/PushCenter';
+import ShopRegistration from './components/ShopRegistration';
 import { endSession, signInWithProfile } from "./lib/operations";
 import { supabase, googleAuthEnabled, emailSignupEnabled } from "./lib/supabase";
 import { lazy, Suspense, useEffect, useMemo, useRef, useState } from "react";
@@ -349,8 +350,8 @@ export default function BarberProApp() {
   const [district, setDistrict] = useState("");
   const [order, setOrder] = useState("name");
   const [loginDestination,setLoginDestination]=useState('client');
-  const allowedViews=['landing','client','client-auth','client-register','client-login','barber','barber-login','admin','account-security','shop-manage','my-bookings','team-invite','notifications'];
-  const [view, setView] = useState(()=>{const raw=typeof window==='undefined'?'':window.location.hash.slice(1);const hash=raw.startsWith('team-invite/')?'team-invite':raw;return bookingDestination(typeof window==='undefined'?'':window.location.search,allowedViews.includes(hash)?hash:'landing');});
+  const allowedViews=['landing','client','client-auth','client-register','client-login','barber','barber-login','admin','account-security','shop-manage','shop-register','my-bookings','team-invite','notifications'];
+  const [view, setView] = useState(()=>{const raw=typeof window==='undefined'?'':window.location.hash.slice(1);const hash=raw.startsWith('team-invite/')?'team-invite':raw;const search=typeof window==='undefined'?'':window.location.search,access=new URLSearchParams(search).get('access');return bookingDestination(search,access==='barber'?'barber-login':access==='shop-register'?'shop-register':allowedViews.includes(hash)?hash:'landing');});
   useEffect(()=>{window.history.replaceState(null,'',`#${view}`);},[view]);
   useEffect(()=>{const navigate=()=>{const raw=window.location.hash.slice(1),next=raw.startsWith('team-invite/')?'team-invite':raw;if(allowedViews.includes(next))setView(next);};window.addEventListener('hashchange',navigate);return()=>window.removeEventListener('hashchange',navigate);},[]);
   const identity = useIdentity(supabase);
@@ -380,7 +381,7 @@ export default function BarberProApp() {
     correo: "",
     direccion: "",
   });
-  const [affiliateBusy,setAffiliateBusy]=useState(false);
+  const [affiliateBusy,setAffiliateBusy]=useState(false),[affiliateError,setAffiliateError]=useState('');
   const [selectedShop, setSelectedShop] = useState(null);
   const [selectedService, setSelectedService] = useState(null);
   const [selectedBarber,setSelectedBarber]=useState('');
@@ -473,9 +474,9 @@ async function cargarNotificaciones() {
   }
 }
   const handleAffiliateSubmit = async () => {
-    if(affiliateBusy)return;setAffiliateBusy(true);
-    try {await api.registerShop(affiliateForm);await identity.refresh();setShowAffiliateForm(false);alert('Barbería registrada. Pendiente de revisión; todavía no está activa.');setView('shop-manage');}
-    catch(error){alert(error.message);}
+    if(affiliateBusy)return;setAffiliateBusy(true);setAffiliateError('');
+    try {if(!coordinates(affiliateForm))throw Error('Selecciona la ubicación del local en el mapa.');await api.registerShop(affiliateForm);const profile=await identity.refresh();if(!profile||profile.rol!=='barbero')throw Error('La solicitud se guardó, pero no se pudo actualizar tu sesión. Vuelve a iniciar sesión para consultar su estado.');setShowAffiliateForm(false);setView('shop-manage');}
+    catch(error){setAffiliateError(error.message);}
     finally{setAffiliateBusy(false);}
   };
 
@@ -514,13 +515,14 @@ async function cargarNotificaciones() {
   };
 
   const requireBookingLogin=()=>{try{saveDraft(sessionStorage,{shop:selectedShop.id,service:selectedService.id,barber:selectedBarber,date:selectedDate,time:selectedTime,name:customerInfo.name,phone:customerInfo.phone,note:customRequest});setShowBookingModal(false);openLogin('client');}catch(error){setAccessMessage(error.message);}};
-  useEffect(()=>{const url=new URL(window.location.href);if(url.searchParams.get('auth_callback')!=='1'||identity.loading)return;if(identity.profile){const destination=consumeAccess(sessionStorage);url.searchParams.delete('auth_callback');window.history.replaceState(null,'',url.pathname+url.search+url.hash);setView(bookingDestination(url.search,accessView(destination,identity.profile.rol)));}else{setLoginDestination(bookingDestination(url.search));setAccessMessage('Google no completó el acceso. Puedes reintentar o continuar con correo; conservaremos el destino de tu cita.');setView('client-login');}},[identity.loading,identity.profile]);
+  useEffect(()=>{const url=new URL(window.location.href);if(url.searchParams.get('auth_callback')!=='1'||identity.loading)return;if(identity.profile){const savedDestination=consumeAccess(sessionStorage),destination=['barber','shop-register'].includes(url.searchParams.get('access'))?url.searchParams.get('access'):savedDestination;url.searchParams.delete('access');url.searchParams.delete('auth_callback');window.history.replaceState(null,'',url.pathname+url.search+url.hash);setView(bookingDestination(url.search,accessView(destination,identity.profile.rol)));}else{const access=url.searchParams.get('access'),description=url.searchParams.get('error_description')||new URLSearchParams(url.hash.slice(1)).get('error_description');setLoginDestination(bookingDestination(url.search,['barber','shop-register'].includes(access)?access:'client'));setAccessMessage(identity.error||description?.slice(0,300)||'Google no completó el acceso. Puedes reintentar o continuar con correo; conservaremos tu destino.');url.searchParams.delete('auth_callback');window.history.replaceState(null,'',url.pathname+url.search+url.hash);setView(['barber','shop-register'].includes(access)?'shop-register':'client-login');}},[identity.loading,identity.profile]);
   const openLogin=destination=>{setLoginDestination(destination);setView('client-login');};
-  const handleGoogle=async()=>{setAccessMessage('');try{rememberAccess(sessionStorage,view==='team-invite'?'team-invite':view==='admin'?'admin':['barber','barber-login'].includes(view)?'barber':view==='client-login'?loginDestination:'client');await beginGoogle(supabase,{enabled:googleAuthEnabled,origin:window.location.origin,bookingId:new URLSearchParams(window.location.search).get('cita'),adminView:new URLSearchParams(window.location.search).get('admin_view')});}catch(error){setAccessMessage(error.message);}};
-  useEffect(()=>{if(adminAccess&&['barber','barber-login'].includes(view))setView('admin');},[adminAccess,view]);
+  const handleGoogle=async override=>{setAccessMessage('');try{const destination=typeof override==='string'?override:view==='team-invite'?'team-invite':view==='admin'?'admin':view==='shop-register'?'shop-register':['barber','barber-login'].includes(view)?'barber':view==='client-login'?loginDestination:'client';rememberAccess(sessionStorage,destination);await beginGoogle(supabase,{enabled:googleAuthEnabled,origin:window.location.origin,bookingId:new URLSearchParams(window.location.search).get('cita'),adminView:new URLSearchParams(window.location.search).get('admin_view'),destination});}catch(error){setAccessMessage(error.message);}};
+  useEffect(()=>{if(identity.profile&&['barber','barber-login','shop-register'].includes(view)){const next=accessView(view==='shop-register'?'shop-register':'barber',identity.profile.rol);if(next!==view)setView(next);}},[identity.profile,view]);
   useEffect(()=>{
     const profile=identity.profile;if(!profile||resumed.current===profile.id)return;
     if(bookingIdFromSearch(window.location.search)){resumed.current=profile.id;setView('my-bookings');return;}
+    if(['barber','barber-login','shop-register','shop-manage'].includes(view)){resumed.current=profile.id;return;}
     const draft=readDraft(sessionStorage);if(!draft||profile.rol!=='cliente')return;
     let active=true;
     api.catalog().then(catalog=>{if(!active)return;const shop=catalog.find(s=>String(s.id)===draft.shop),service=shop?.services.find(s=>String(s.id)===draft.service);if(!shop||!service)throw Error('El servicio ya no está disponible. Elige otro.');setSelectedShop(shop);setSelectedService(service);setSelectedBarber(draft.barber||'');setSelectedDate(draft.date);setSelectedTime(draft.barber&&!(shop.equipo??[]).some(m=>m.id===draft.barber&&m.servicios?.some(id=>String(id)===String(service.id)))?'':draft.time);setCustomRequest(draft.note);setCustomerInfo(prev=>({...prev,name:draft.name||profile.nombre||'',phone:draft.phone||profile.telefono||''}));resumed.current=profile.id;setView('client');setShowBookingModal(true);clearDraft(sessionStorage);setAccessMessage('Recuperamos tu reserva. Revisa el horario y completa solo los datos que faltan.');}).catch(error=>{if(active)setAccessMessage(error.message);});
@@ -566,8 +568,8 @@ async function cargarNotificaciones() {
   const handleBarberLogin = async () => {
     if (!barberLogin.email || !barberLogin.password) return alert("Ingresa correo y contraseña");
     try {
-      const profile=await signInWithProfile(supabase,barberLogin,['admin','barbero']);await identity.refresh();setBarberLogin(prev=>({...prev,password:''}));setView(profile.rol==='admin'?'admin':'barber');
-    }catch(error){alert(error.message);}
+      const profile=await signInWithProfile(supabase,barberLogin,['cliente','admin','barbero']);await identity.refresh();setBarberLogin(prev=>({...prev,password:''}));setView(accessView('barber',profile.rol));
+    }catch(error){setAccessMessage(error.message);}
   };
   const handleCustomerLogin = async () => {
     if(!customerInfo.email||!customerInfo.password)return alert('Ingresa correo y contraseña');
@@ -584,7 +586,9 @@ const finalPrice = basePrice;
   if(view === 'notifications')return <PushCenter api={api} profile={identity.profile} loading={identity.loading} onLogin={()=>openLogin('notifications')} onBack={()=>setView('client')}/>;
   if(view === 'team-invite')return <TeamInvite api={api} profile={identity.profile} onGoogle={handleGoogle} onEmail={()=>openLogin('team-invite')} onAccepted={async()=>{await identity.refresh();setView('barber');}} onBack={()=>setView('client')}/>;
   if(view === 'account-security')return identity.profile?<AdminMfa client={supabase} onVerified={async()=>{await identity.refresh();setAccessMessage('Authenticator verificado por Supabase. Tu rol no cambia. Registra un segundo factor en otro dispositivo para recuperación.');setView('client');}} onBack={()=>setView('client')}/>:<div className="min-h-screen bg-neutral-950 p-8 text-white"><button onClick={()=>setView('client-login')}>Iniciar sesión para proteger mi cuenta</button></div>;
-  if(view === 'shop-manage') return <ShopManagement key={identity.profile?.id||'anonymous'} api={api} profile={identity.profile} onLogin={()=>setView('barber-login')} onBack={async()=>{await cargarBarberiasActivas();setView('client');}} onRegister={()=>{setShowAffiliateForm(true);setView('client');setTimeout(()=>document.getElementById('register-shop')?.scrollIntoView(),0);}}/>;
+  const registration=<ShopRegistration profile={identity.profile} loading={identity.loading} form={affiliateForm} setForm={setAffiliateForm} busy={affiliateBusy} error={affiliateError||accessMessage||identity.error} onSubmit={handleAffiliateSubmit} onGoogle={()=>handleGoogle('shop-register')} onLogin={()=>openLogin('shop-register')} onManage={()=>setView('shop-manage')}/>;
+  if(view==='shop-register')return <main className="min-h-screen bg-neutral-950 p-6 text-white"><div className="mx-auto max-w-2xl space-y-5 rounded-3xl border border-white/10 bg-neutral-900 p-6"><h1 className="text-3xl font-black">Registro de barberías <span className="text-amber-400">MERYO</span></h1><button onClick={()=>setView('client')} className="rounded-xl border border-white/20 px-4 py-2">Volver al catálogo</button>{registration}</div></main>;
+  if(view === 'shop-manage') return <ShopManagement key={identity.profile?.id||'anonymous'} api={api} profile={identity.profile} onLogin={()=>setView('barber-login')} onBack={async()=>{await cargarBarberiasActivas();setView('client');}} onRegister={()=>setView('shop-register')}/>;
   if(view === 'my-bookings') return <div className="min-h-screen bg-neutral-950 p-6 text-white"><div className="mx-auto max-w-5xl space-y-5"><a className="text-amber-300 underline" href="/#notifications">Avisos y permisos del celular</a><h1 className="text-3xl font-black">Mis citas <span className="text-amber-400">MERYO</span></h1><button onClick={()=>{const url=new URL(window.location.href);url.searchParams.delete('cita');window.history.replaceState(null,'',url.pathname+url.search+url.hash);setView('client');}} className="rounded-xl border border-white/20 px-4 py-2">Volver</button><Reservations key={`${identity.profile?.id}-${identity.profile?.rol}`} api={api} profile={identity.profile} identityLoading={identity.loading} onLogin={()=>openLogin('my-bookings')} onSearch={()=>{const url=new URL(window.location.href);url.searchParams.delete('cita');window.history.replaceState(null,'',url.pathname+url.search+url.hash);setQuery('');setDistrict('');setShowBookingModal(false);setView('client');}}/></div></div>;
   if (view === "landing") {
     return (
@@ -652,9 +656,10 @@ const finalPrice = basePrice;
           <div className="mx-auto mt-12 max-w-md rounded-[2rem] border border-white/10 bg-neutral-900 p-8 shadow-2xl">
             <p className="text-sm uppercase tracking-[0.2em] text-amber-400">Acceso barbero</p>
             <h1 className="mt-2 text-3xl font-black">Login MERYO</h1>
-            <p className="mt-3 text-sm text-neutral-400">Ingresa con tu cuenta de barbero. Los permisos se verifican con tu cuenta existente.</p>
+            <p className="mt-3 text-sm text-neutral-400">Inicia sesión para registrar tu barbería o entrar a su gestión. Los permisos se verifican con tu cuenta real.</p>
             <button onClick={handleGoogle} className="mt-4 w-full rounded-xl border border-white/20 p-3">Continuar con Google</button>
-            {accessMessage&&<p role="status" className="mt-3 text-amber-300">{accessMessage}</p>}
+            {(accessMessage||identity.error)&&<p role="alert" className="mt-3 text-amber-300">{accessMessage||identity.error}</p>}
+            <a href="/#shop-register" className="mt-3 block text-amber-300 underline">Registrar mi barbería</a>
             <button onClick={()=>setView('admin')} className="mt-3 text-sm text-amber-300">Acceso administrador</button>
             {supabase.authUnavailable&&<p role="status" className="mt-3 text-amber-300">Falta Supabase Auth de pruebas. No hay acceso local por rol ni administrador ficticio.</p>}
             <div className="mt-6 space-y-3">
@@ -904,78 +909,7 @@ if (view === "admin" && adminAccess) return <AdminShops api={api} profile={ident
                 <button onClick={() => setShowAffiliateForm((prev) => !prev)} className={`rounded-xl bg-amber-400 px-4 py-2 font-bold text-black ${pointerClass}`}>{showAffiliateForm ? "Ocultar" : "Registrar"}</button>
               </div>
            {showAffiliateForm ? (
-  <div className="space-y-3">
-    <input
-      value={affiliateForm.nombre}
-      onChange={(e) =>
-        setAffiliateForm((prev) => ({
-          ...prev,
-          nombre: e.target.value,
-        }))
-      }
-      className="w-full rounded-xl border border-white/10 bg-neutral-900 px-4 py-3 outline-none"
-      placeholder="Nombre de barbería"
-    />
-
-    <input
-      value={affiliateForm.distrito}
-      onChange={(e) =>
-        setAffiliateForm((prev) => ({
-          ...prev,
-          distrito: e.target.value,
-        }))
-      }
-      className="w-full rounded-xl border border-white/10 bg-neutral-900 px-4 py-3 outline-none"
-      placeholder="Distrito"
-    />
-
-    <input
-      value={affiliateForm.whatsapp}
-      onChange={(e) =>
-        setAffiliateForm((prev) => ({
-          ...prev,
-          whatsapp: e.target.value,
-        }))
-      }
-      className="w-full rounded-xl border border-white/10 bg-neutral-900 px-4 py-3 outline-none"
-      placeholder="WhatsApp"
-    />
-
-    <input
-      value={affiliateForm.correo}
-      onChange={(e) =>
-        setAffiliateForm((prev) => ({
-          ...prev,
-          correo: e.target.value,
-        }))
-      }
-      className="w-full rounded-xl border border-white/10 bg-neutral-900 px-4 py-3 outline-none"
-      placeholder="Correo"
-    />
-
-    <input
-      value={affiliateForm.direccion}
-      onChange={(e) =>
-        setAffiliateForm((prev) => ({
-          ...prev,
-          direccion: e.target.value,
-        }))
-      }
-      className="w-full rounded-xl border border-white/10 bg-neutral-900 px-4 py-3 outline-none"
-      placeholder="Dirección del local"
-    />
-
-    <textarea aria-label="Presentación de la barbería" value={affiliateForm.descripcion||''} onChange={e=>setAffiliateForm(prev=>({...prev,descripcion:e.target.value}))} placeholder="Presentación" className="w-full rounded-xl border border-white/10 bg-neutral-900 px-4 py-3"/>
-    <div className="grid grid-cols-2 gap-3">{['lat','lng'].map(key=><input key={key} aria-label={key==='lat'?'Latitud':'Longitud'} type="number" step="any" value={affiliateForm[key]??''} onChange={e=>setAffiliateForm(prev=>({...prev,[key]:e.target.value}))} placeholder={key==='lat'?'Latitud':'Longitud'} className="rounded-xl border border-white/10 bg-neutral-900 px-4 py-3"/>)}</div>
-    {!identity.profile&&<p className="text-amber-300">Inicia sesión con una cuenta real antes de registrar tu barbería.</p>}
-    <button
-      onClick={handleAffiliateSubmit}
-      disabled={affiliateBusy}
-      className={`w-full rounded-xl bg-white py-3 font-bold text-black ${pointerClass}`}
-    >
-      {affiliateBusy?'Registrando…':'Registrar barbería'}
-    </button>
-  </div>
+  registration
 ) : (
   <div className="rounded-2xl border border-dashed border-white/10 bg-neutral-900 p-6 text-sm text-neutral-400">
     Activa el registro para mostrar el formulario de afiliación de barberías.

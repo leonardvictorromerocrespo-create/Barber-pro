@@ -1,0 +1,18 @@
+import {test} from 'node:test';import assert from 'node:assert/strict';import fs from 'node:fs/promises';import path from 'node:path';import crypto from 'node:crypto';import {createClient} from '@supabase/supabase-js';import {nativeRoot,secrets,realConfig} from '../scripts/setup-real-auth.mjs';import {createMeryoApi} from '../src/lib/meryo-api.js';import {totp} from './helpers/totp.mjs';import {accessView} from '../src/lib/access-navigation.js';
+test('non-administrator onboarding: coordinates persist, pending state, real MFA approval and profile management',{skip:process.env.MERYO_REAL_AUTH_TEST!=='1'},async()=>{
+ assert.equal(realConfig.host,'127.0.0.1');const {anonKey}=await secrets(),fixture=JSON.parse(await fs.readFile(path.join(nativeRoot,'shop-operations-accounts.json'),'utf8'));
+ const make=()=>createClient('http://127.0.0.1:5178/__supabase',anonKey,{auth:{persistSession:false,autoRefreshToken:false}}),owner=make(),admin=make(),publicClient=make(),api=createMeryoApi(owner),adminApi=createMeryoApi(admin);
+ const credentials={email:`shop-onboarding.${crypto.randomUUID()}@example.com`,password:crypto.randomBytes(24).toString('base64url')};
+ try{
+  const signup=await owner.auth.signUp(credentials);assert.ifError(signup.error);const before=await api.profile();assert.equal(before.rol,'cliente');assert.equal(accessView('barber',before.rol),'shop-register');
+  const shop=await api.registerShop({nombre:'MERYO Mapa Local',distrito:'Ate',direccion:'Local de pruebas aisladas',descripcion:'Verificación del registro con mapa',lat:-12.0464,lng:-77.0428,whatsapp:'',correo:''});
+  const profile=await api.profile();assert.equal(profile.rol,'barbero');assert.equal(String(profile.barberia_id),String(shop));assert.equal(accessView('barber',profile.rol),'shop-manage');assert.equal((await owner.rpc('es_admin')).data,false);
+  const pending=await api.ownerShop();assert.equal(pending.estado,'pendiente');assert.equal(pending.verificada,false);assert.equal(Number(pending.lat),-12.0464);assert.equal(Number(pending.lng),-77.0428);assert.ok(!(await publicClient.rpc('meryo_catalogo_publico')).data.some(s=>String(s.id)===String(shop)));
+  assert.ok((await owner.rpc('meryo_moderar_barberia',{p_id:shop,p_action:'aprobar',p_reason:'',p_expected:'pendiente'})).error);
+  assert.ifError((await owner.from('servicios').insert({barberia_id:shop,nombre:'Corte de registro local',precio:30,duracion_min:30,activo:true})).error);
+  assert.ifError((await admin.auth.signInWithPassword(fixture.admin)).error);assert.ok((await admin.rpc('meryo_admin_barberias')).error);assert.ifError((await admin.auth.mfa.challengeAndVerify({factorId:fixture.admin.factorId,code:totp(fixture.admin.totpSecret)})).error);
+  await adminApi.moderateShop(shop,'aprobar','Registro y ubicación revisados en entorno aislado','pendiente');const approved=await api.ownerShop();assert.equal(approved.estado,'activa');assert.equal(approved.verificada,true);
+  await api.saveShop({nombre:approved.nombre,distrito:approved.distrito,direccion:approved.direccion,descripcion:'Perfil gestionado tras aprobación',lat:approved.lat,lng:approved.lng,whatsapp:approved.whatsapp,correo_contacto:approved.correo_contacto,disponible_ahora:approved.disponible_ahora});assert.equal((await api.ownerShop()).descripcion,'Perfil gestionado tras aprobación');
+  await fs.writeFile(path.join(nativeRoot,'shop-onboarding-proof.json'),JSON.stringify({at:new Date().toISOString(),shop,owner:{...credentials,id:profile.id},pendingCoordinatesVerified:true,approvalWithRealMfa:true,profileSaved:true,googleBrowserVerification:false},null,2));
+ }finally{await owner.auth.signOut({scope:'local'});await admin.auth.signOut({scope:'local'});}
+});
