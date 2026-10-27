@@ -1,4 +1,5 @@
 begin;
+set local search_path=public;
 create extension if not exists pg_net;
 revoke usage on schema net from public,anon,authenticated;
 -- Private wake function is the only application entry point. Its credential
