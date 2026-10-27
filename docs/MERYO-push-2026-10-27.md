@@ -1,0 +1,48 @@
+# Push web: implementación y alcance de la comprobación
+
+Base conservada: 96d5ab5. URL preparada: https://barber-pro-phi-taupe.vercel.app/#notifications . No se cambió el diseño, Google, MFA, RLS, modelo mensual ni los plazos de reservas. Cobros bloqueados.
+
+## Envío y permisos
+
+- Se reutiliza la cola transaccional de notificaciones y las relaciones de reservas/equipo existentes. Una solicitud genera el aviso del barbero asignado y conserva el aviso del propietario en su panel. Aceptar produce el mensaje de diez minutos al cliente; rechazo y vencimiento generan sus avisos persistentes y push.
+- La base conserva quince minutos para responder y diez para pagar. TTL del push limitado al vencimiento; se descartan solicitudes y aceptaciones obsoletas. Ningún aviso confirma una reserva ni verifica un pago.
+- Endpoints y claves de suscripción permanecen en meryo_private. La sesión real vincula el dispositivo a auth.uid(); no se puede reutilizar el endpoint de otra cuenta. Máximo cinco dispositivos por cuenta. Administración requiere MFA del servidor incluso para registrar el dispositivo y solicitar su diagnóstico.
+- La cola solo permite destinatarios relacionados con la reserva o una comprobación propia expresamente solicitada. Los clientes no pueden escribir notificaciones, leer secretos del emisor ni invocar el despachador privado.
+- Supabase pg_net despierta el endpoint protegido de Vercel después del commit. pg_cron reintenta cada minuto, independientemente de la PC y del navegador. El trabajo previo de vencimientos continúa activo. Fallar el despertar no revierte la reserva: la cola queda persistida.
+- Leases, hasta cinco intentos con espera creciente, registro por evento/endpoint y eliminación de suscripciones 404/410. Las entregas ya aceptadas no se reenvían al reintentar otros endpoints. Topic estable y hasta 200 marcadores de entrega en el Service Worker reducen duplicados. No se promete entrega exactamente una vez ante cualquier fallo de red.
+- El emisor usa VAPID/Web Push, sin contratar proveedor adicional. Secretos únicamente en variables privadas del servidor y configuración privada. TLS PostgreSQL conserva verificación de certificado.
+
+## Pantallas y recepción
+
+Avisos muestra permiso del navegador, suscripción local, número de dispositivos, avisos guardados y evidencia separada: proveedor aceptó, Service Worker reportó mostrar y usuario abrió. La interfaz no interpreta la aceptación del proveedor como recepción humana.
+
+Las notificaciones abren la cita por ID protegido por RLS. Si falta sesión, el login de Google conserva ese destino. Una cuenta distinta no obtiene datos de la cita. El aviso de diagnóstico abre Avisos, no crea una reserva ficticia. Este diagnóstico espera treinta segundos desde el servidor para permitir cerrar MERYO; requiere intervención real en el celular.
+
+Se solicita sonido estándar y vibración mediante silent:false. El sistema operativo, canales de Chrome, silencio y No molestar deciden el resultado; el audio dentro de una página no cuenta como sonido externo.
+
+## Evidencia técnica
+
+- `tests/push-native.test.mjs`: cinco comprobaciones con Auth, roles y reservas nativas reales; transporte simulado explícitamente para probar destinatarios, aceptación, rechazo, vencimiento, reintentos, limpieza 410, acuses y no duplicar endpoints ya aceptados. No es prueba de celular.
+- `tests/push-diagnostic-native.test.mjs`: MFA real del administrador sintético, diagnóstico solo propio, demora del servidor y ausencia de reservas creadas.
+- `tests/push-web.test.mjs`: enlace conservado al pasar por OAuth, autenticación del despachador y deduplicación/acuse/apertura del Service Worker. No es recepción física.
+- pg_net y pg_cron oficiales en PostgreSQL 17 aislado, sin Docker: https://github.com/leonardvictorromerocrespo-create/Barber-pro/actions/runs/40534975745 . HTTP solo después del commit, reintento programado y permisos privados comprobados.
+- Copia externa previa descargada y restaurada: https://github.com/leonardvictorromerocrespo-create/Barber-pro/actions/runs/40531730090 . Sesenta y seis tablas y cero objetos de Storage. Migraciones 016 y 017 preservaron los registros de negocio.
+- Build local/Vercel aprobado. El primer empaquetado excluía server/ y el endpoint fallaba; se pausó el emisor y se corrigió la inclusión de sus tres dependencias. La comprobación alojada posterior devolvió 401 sin credencial y 200 con ella. Todavía no equivalía a recepción en teléfono.
+
+## Prueba física pendiente
+
+Dispositivo declarado por el usuario: Android con Chrome; modelo y versión aún no informados. Se solicitó abrir Avisos, permitir notificaciones, programar la comprobación propia, cerrar todas las pestañas MERYO, bloquear pantalla y tocar el aviso al recibirlo. Debe confirmarse si sonó antes de abrir la aplicación. Hasta registrar acuse real y respuesta del usuario, recepción, sonido y condiciones quedan pendientes.
+
+La comprobación diagnóstica de una cuenta administrativa no demuestra por sí sola el recorrido completo entre un cliente y un barbero en dos dispositivos reales. Los destinatarios de esos eventos están comprobados en el entorno aislado; no se inventaron barberías ni reservas en producción para suplir esa prueba.
+
+## Google Play y App Store
+
+La implementación actual es Web Push. Android/Chrome no equivale a una aplicación de Google Play terminada. Un proyecto nativo necesitará registro de dispositivo, permisos, firma y su integración correspondiente con [FCM para Android](https://firebase.google.com/docs/cloud-messaging/android/get-started).
+
+En iPhone el [Web Push de WebKit requiere una web app compatible añadida a la pantalla de inicio](https://webkit.org/blog/13878/); no se comprobó esa instalación ni recepción en iPhone. Una app nativa de App Store requiere su registro y tokens de [APNs](https://developer.apple.com/documentation/usernotifications/registering-your-app-with-apns). Tampoco se eligió ni publicó un contenedor nativo. No se activó ninguna cuenta o servicio de pago.
+
+## Pagos encontrados
+
+No existe adaptador operativo de pasarela en el repositorio. `server/payments.mjs` es un límite neutral que exige verificar firma/notificación y consultar el pago autoritativo antes de confirmar. No hay SDK/configuración concreta de Culqi, Mercado Pago, Izipay, Niubiz, Stripe o PayPal en los módulos activos. Los intents alojados no tienen proveedor registrado y las variables del despliegue no incluyen una pasarela. No se implementó otra simulación.
+
+Para integrar el adelanto falta decidir el modelo de comercios para múltiples barberías, validar la disponibilidad en Perú/PEN, onboarding y titularidad de cada comercio, costos completos, liquidación/devoluciones y compatibilidad contractual del proveedor. Después deberán implementarse checkout/intención del 50 %, webhook firmado, consulta autoritativa, idempotencia, conciliación de pagos tardíos y pruebas de sandbox. No se seleccionó proveedor ni se prometió reparto de fondos o costos sin cotización validada.
