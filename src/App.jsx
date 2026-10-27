@@ -11,7 +11,7 @@ import AdminShops from './components/AdminShops';
 import TeamInvite from './components/TeamInvite';
 import {disableBookingPush} from './lib/push';
 import {saveDraft,readDraft,clearDraft,beginGoogle} from './lib/booking-draft';
-import {rememberAccess,consumeAccess,accessView} from './lib/access-navigation';
+import {rememberAccess,consumeAccess,accessView,oauthFailure} from './lib/access-navigation';
 import {bookingDestination,bookingIdFromSearch} from './lib/booking-link';
 import ShopManagement from './components/management/ShopManagement';
 const api = createMeryoApi(supabase);
@@ -515,7 +515,15 @@ async function cargarNotificaciones() {
   };
 
   const requireBookingLogin=()=>{try{saveDraft(sessionStorage,{shop:selectedShop.id,service:selectedService.id,barber:selectedBarber,date:selectedDate,time:selectedTime,name:customerInfo.name,phone:customerInfo.phone,note:customRequest});setShowBookingModal(false);openLogin('client');}catch(error){setAccessMessage(error.message);}};
-  useEffect(()=>{const url=new URL(window.location.href);if(url.searchParams.get('auth_callback')!=='1'||identity.loading)return;if(identity.profile){const savedDestination=consumeAccess(sessionStorage),destination=['barber','shop-register'].includes(url.searchParams.get('access'))?url.searchParams.get('access'):savedDestination;url.searchParams.delete('access');url.searchParams.delete('auth_callback');window.history.replaceState(null,'',url.pathname+url.search+url.hash);setView(bookingDestination(url.search,accessView(destination,identity.profile.rol)));}else{const access=url.searchParams.get('access'),description=url.searchParams.get('error_description')||new URLSearchParams(url.hash.slice(1)).get('error_description');setLoginDestination(bookingDestination(url.search,['barber','shop-register'].includes(access)?access:'client'));setAccessMessage(identity.error||description?.slice(0,300)||'Google no completó el acceso. Puedes reintentar o continuar con correo; conservaremos tu destino.');url.searchParams.delete('auth_callback');window.history.replaceState(null,'',url.pathname+url.search+url.hash);setView(['barber','shop-register'].includes(access)?'shop-register':'client-login');}},[identity.loading,identity.profile]);
+  useEffect(()=>{
+    const url=new URL(window.location.href),failure=oauthFailure(url);if(identity.loading||(!failure&&url.searchParams.get('auth_callback')!=='1'))return;
+    const saved=consumeAccess(sessionStorage),access=url.searchParams.get('access'),destination=['barber','shop-register'].includes(access)?access:saved;
+    for(const key of ['auth_callback','access','error','error_code','error_description'])url.searchParams.delete(key);
+    window.history.replaceState(null,'',url.pathname+url.search+url.hash);
+    if(failure){setAccessMessage(failure);setLoginDestination(bookingDestination(url.search,destination));setView(['barber','shop-register'].includes(destination)?'shop-register':destination==='admin'?'admin':'client-login');return;}
+    if(identity.profile){setView(bookingDestination(url.search,accessView(destination,identity.profile.rol)));}
+    else{setLoginDestination(bookingDestination(url.search,destination));setAccessMessage(identity.error||'Google no completó el acceso. Puedes reintentar o continuar con correo; conservaremos tu destino.');setView(['barber','shop-register'].includes(destination)?'shop-register':'client-login');}
+  },[identity.loading,identity.profile]);
   const openLogin=destination=>{setLoginDestination(destination);setView('client-login');};
   const handleGoogle=async override=>{setAccessMessage('');try{const destination=typeof override==='string'?override:view==='team-invite'?'team-invite':view==='admin'?'admin':view==='shop-register'?'shop-register':['barber','barber-login'].includes(view)?'barber':view==='client-login'?loginDestination:'client';rememberAccess(sessionStorage,destination);await beginGoogle(supabase,{enabled:googleAuthEnabled,origin:window.location.origin,bookingId:new URLSearchParams(window.location.search).get('cita'),adminView:new URLSearchParams(window.location.search).get('admin_view'),destination});}catch(error){setAccessMessage(error.message);}};
   useEffect(()=>{if(identity.profile&&['barber','barber-login','shop-register'].includes(view)){const next=accessView(view==='shop-register'?'shop-register':'barber',identity.profile.rol);if(next!==view)setView(next);}},[identity.profile,view]);

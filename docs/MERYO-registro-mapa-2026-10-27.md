@@ -24,3 +24,13 @@ La cuenta y barbería del test automatizado son exclusivamente locales. Sus cred
 Corrección publicada en `c8599fc`, despliegue `dpl_G9zYrQgFWg7vpQJ32uRBwmRv7h5W` promovido al dominio existente. Lectura pública 2026-10-27 20:46 UTC: HTTP 200, bundle `index-BSz9MTgI.js`, ruta de registro, estado pendiente, módulo de marcador arrastrable y Usar mi ubicación presentes. Evidencia privada: `shop-onboarding-publication-proof.json`.
 
 El usuario pidió mostrar la selección porque no veía la pestaña. Se hizo visible el navegador existente y se abrió Usar otra cuenta en Google. La verificación Google no administradora continúa pendiente de que introduzca su cuenta. El Auth/PostgREST/PostgreSQL local permanece temporalmente encendido para ese retorno; detener únicamente esos procesos al finalizar la comprobación, sin Docker ni otras instancias.
+
+## Recorrido Google completado posteriormente
+
+El primer retorno tardío indicó `bad_oauth_state / OAuth state has expired`. No fue un acceso completado. Se inició una autorización nueva; la otra cuenta Google ya estaba iniciada y volvió al registro sin pedir Authenticator ni regresar al login. Se verificó en la base local una identidad real `google`, sin rol administrativo.
+
+Desde las pantallas se completó MERYO Google Mapa Local (datos explícitos de prueba), se tocó el mapa y se arrastró el marcador. Registrar guardó las coordenadas y mostró Solicitud pendiente de aprobación en la gestión. Se agregó un servicio desde la pantalla. El administrador de pruebas existente inició sesión y verificó su TOTP real; su RPC aprobó exclusivamente esa barbería local. El catálogo local la incluyó. Volver a Acceso barbero con la cuenta Google abrió la gestión y Barbería aprobada. Se guardó la descripción desde ese perfil y se contrastó su persistencia y estado activo en PostgreSQL.
+
+Evidencia privada: `shop-google-onboarding-proof.json`, `shop-google-map-registration.png`, `shop-google-pending.png` y `shop-google-approved.png`. No hay credenciales de Google en el repositorio ni barberías de prueba creadas en producción.
+
+El error vencido reveló que GoTrue puede devolver errores sin `auth_callback`. Se añadió `oauthFailure` para reconocer errores en query/hash, mostrar un aviso de reintento claro y conservar el destino recordado, sin extender ni evadir la vigencia del estado OAuth. La regresión específica y el build pasaron; no se repitió la auditoría ni pruebas ajenas al cambio.
