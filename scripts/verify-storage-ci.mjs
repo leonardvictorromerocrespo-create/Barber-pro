@@ -24,6 +24,12 @@ try{
  const quote=value=>'"'+value.replaceAll('"','""')+'"';
  for(const ext of metadata.extensionSchemas){await db.query(`create schema if not exists ${quote(ext.schema)}`);await db.query(`create extension ${quote(ext.name)} with schema ${quote(ext.schema)}`);}
  await db.query(schema.replace('CREATE SCHEMA public;','CREATE SCHEMA IF NOT EXISTS public;'));
+ // The recovered native policy fixture contains client ACLs, but not hosted
+ // platform service-role grants. Mirror those for the trusted Storage service
+ // only; authenticated/anon remain subject to the unchanged object RLS.
+ await db.query('grant usage on schema storage to service_role;grant all on all tables in schema storage to service_role;grant usage,select on all sequences in schema storage to service_role');
+ assert.equal((await db.query("select has_table_privilege('authenticated','storage.buckets','insert') allowed")).rows[0].allowed,false);
+ assert.equal((await db.query("select has_table_privilege('authenticated','storage.objects','delete') allowed")).rows[0].allowed,false);
  for(const v of metadata.authVersions)await db.query('insert into auth.schema_migrations(version) values($1)',[v]);
  for(const m of metadata.storageVersions)await db.query('insert into storage.migrations(id,name,hash) values($1,$2,$3)',[m.id,m.name,m.hash]);
  await db.query("insert into public.configuracion(clave,valor) values('minutos_anticipacion_minima','30'),('paso_minutos','30'),('max_reservas_pendientes','2')");
