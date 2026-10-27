@@ -19,4 +19,4 @@ try{
   assert.equal((await db.query("select has_function_privilege($1,'meryo_private.wake_push()','execute') allowed",[role])).rows[0].allowed,false);
  }
  console.log(JSON.stringify({officialPgNet:true,postCommitDispatch:true,cronRetry:true,workerSecretVerified:true,clientNetworkAccessDenied:true,dockerUsed:false,productionAccess:false}));
-}catch(e){console.error('Failed phase: '+phase);console.error((await db.query("select status_code,error_msg from net._http_response order by id desc limit 3").catch(()=>({rows:[]}))).rows);throw e;}finally{if(server)await new Promise(r=>server.close(r));await db.end();}
+}catch(e){console.error('Failed phase: '+phase);console.error((await db.query("select status_code,error_msg from net._http_response order by id desc limit 3").catch(()=>({rows:[]}))).rows);console.error((await db.query("select status,return_message from cron.job_run_details order by start_time desc limit 3").catch(()=>({rows:[]}))).rows);throw e;}finally{if(server)await new Promise(r=>server.close(r));await db.end();}

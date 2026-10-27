@@ -32,7 +32,7 @@ jobs:
           make -C "$RUNNER_TEMP/pg_net" PG_CONFIG=/usr/lib/postgresql/17/bin/pg_config with_llvm=no
           sudo make -C "$RUNNER_TEMP/pg_net" PG_CONFIG=/usr/lib/postgresql/17/bin/pg_config with_llvm=no install
           sudo pg_createcluster 17 meryo_push --port 55440
-          printf "%s\n" "shared_preload_libraries='pg_net,pg_cron'" "cron.database_name='postgres'" "pg_net.database_name='postgres'" | sudo tee -a /etc/postgresql/17/meryo_push/postgresql.conf
+          printf "%s\n" "shared_preload_libraries='pg_net,pg_cron'" "cron.database_name='postgres'" "cron.use_background_workers=on" "pg_net.database_name='postgres'" | sudo tee -a /etc/postgresql/17/meryo_push/postgresql.conf
           sudo pg_ctlcluster 17 meryo_push start
           sudo -u postgres createuser --host=/var/run/postgresql --port=55440 --superuser "$USER"
       - run: npm ci --ignore-scripts --no-audit --no-fund
