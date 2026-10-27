@@ -16,3 +16,7 @@ Alcance exclusivo: selector Leaflet ya publicado, sin cambios de Auth, MFA, SQL,
 - Navegador aislado, con las mismas hojas de estilo y Leaflet: en nivel 19 se observaron seis imágenes `https://tile.openstreetmap.org/19/...png` completas y con ancho natural positivo. Botones y rueda solicitan niveles nuevos. Calles/edificios distinguibles y clic preciso conserva ese nivel.
 - Escenarios de geolocalización controlados solo en la página temporal del componente, sin Auth ni API: permiso denegado no muestra seleccionada y deja Guardar deshabilitado; posición correcta mantiene Guardar deshabilitado hasta Confirmar esta ubicación. No equivalen a una prueba de permiso/GPS en un teléfono real y no se incluyeron esos dobles de prueba en producción.
 - Evidencia privada: `location-failed-not-confirmed.png`, `location-street-zoom19.png`. Las coordenadas de esa página eran puntos públicos de prueba, no una ubicación privada del usuario. No hubo escrituras en producción.
+
+## Publicación
+
+Commit funcional `119b4de`, despliegue `dpl_8HeCN9FPtUPyqPkjfrpAoF4T3vZt`, promovido al dominio existente. Lectura pública comprobó HTTP 200, módulo `LocationPicker-CrHQPQZn.js`, confirmación explícita, rueda habilitada, Lima no confirmada, reintento de teselas y bloqueo de guardado. Evidencia privada: `location-picker-publication-proof.json` y `location-picker-verification.json`. La página temporal fue eliminada por el build y nunca se desplegó. Se detuvo únicamente el Vite de esta comprobación.
