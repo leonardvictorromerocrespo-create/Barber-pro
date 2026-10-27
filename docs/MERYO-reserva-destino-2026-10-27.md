@@ -22,3 +22,7 @@ Se conserva el push y sonido ya comprobados en Samsung A16, Google, MFA administ
 - Evidencia local privada: `MERYO-tests/proofs/booking-link-client.png` y `booking-link-barber.png`. No son capturas del Samsung ni evidencia de cobro.
 
 La llegada/sonido físicos siguen respaldados por la comprobación anterior. Este bloque verifica destino, permisos, Auth y acciones en entorno aislado. No se afirma que se haya completado un cobro ni una reserva comercial entre dos celulares.
+
+## Publicación
+
+Commit funcional `b0f2b32`, Vercel `dpl_DQ6D4634xhVz7WWD4nEEJNm7jEGE`, promovido al dominio existente https://barber-pro-phi-taupe.vercel.app . Lectura pública 2026-10-27 20:13 UTC: HTTP 200, asset `/assets/index-uIWX243L.js`, detalle, retorno a la misma cita y adelanto bloqueado presentes. Sin migraciones ni escrituras de datos en producción. Las reservas de esta comprobación aislada quedaron liberadas y se detuvo solo el PostgreSQL/Auth/PostgREST local del proyecto. Evidencia de publicación privada: `booking-link-publication-proof.json`.
