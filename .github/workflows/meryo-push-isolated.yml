@@ -23,10 +23,9 @@ jobs:
           make -C "$RUNNER_TEMP/pg_net" PG_CONFIG=/usr/lib/postgresql/17/bin/pg_config
           sudo make -C "$RUNNER_TEMP/pg_net" PG_CONFIG=/usr/lib/postgresql/17/bin/pg_config install
           sudo pg_createcluster 17 meryo_push --port 55440
-          printf "%s\n" "shared_preload_libraries='pg_net,pg_cron'" "cron.database_name='meryo_ci_push'" "pg_net.database_name='meryo_ci_push'" | sudo tee -a /etc/postgresql/17/meryo_push/postgresql.conf
+          printf "%s\n" "shared_preload_libraries='pg_net,pg_cron'" "cron.database_name='postgres'" "pg_net.database_name='postgres'" | sudo tee -a /etc/postgresql/17/meryo_push/postgresql.conf
           sudo pg_ctlcluster 17 meryo_push start
           sudo -u postgres createuser --host=/var/run/postgresql --port=55440 --superuser "$USER"
-          createdb --host=/var/run/postgresql --port=55440 meryo_ci_push
       - run: npm ci --ignore-scripts --no-audit --no-fund
       - name: Verify actual post-commit HTTP wake, cron retry and client isolation
         run: node scripts/verify-push-dispatch-ci.mjs
