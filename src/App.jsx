@@ -5,6 +5,7 @@ import { createMeryoApi, readResult } from './lib/meryo-api';
 import { useIdentity } from './lib/useIdentity';
 import Reservations from './components/Reservations';
 import AdminMfa from './components/AdminMfa';
+import AdminShops from './components/AdminShops';
 import {disableBookingPush} from './lib/push';
 import {saveDraft,readDraft,clearDraft,beginGoogle} from './lib/booking-draft';
 import {rememberAccess,consumeAccess,accessView} from './lib/access-navigation';
@@ -98,13 +99,14 @@ export function ProfileModal({ selectedShop, onClose, onReserve }) {
             <div className="mt-2 text-xs text-neutral-500">Perfil tipo red social del barbero</div>
             <div className="mt-4 rounded-2xl border border-white/10 bg-black/30 p-5 text-sm text-neutral-300">
               <p className="leading-6 text-neutral-400">{selectedShop.about}</p>
+              <p className="mt-3">{selectedShop.direccion} · {selectedShop.district}</p>
+              {selectedShop.image&&<img src={selectedShop.image} alt={`Portada de ${selectedShop.name}`} className="mt-4 max-h-72 w-full rounded-xl object-cover"/>}
             </div>
 
             <div className="mt-4 rounded-2xl border border-white/10 bg-black/20 p-4">
               <p className="font-bold text-white">{selectedShop.introVideoTitle}</p>
-              <div className="mt-3 flex h-40 items-center justify-center rounded-2xl bg-neutral-800 px-4 text-center text-sm text-neutral-400">
-                {selectedShop.introVideoNote}
-              </div>
+              {selectedShop.assets?.some(a=>a.kind==='video'&&a.url)?selectedShop.assets.filter(a=>a.kind==='video'&&a.url).map(a=><video key={a.id} src={a.url} controls preload="metadata" className="mt-3 max-h-80 w-full rounded-2xl"/>):<p className="mt-3 text-sm text-neutral-400">Sin video publicado.</p>}
+              {selectedShop.contentError&&<p role="alert" className="mt-3 text-sm text-amber-300">{selectedShop.contentError}</p>}
             </div>
           </div>
 
@@ -112,10 +114,10 @@ export function ProfileModal({ selectedShop, onClose, onReserve }) {
             <h4 className="text-xl font-bold">Videos y portafolio de cortes</h4>
             <div className="mt-4 rounded-2xl border border-white/10 bg-black/20 p-4">
               <p className="font-bold text-white">{selectedShop.cutsVideoTitle}</p>
-              <div className="mt-3 flex h-40 items-center justify-center rounded-2xl bg-neutral-800 px-4 text-center text-sm text-neutral-400">
-                {selectedShop.cutsVideoNote}
-              </div>
+              <div className="mt-3 grid grid-cols-2 gap-3">{selectedShop.assets?.filter(a=>a.kind==='foto'&&a.url).map(a=><figure key={a.id}><img src={a.url} alt={a.title||'Trabajo publicado por la barbería'} className="h-40 w-full rounded-xl object-cover"/>{a.title&&<figcaption className="mt-1 text-xs text-neutral-400">{a.title}</figcaption>}</figure>)}</div>
+              {!selectedShop.assets?.some(a=>a.kind==='foto'&&a.url)&&<p className="mt-3 text-sm text-neutral-400">Sin fotos de portafolio publicadas.</p>}
             </div>
+            <div className="mt-4 rounded-2xl border border-white/10 bg-black/20 p-4"><h4 className="font-bold">Equipo publicado</h4>{selectedShop.equipo?.length?selectedShop.equipo.map((p,i)=><p key={i} className="mt-2 text-sm text-neutral-300">{p.nombre}{p.propietario?' · propietario':''}</p>):<p className="mt-2 text-sm text-neutral-400">El equipo todavía no está publicado.</p>}</div>
 
             <div className="mt-4 rounded-2xl border border-white/10 bg-black/20 p-4">
               <p className="font-bold text-white">Servicios disponibles</p>
@@ -134,6 +136,7 @@ export function ProfileModal({ selectedShop, onClose, onReserve }) {
               <p className="text-lg font-bold text-white">Reseñas de clientes</p>
               <p className="mt-2 text-neutral-400">{selectedShop.reviews>0?`⭐ ${selectedShop.rating} basado en ${selectedShop.reviews} reseñas registradas`:'Aún no hay reseñas registradas.'}</p>
               <p className="mt-4 text-sm text-neutral-400">Las reseñas verificadas se incorporarán desde las citas completadas. No se muestran opiniones de demostración.</p>
+              {selectedShop.resenas?.map(r=><article key={r.id} className="mt-4 border-t border-white/10 pt-3"><p className="text-sm">{r.autor} · {r.calificacion}/5</p><p className="mt-1 text-neutral-400">{r.comentario}</p></article>)}
             </div>
           </div>
         </div>
@@ -357,8 +360,6 @@ export default function BarberProApp() {
   const [agendaError,setAgendaError] = useState('');
   const [agendaLoading,setAgendaLoading] = useState(false);
   const [shops, setShops] = useState([]);
-  const [allBarbers, setAllBarbers] = useState([]);
-  const [adminError,setAdminError]=useState('');
   // Public RPC contract; authenticated requests stay blocked without real Auth.
   const reservationsEnabled = identity.profile?.rol === 'cliente' && !supabase.authUnavailable;
   const [savingReservation, setSavingReservation] = useState(false);
@@ -419,14 +420,6 @@ useEffect(() => {
     }
   }
 }, [notificaciones, ultimaNoti]);
-useEffect(() => {
-  async function cargarTodas() {
-    try{setAllBarbers(await readResult(supabase.from('barberias').select('*')));setAdminError('');}
-    catch(error){setAllBarbers([]);setAdminError(error.message);}
-  }
-
-  if(adminAccess&&adminAal2) cargarTodas();
-}, [adminAccess,adminAal2]);
 useEffect(() => {
   if (view === "barber") {
     cargarNotificaciones();
@@ -580,7 +573,7 @@ async function cargarNotificaciones() {
 
 const finalPrice = basePrice;
   if(view === 'account-security')return identity.profile?<AdminMfa client={supabase} onVerified={async()=>{await identity.refresh();setAccessMessage('Authenticator verificado por Supabase. Tu rol no cambia. Registra un segundo factor en otro dispositivo para recuperación.');setView('client');}} onBack={()=>setView('client')}/>:<div className="min-h-screen bg-neutral-950 p-8 text-white"><button onClick={()=>setView('client-login')}>Iniciar sesión para proteger mi cuenta</button></div>;
-  if(view === 'shop-manage') return <ShopManagement api={api} profile={identity.profile} onLogin={()=>setView('barber-login')} onBack={()=>setView('client')} onRegister={()=>{setShowAffiliateForm(true);setView('client');setTimeout(()=>document.getElementById('register-shop')?.scrollIntoView(),0);}}/>;
+  if(view === 'shop-manage') return <ShopManagement api={api} profile={identity.profile} onLogin={()=>setView('barber-login')} onBack={async()=>{await cargarBarberiasActivas();setView('client');}} onRegister={()=>{setShowAffiliateForm(true);setView('client');setTimeout(()=>document.getElementById('register-shop')?.scrollIntoView(),0);}}/>;
   if(view === 'my-bookings') return <div className="min-h-screen bg-neutral-950 p-6 text-white"><div className="mx-auto max-w-5xl space-y-5"><h1 className="text-3xl font-black">Mis citas <span className="text-amber-400">MERYO</span></h1><button onClick={()=>setView('client')} className="rounded-xl border border-white/20 px-4 py-2">Volver</button><Reservations key={`${identity.profile?.id}-${identity.profile?.rol}`} api={api} profile={identity.profile} onLogin={()=>setView('client-login')} onSearch={()=>{setQuery('');setDistrict('');setShowBookingModal(false);setView('client');}}/></div></div>;
   if (view === "landing") {
     return (
@@ -795,67 +788,7 @@ if (view === "client-login") {
     </div>
   );
 }
-if (view === "admin" && adminAccess) {
-  return (
-    <div className="min-h-screen bg-neutral-950 p-8 text-white">
-      <h1 className="mb-8 text-3xl font-black">
-        Panel Admin <span className="text-amber-400">MERYO</span><button onClick={()=>setAdminSecurityOpen(true)} className="ml-4 rounded-xl border border-white/20 px-3 py-2 text-sm">Authenticator y recuperación</button>
-        <button onClick={handleLogout} className="ml-4 text-sm">Cerrar sesión</button>
-      </h1>
-
-      <div className="rounded-2xl bg-neutral-900 p-6">
-        <h2 className="mb-4 text-xl font-bold">Barberías registradas</h2>
-        {adminError&&<p role="alert" className="mb-4 text-red-300">{adminError}</p>}
-
-        {!adminError && allBarbers.length === 0 && (
-          <p className="text-neutral-400">
-            No hay barberías registradas todavía
-          </p>
-        )}
-
-        <div className="space-y-3">
-          {allBarbers.map((shop) => (
-            <div
-              key={shop.id}
-              className="rounded-xl border border-white/10 p-4 flex justify-between items-center"
-            >
-              <div>
-                <p className="font-bold">{shop.nombre}</p>
-                <p className="text-sm text-neutral-400">{shop.distrito}</p>
-                <p className="text-xs text-amber-400">
-                  Estado: {shop.estado || "pendiente"}
-                </p>
-              </div>
-
-              {shop.verificada ? (
-                <span className="rounded-xl bg-green-600 px-4 py-2 font-bold text-white">
-                  Activa
-                </span>
-              ) : (
-                <button
-                  onClick={async () => {
-                    try{await api.activate(shop.id);setAllBarbers(await readResult(supabase.from('barberias').select('*')));await cargarBarberiasActivas();alert('Activación verificada por el servidor.');}
-                    catch(error){alert(error.message);}
-                  }}
-                  className="bg-amber-400 text-black px-4 py-2 rounded-xl font-bold"
-                >
-                  Activar
-                </button>
-              )}
-            </div>
-          ))}
-        </div>
-      </div>
-
-      <button
-        onClick={() => setView("client")}
-        className="mt-6 border border-white/10 px-4 py-2 rounded-xl"
-      >
-        Volver
-      </button>
-    </div>
-  );
-}
+if (view === "admin" && adminAccess) return <AdminShops api={api} onSecurity={()=>setAdminSecurityOpen(true)} onLogout={handleLogout} onBack={()=>setView('client')} onChanged={cargarBarberiasActivas}/>;
   return (
     <div className="min-h-screen bg-neutral-950 text-white">
       <header className="sticky top-0 z-30 border-b border-white/10 bg-neutral-950/95 backdrop-blur">
@@ -908,7 +841,7 @@ if (view === "admin" && adminAccess) {
           <div className="grid gap-6 md:grid-cols-3">
             {ranking.map((shop) => (
               <div key={shop.id} className="overflow-hidden rounded-2xl border border-white/10 bg-neutral-900">
-                <img src={shop.image} className="h-56 w-full object-cover" alt={shop.name} />
+                {shop.image?<img src={shop.image} className="h-56 w-full object-cover" alt={shop.name}/>:<div className="flex h-56 items-center justify-center bg-neutral-950 text-3xl font-black text-amber-400" aria-label="Sin portada publicada">MERYO</div>}
                 <div className="p-5">
                   <div className="mb-2 flex items-start justify-between gap-3">
                     <div>

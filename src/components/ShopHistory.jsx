@@ -1,0 +1,6 @@
+import {useEffect,useState} from 'react';
+export default function ShopHistory({api,id,version=0}){
+ const [rows,setRows]=useState([]),[error,setError]=useState('');
+ useEffect(()=>{let active=true;api.shopHistory(id).then(data=>{if(active){setRows(data);setError('');}}).catch(e=>{if(active)setError(e.message);});return()=>{active=false;};},[api,id,version]);
+ return <section className="rounded-2xl border border-white/10 bg-neutral-900 p-5"><h2 className="text-xl font-bold">Historial de cambios</h2>{error&&<p role="alert" className="mt-3 text-red-300">{error}</p>}{!error&&!rows.length&&<p className="mt-3 text-neutral-400">Sin cambios registrados desde la incorporación de este historial.</p>}<ol className="mt-4 space-y-4">{rows.map(e=><li key={e.id} className="border-l-2 border-amber-400/50 pl-4"><p className="font-semibold">{e.action.replaceAll('_',' ')}</p><p className="text-sm text-neutral-400">{new Date(e.created_at).toLocaleString('es-PE',{timeZone:'America/Lima'})}</p>{e.reason&&<p className="mt-2 text-amber-300">{e.reason}</p>}<details className="mt-2 text-xs text-neutral-400"><summary>Ver cambios guardados</summary><pre className="mt-2 max-h-48 overflow-auto whitespace-pre-wrap break-all">{JSON.stringify({antes:e.before_data,despues:e.after_data},null,2)}</pre></details></li>)}</ol></section>;
+}
