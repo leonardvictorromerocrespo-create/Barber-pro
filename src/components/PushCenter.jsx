@@ -46,8 +46,8 @@ export default function PushCenter({api,profile,loading=false,onLogin,onBack,dia
    <button disabled={busy} className={button} onClick={load}>Actualizar permisos</button>
   </section>
   {diagnostic&&profile&&<section className="space-y-4 rounded-2xl border border-white/10 bg-neutral-900 p-6"><h2 className="text-xl font-bold">Comprobación administrativa</h2>
-   <p className="text-sm text-neutral-400">Solo administración con MFA. Esta comprobación notifica a tu propia cuenta y no crea reservas ni cobros.</p>
-   <button disabled={busy||!linked||!config?.push_disponible||!adminEvidence} className={button} onClick={()=>act(async()=>{await api.testPush();return 'Comprobación programada. Cierra todas las pestañas MERYO de este celular y bloquea la pantalla. Espera hasta dos minutos sin forzar la detención de Chrome. Después toca el aviso.';})}>Probar push con MERYO cerrada</button>
+   <p className="text-sm text-neutral-400">Solo administración con MFA. Esta comprobación avisa a los dispositivos vinculados a tu propia cuenta y no crea reservas ni cobros.</p>
+   <button disabled={busy||!(adminEvidence?.dispositivos>0)||!config?.push_disponible} className={button} onClick={()=>act(async()=>{await api.testPush();return 'Comprobación programada. Cierra todas las pestañas MERYO de este celular y bloquea la pantalla. Espera hasta dos minutos sin forzar la detención de Chrome. Después toca el aviso.';})}>Probar push con MERYO cerrada</button>
    <p className="text-sm text-neutral-400">Demora del servidor: al menos 30 segundos. Un envío aceptado no demuestra recepción. La recepción con la aplicación cerrada y el sonido se comprueban en el teléfono.</p>
    {adminEvidence?.ultimos?.map(j=><div key={j.id} className="border-t border-white/10 pt-3 text-sm"><p>{events[j.evento]||'Actualización de cita'} · {statuses[j.estado]||'Consultando'}</p><p>Servicio: {j.provider_accepted_at?'aceptó':'pendiente'} · Dispositivo: {j.recibida_en?'reportó mostrada':'sin acuse'} · Apertura: {j.abierta_en?'reportada':'sin acuse'}</p></div>)}
   </section>}
