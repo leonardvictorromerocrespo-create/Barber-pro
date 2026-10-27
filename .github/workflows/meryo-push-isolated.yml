@@ -17,14 +17,20 @@ jobs:
         run: |
           # The runner's Azure mirror stalled while downloading LLVM. Use the
           # official Ubuntu archive, still with bounded connection/retry limits.
-          sudo sed -i 's|http://azure.archive.ubuntu.com/ubuntu|https://archive.ubuntu.com/ubuntu|g' /etc/apt/sources.list.d/ubuntu.sources
           sudo /usr/share/postgresql-common/pgdg/apt.postgresql.org.sh -y
+          sudo grep -rl 'azure.archive.ubuntu.com' /etc/apt | xargs -r sudo sed -i -E 's|https?://azure.archive.ubuntu.com/ubuntu|https://archive.ubuntu.com/ubuntu|g'
           sudo apt-get update -qq
-          sudo apt-get install -y --no-install-recommends -o Acquire::Retries=2 -o Acquire::http::Timeout=30 postgresql-17 postgresql-server-dev-17 postgresql-17-cron libcurl4-openssl-dev build-essential
+          sudo apt-get install -y --no-install-recommends -o Acquire::Retries=2 -o Acquire::http::Timeout=30 postgresql-17 postgresql-17-cron libcurl4-openssl-dev build-essential
+          # Official PGDG development headers/PGXS only. GCC is already present;
+          # this C extension does not need the large optional LLVM toolchain.
+          mkdir -p "$RUNNER_TEMP/pg17-headers"
+          cd "$RUNNER_TEMP/pg17-headers"
+          apt-get download postgresql-server-dev-17
+          sudo dpkg-deb --extract postgresql-server-dev-17*.deb /
           git clone --filter=blob:none --no-checkout https://github.com/supabase/pg_net.git "$RUNNER_TEMP/pg_net"
           git -C "$RUNNER_TEMP/pg_net" checkout 8d7bb9efd0484331f7aff19aee2a3cd64ca5f886
-          make -C "$RUNNER_TEMP/pg_net" PG_CONFIG=/usr/lib/postgresql/17/bin/pg_config
-          sudo make -C "$RUNNER_TEMP/pg_net" PG_CONFIG=/usr/lib/postgresql/17/bin/pg_config install
+          make -C "$RUNNER_TEMP/pg_net" PG_CONFIG=/usr/lib/postgresql/17/bin/pg_config with_llvm=no
+          sudo make -C "$RUNNER_TEMP/pg_net" PG_CONFIG=/usr/lib/postgresql/17/bin/pg_config with_llvm=no install
           sudo pg_createcluster 17 meryo_push --port 55440
           printf "%s\n" "shared_preload_libraries='pg_net,pg_cron'" "cron.database_name='postgres'" "pg_net.database_name='postgres'" | sudo tee -a /etc/postgresql/17/meryo_push/postgresql.conf
           sudo pg_ctlcluster 17 meryo_push start
