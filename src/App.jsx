@@ -1,3 +1,4 @@
+import PushCenter from './components/PushCenter';
 import { endSession, signInWithProfile } from "./lib/operations";
 import { supabase, googleAuthEnabled, emailSignupEnabled } from "./lib/supabase";
 import { lazy, Suspense, useEffect, useMemo, useRef, useState } from "react";
@@ -347,9 +348,10 @@ export default function BarberProApp() {
   const [district, setDistrict] = useState("");
   const [order, setOrder] = useState("name");
   const [loginDestination,setLoginDestination]=useState('client');
-  const allowedViews=['landing','client','client-auth','client-register','client-login','barber','barber-login','admin','account-security','shop-manage','my-bookings','team-invite'];
+  const allowedViews=['landing','client','client-auth','client-register','client-login','barber','barber-login','admin','account-security','shop-manage','my-bookings','team-invite','notifications'];
   const [view, setView] = useState(()=>{const raw=typeof window==='undefined'?'':window.location.hash.slice(1);const hash=raw.startsWith('team-invite/')?'team-invite':raw;return allowedViews.includes(hash)?hash:'landing';});
   useEffect(()=>{window.history.replaceState(null,'',`#${view}`);},[view]);
+  useEffect(()=>{const navigate=()=>{const raw=window.location.hash.slice(1),next=raw.startsWith('team-invite/')?'team-invite':raw;if(allowedViews.includes(next))setView(next);};window.addEventListener('hashchange',navigate);return()=>window.removeEventListener('hashchange',navigate);},[]);
   const identity = useIdentity(supabase);
   const adminAccess = identity.profile?.rol === 'admin' && identity.profile?.activo === true;
   const [adminAal2,setAdminAal2]=useState(false);
@@ -513,7 +515,7 @@ async function cargarNotificaciones() {
   const requireBookingLogin=()=>{try{saveDraft(sessionStorage,{shop:selectedShop.id,service:selectedService.id,barber:selectedBarber,date:selectedDate,time:selectedTime,name:customerInfo.name,phone:customerInfo.phone,note:customRequest});setShowBookingModal(false);openLogin('client');}catch(error){setAccessMessage(error.message);}};
   useEffect(()=>{const url=new URL(window.location.href);if(url.searchParams.get('auth_callback')!=='1'||identity.loading)return;if(identity.profile){const destination=consumeAccess(sessionStorage);url.searchParams.delete('auth_callback');window.history.replaceState(null,'',url.pathname+url.search+url.hash);setView(accessView(destination,identity.profile.rol));}else{setAccessMessage('Google no completó el acceso. Tu reserva sigue guardada: puedes reintentar o continuar con correo.');setView('client-login');}},[identity.loading,identity.profile]);
   const openLogin=destination=>{setLoginDestination(destination);setView('client-login');};
-  const handleGoogle=async()=>{setAccessMessage('');try{rememberAccess(sessionStorage,view==='team-invite'?'team-invite':view==='admin'?'admin':['barber','barber-login'].includes(view)?'barber':view==='client-login'?loginDestination:'client');await beginGoogle(supabase,{enabled:googleAuthEnabled,origin:window.location.origin});}catch(error){setAccessMessage(error.message);}};
+  const handleGoogle=async()=>{setAccessMessage('');try{rememberAccess(sessionStorage,view==='team-invite'?'team-invite':view==='admin'?'admin':['barber','barber-login'].includes(view)?'barber':view==='client-login'?loginDestination:'client');await beginGoogle(supabase,{enabled:googleAuthEnabled,origin:window.location.origin,bookingId:new URLSearchParams(window.location.search).get('cita')});}catch(error){setAccessMessage(error.message);}};
   useEffect(()=>{if(adminAccess&&['barber','barber-login'].includes(view))setView('admin');},[adminAccess,view]);
   useEffect(()=>{
     const profile=identity.profile;if(!profile||resumed.current===profile.id)return;
@@ -578,10 +580,11 @@ async function cargarNotificaciones() {
 
 
 const finalPrice = basePrice;
+  if(view === 'notifications')return <PushCenter api={api} profile={identity.profile} loading={identity.loading} onLogin={()=>openLogin('notifications')} onBack={()=>setView(identity.profile?.rol==='admin'?'admin':'client')}/>;
   if(view === 'team-invite')return <TeamInvite api={api} profile={identity.profile} onGoogle={handleGoogle} onEmail={()=>openLogin('team-invite')} onAccepted={async()=>{await identity.refresh();setView('barber');}} onBack={()=>setView('client')}/>;
   if(view === 'account-security')return identity.profile?<AdminMfa client={supabase} onVerified={async()=>{await identity.refresh();setAccessMessage('Authenticator verificado por Supabase. Tu rol no cambia. Registra un segundo factor en otro dispositivo para recuperación.');setView('client');}} onBack={()=>setView('client')}/>:<div className="min-h-screen bg-neutral-950 p-8 text-white"><button onClick={()=>setView('client-login')}>Iniciar sesión para proteger mi cuenta</button></div>;
   if(view === 'shop-manage') return <ShopManagement key={identity.profile?.id||'anonymous'} api={api} profile={identity.profile} onLogin={()=>setView('barber-login')} onBack={async()=>{await cargarBarberiasActivas();setView('client');}} onRegister={()=>{setShowAffiliateForm(true);setView('client');setTimeout(()=>document.getElementById('register-shop')?.scrollIntoView(),0);}}/>;
-  if(view === 'my-bookings') return <div className="min-h-screen bg-neutral-950 p-6 text-white"><div className="mx-auto max-w-5xl space-y-5"><h1 className="text-3xl font-black">Mis citas <span className="text-amber-400">MERYO</span></h1><button onClick={()=>setView('client')} className="rounded-xl border border-white/20 px-4 py-2">Volver</button><Reservations key={`${identity.profile?.id}-${identity.profile?.rol}`} api={api} profile={identity.profile} onLogin={()=>setView('client-login')} onSearch={()=>{setQuery('');setDistrict('');setShowBookingModal(false);setView('client');}}/></div></div>;
+  if(view === 'my-bookings') return <div className="min-h-screen bg-neutral-950 p-6 text-white"><div className="mx-auto max-w-5xl space-y-5"><a className="text-amber-300 underline" href="/#notifications">Avisos y permisos del celular</a><h1 className="text-3xl font-black">Mis citas <span className="text-amber-400">MERYO</span></h1><button onClick={()=>setView('client')} className="rounded-xl border border-white/20 px-4 py-2">Volver</button><Reservations key={`${identity.profile?.id}-${identity.profile?.rol}`} api={api} profile={identity.profile} onLogin={()=>openLogin('my-bookings')} onSearch={()=>{setQuery('');setDistrict('');setShowBookingModal(false);setView('client');}}/></div></div>;
   if (view === "landing") {
     return (
       <div className="min-h-screen bg-neutral-950 text-white">

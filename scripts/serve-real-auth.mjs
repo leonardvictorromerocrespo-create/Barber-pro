@@ -50,13 +50,13 @@ try{
  pool=new pg.Pool({...realConfig,max:1});
  maintenance=startReservationMaintenance(pool,{onError:message=>console.error(message)});
  await pool.query('update meryo_private.launch_settings set push_envio_habilitado=$1,push_public_key=$2 where id=1',[pushReady,pushReady?config.push.publicKey:null]);
- if(pushReady)stopPush=startPushWorker(pool,config.push);
+ if(pushReady&&process.env.MERYO_DISABLE_PUSH_WORKER!=='1')stopPush=startPushWorker(pool,config.push);
  vite=await createServer({mode:'localauth',define:{'import.meta.env.VITE_MERYO_LOCAL_ANON_KEY':JSON.stringify(s.anonKey),'import.meta.env.VITE_MERYO_GOOGLE_ENABLED':googleReady},server:{host:'127.0.0.1',port:5178,strictPort:true,proxy:{
   '/__supabase/auth/v1':{target:'http://127.0.0.1:55441',rewrite:p=>p.replace(/^\/__supabase\/auth\/v1/,'')},
   '/__supabase/rest/v1':{target:'http://127.0.0.1:55442',rewrite:p=>p.replace(/^\/__supabase\/rest\/v1/,'')},
  }},plugins:[{name:'real-auth-local-only',configureServer(server){server.middlewares.use((req,res,next)=>{
   if(req.headers.host!=='127.0.0.1:5178'||(req.headers.origin&&req.headers.origin!=='http://127.0.0.1:5178')){res.statusCode=403;res.end('Solo localhost');return;}
-  if(req.url==='/__meryo/push-ack'){
+  if((req.url==='/__meryo/push-ack'||req.url==='/api/push/ack')){
    if(req.method!=='POST'){res.statusCode=405;res.end();return;}
    let body='';req.on('data',chunk=>{body+=chunk;if(body.length>2048)req.destroy();});
    req.on('end',async()=>{try{const ok=await acknowledgePush(pool,JSON.parse(body));res.statusCode=ok?204:403;}catch{res.statusCode=400;}res.end();});return;

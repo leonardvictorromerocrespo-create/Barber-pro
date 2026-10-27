@@ -14,6 +14,7 @@ declare destination text;credential text;begin
  if destination is null then return false;end if;
  execute 'select net.http_post(url:=$1,body:=$2,headers:=$3,timeout_milliseconds:=25000)' using destination,'{}'::jsonb,jsonb_build_object('Authorization','Bearer '||credential,'Content-Type','application/json');
  return true;
+exception when others then return false; -- Durable queue remains; delivery failure must not roll back a booking.
 end$$;
 revoke all on function meryo_private.wake_push() from public,anon,authenticated,service_role;
 create function meryo_private.signal_push() returns trigger language plpgsql security definer set search_path='' as $$begin perform meryo_private.wake_push();return new;end$$;

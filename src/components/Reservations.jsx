@@ -33,9 +33,10 @@ export default function Reservations({api,profile,onLogin,onSearch,memberId}){
   <div className="flex justify-between"><h2 className="text-xl font-bold">{profile.rol==='barbero'?'Solicitudes y citas de mi barbería':'Mis citas'}</h2><button onClick={load} disabled={loading} className="rounded-xl border border-white/20 px-4 py-2">Actualizar</button></div>
   <p className="mt-3 text-sm text-neutral-400">MERYO: mensualidad por barbería, sin comisión por corte. Precios de planes propuestos; suscripciones sin cobro habilitado.</p>
   <p className="mt-2 text-sm text-amber-200">{config?.push_disponible?'Emisor push configurado. Falta verificar entrega real con la app cerrada y sonido en tu dispositivo.':'Push pendiente: falta configurar VAPID/contacto del emisor. La entrega con app cerrada y el sonido no están verificados.'}</p>
-  <button disabled={!config?.push_disponible||busy} onClick={async()=>{try{setMessage(await enableBookingPush(api,config));}catch(e){setError(e.message);}}} className="mt-2 rounded-xl border border-white/20 px-4 py-2 disabled:opacity-40">Activar avisos al celular</button>
+  <button disabled={!config?.push_disponible||busy} onClick={async()=>{try{setMessage(await enableBookingPush(api,config));}catch(e){setError(e.message);}}} className="mt-2 rounded-xl border border-white/20 px-4 py-2 disabled:opacity-40">Activar avisos al celular</button><a className="ml-3 inline-block text-sm text-amber-300 underline" href="/#notifications">Avisos guardados y permisos del celular</a>
   {profile.rol==='barbero'&&<p className="mt-4">Solicitudes pendientes: {visibleRows.filter(r=>r.estado==='solicitada').length} · Pendientes de pago: {visibleRows.filter(r=>r.estado==='aceptada').length}</p>}
   {error&&<p role="alert" className="mt-3 text-red-300">{error}</p>}{message&&<p role="status" className="mt-3 text-amber-300">{message}</p>}
+  {focus&&anchor&&!loading&&!error&&!rows.some(r=>r.id===focus)&&<p role="alert" className="mt-3 text-amber-300">Esta cita no está disponible para esta cuenta. Revisa que uses el mismo correo que recibió el aviso.</p>}
   {!loading&&!error&&!visibleRows.length&&<p className="mt-3 text-neutral-400">Todavía no hay citas.</p>}
   <div className="mt-4 space-y-3">{visibleRows.map(row=>{
    const seconds=remainingSeconds(row.expira_respuesta_en??row.expira_pago_en,anchor?.serverMs,elapsed);
