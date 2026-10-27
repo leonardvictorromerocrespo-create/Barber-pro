@@ -896,7 +896,7 @@ begin
  if p_from is null or p_to is null or p_to<p_from or p_to-p_from>366 or p_offset<0 or p_offset>100000 or length(p_search)>100 then raise exception 'Filtro fuera de rango; máximo 366 días';end if;
  with filtered as (
  select r.id,r.barberia_id,b.nombre barberia,r.cliente_id,r.cliente_nombre,r.servicio_nombre,r.inicio,r.fin,r.estado,r.precio_total,r.monto_adelanto,r.expira_respuesta_en,r.expira_pago_en,
- to_jsonb(r)->>'barbero_id' barbero_id,not public.meryo_barberia_publicable(b.id) demo
+ to_jsonb(r)->>'barbero_id' barbero_id,to_jsonb(r)->>'barbero_nombre' barbero_nombre,not public.meryo_barberia_publicable(b.id) demo
  from public.reservas r join public.barberias b on b.id=r.barberia_id
  where r.inicio>=(p_from::timestamp at time zone 'America/Lima') and r.inicio<((p_to+1)::timestamp at time zone 'America/Lima')
  and (p_shop is null or r.barberia_id=p_shop) and (coalesce(p_status,'')='' or r.estado=p_status)
@@ -963,7 +963,7 @@ CREATE FUNCTION public.meryo_agregar_bloqueo(p_member uuid, p_start timestamp wi
     AS $$
 declare shop bigint;result uuid;begin
  shop:=meryo_private.require_owner_member(p_member);
- if p_start is null or p_end is null or p_end<=p_start or p_end-p_start>interval '366 days' or length(trim(coalesce(p_reason,''))) not between 3 and 300 then raise exception 'Revisa fechas y motivo del bloqueo';end if;
+ if p_start is null or p_end is null or p_end<=p_start or p_end<=clock_timestamp() or p_end-p_start>interval '366 days' or length(trim(coalesce(p_reason,''))) not between 3 and 300 then raise exception 'Revisa fechas y motivo del bloqueo; debe terminar en el futuro';end if;
  insert into public.meryo_team_blocks(member_id,starts,ends,reason) values(p_member,p_start,p_end,trim(p_reason)) returning id into result;
  perform meryo_private.check_member_existing_bookings(p_member);
  insert into meryo_private.shop_events(barberia_id,actor_id,action,after_data) values(shop,auth.uid(),'agregar_bloqueo',jsonb_build_object('id',result,'member',p_member,'start',p_start,'end',p_end,'reason',trim(p_reason)));return result;
@@ -1355,7 +1355,7 @@ CREATE FUNCTION public.meryo_reservas_estado() RETURNS jsonb
     AS $$
  select jsonb_build_object('server_now',clock_timestamp(),'reservas',coalesce(jsonb_agg(
   to_jsonb(r)||jsonb_build_object('barberias',jsonb_build_object('nombre',b.nombre),
-  'pagos',(select coalesce(jsonb_agg(jsonb_build_object('proveedor',p.proveedor,'estado',p.estado)),'[]'::jsonb) from public.pagos p where p.reserva_id=r.id))
+  'puede_responder',(public.meryo_es_propietario(r.barberia_id) or public.meryo_es_cita_asignada(r.barbero_id)),'pagos',(select coalesce(jsonb_agg(jsonb_build_object('proveedor',p.proveedor,'estado',p.estado)),'[]'::jsonb) from public.pagos p where p.reserva_id=r.id))
   order by (r.estado in ('solicitada','aceptada')) desc,r.inicio desc),'[]'::jsonb))
  from public.reservas r join public.barberias b on b.id=r.barberia_id
  where r.cliente_id=(select auth.uid()) or r.barberia_id=public.mi_barberia_id();
