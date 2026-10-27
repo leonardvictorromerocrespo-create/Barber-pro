@@ -1,0 +1,7 @@
+import {test} from 'node:test';import assert from 'node:assert/strict';import {build} from 'esbuild';import fs from 'node:fs/promises';import path from 'node:path';import {pathToFileURL} from 'node:url';
+test('detail remains selected while login hash catches up; client screen never requests administrative MFA',async()=>{
+ const out=path.resolve('dist/booking-link-screen.mjs');await fs.mkdir(path.dirname(out),{recursive:true});
+ await build({stdin:{contents:`import React from 'react';import {renderToStaticMarkup} from 'react-dom/server';import Reservations from './src/components/Reservations.jsx';export function render(profile){globalThis.window={location:{search:'?cita=10000000-0000-0000-0000-000000000001',hash:'#client-login'}};try{return renderToStaticMarkup(React.createElement(Reservations,{api:{},profile}));}finally{delete globalThis.window;}}`,resolveDir:process.cwd(),loader:'jsx'},outfile:out,bundle:true,platform:'node',format:'esm',jsx:'automatic',external:['react','react-dom/server']});
+ const {render}=await import(pathToFileURL(out).href);const customer=render({id:'customer',rol:'cliente'}),staff=render({id:'staff',rol:'barbero'}),loggedOut=render(null);
+ assert.match(customer,/Detalle de cita/);assert.match(staff,/Detalle de cita/);assert.match(loggedOut,/Volverás a esta misma cita/);assert.match(loggedOut,/Iniciar sesión/);for(const html of [customer,staff,loggedOut])assert.doesNotMatch(html,/Authenticator|Diagnóstico|segundo factor/);
+});

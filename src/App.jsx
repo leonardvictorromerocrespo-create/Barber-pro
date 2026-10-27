@@ -11,6 +11,7 @@ import TeamInvite from './components/TeamInvite';
 import {disableBookingPush} from './lib/push';
 import {saveDraft,readDraft,clearDraft,beginGoogle} from './lib/booking-draft';
 import {rememberAccess,consumeAccess,accessView} from './lib/access-navigation';
+import {bookingDestination,bookingIdFromSearch} from './lib/booking-link';
 import ShopManagement from './components/management/ShopManagement';
 const api = createMeryoApi(supabase);
 import CatalogFilters from "./components/CatalogFilters";
@@ -349,7 +350,7 @@ export default function BarberProApp() {
   const [order, setOrder] = useState("name");
   const [loginDestination,setLoginDestination]=useState('client');
   const allowedViews=['landing','client','client-auth','client-register','client-login','barber','barber-login','admin','account-security','shop-manage','my-bookings','team-invite','notifications'];
-  const [view, setView] = useState(()=>{const raw=typeof window==='undefined'?'':window.location.hash.slice(1);const hash=raw.startsWith('team-invite/')?'team-invite':raw;return allowedViews.includes(hash)?hash:'landing';});
+  const [view, setView] = useState(()=>{const raw=typeof window==='undefined'?'':window.location.hash.slice(1);const hash=raw.startsWith('team-invite/')?'team-invite':raw;return bookingDestination(typeof window==='undefined'?'':window.location.search,allowedViews.includes(hash)?hash:'landing');});
   useEffect(()=>{window.history.replaceState(null,'',`#${view}`);},[view]);
   useEffect(()=>{const navigate=()=>{const raw=window.location.hash.slice(1),next=raw.startsWith('team-invite/')?'team-invite':raw;if(allowedViews.includes(next))setView(next);};window.addEventListener('hashchange',navigate);return()=>window.removeEventListener('hashchange',navigate);},[]);
   const identity = useIdentity(supabase);
@@ -513,13 +514,13 @@ async function cargarNotificaciones() {
   };
 
   const requireBookingLogin=()=>{try{saveDraft(sessionStorage,{shop:selectedShop.id,service:selectedService.id,barber:selectedBarber,date:selectedDate,time:selectedTime,name:customerInfo.name,phone:customerInfo.phone,note:customRequest});setShowBookingModal(false);openLogin('client');}catch(error){setAccessMessage(error.message);}};
-  useEffect(()=>{const url=new URL(window.location.href);if(url.searchParams.get('auth_callback')!=='1'||identity.loading)return;if(identity.profile){const destination=consumeAccess(sessionStorage);url.searchParams.delete('auth_callback');window.history.replaceState(null,'',url.pathname+url.search+url.hash);setView(accessView(destination,identity.profile.rol));}else{setAccessMessage('Google no completó el acceso. Tu reserva sigue guardada: puedes reintentar o continuar con correo.');setView('client-login');}},[identity.loading,identity.profile]);
+  useEffect(()=>{const url=new URL(window.location.href);if(url.searchParams.get('auth_callback')!=='1'||identity.loading)return;if(identity.profile){const destination=consumeAccess(sessionStorage);url.searchParams.delete('auth_callback');window.history.replaceState(null,'',url.pathname+url.search+url.hash);setView(bookingDestination(url.search,accessView(destination,identity.profile.rol)));}else{setLoginDestination(bookingDestination(url.search));setAccessMessage('Google no completó el acceso. Puedes reintentar o continuar con correo; conservaremos el destino de tu cita.');setView('client-login');}},[identity.loading,identity.profile]);
   const openLogin=destination=>{setLoginDestination(destination);setView('client-login');};
   const handleGoogle=async()=>{setAccessMessage('');try{rememberAccess(sessionStorage,view==='team-invite'?'team-invite':view==='admin'?'admin':['barber','barber-login'].includes(view)?'barber':view==='client-login'?loginDestination:'client');await beginGoogle(supabase,{enabled:googleAuthEnabled,origin:window.location.origin,bookingId:new URLSearchParams(window.location.search).get('cita'),adminView:new URLSearchParams(window.location.search).get('admin_view')});}catch(error){setAccessMessage(error.message);}};
   useEffect(()=>{if(adminAccess&&['barber','barber-login'].includes(view))setView('admin');},[adminAccess,view]);
   useEffect(()=>{
     const profile=identity.profile;if(!profile||resumed.current===profile.id)return;
-    if(new URLSearchParams(window.location.search).get('cita')){resumed.current=profile.id;setView('my-bookings');return;}
+    if(bookingIdFromSearch(window.location.search)){resumed.current=profile.id;setView('my-bookings');return;}
     const draft=readDraft(sessionStorage);if(!draft||profile.rol!=='cliente')return;
     let active=true;
     api.catalog().then(catalog=>{if(!active)return;const shop=catalog.find(s=>String(s.id)===draft.shop),service=shop?.services.find(s=>String(s.id)===draft.service);if(!shop||!service)throw Error('El servicio ya no está disponible. Elige otro.');setSelectedShop(shop);setSelectedService(service);setSelectedBarber(draft.barber||'');setSelectedDate(draft.date);setSelectedTime(draft.barber&&!(shop.equipo??[]).some(m=>m.id===draft.barber&&m.servicios?.some(id=>String(id)===String(service.id)))?'':draft.time);setCustomRequest(draft.note);setCustomerInfo(prev=>({...prev,name:draft.name||profile.nombre||'',phone:draft.phone||profile.telefono||''}));resumed.current=profile.id;setView('client');setShowBookingModal(true);clearDraft(sessionStorage);setAccessMessage('Recuperamos tu reserva. Revisa el horario y completa solo los datos que faltan.');}).catch(error=>{if(active)setAccessMessage(error.message);});
@@ -570,7 +571,7 @@ async function cargarNotificaciones() {
   };
   const handleCustomerLogin = async () => {
     if(!customerInfo.email||!customerInfo.password)return alert('Ingresa correo y contraseña');
-    try{const profile=await signInWithProfile(supabase,{email:customerInfo.email,password:customerInfo.password},['cliente','barbero','admin']);await identity.refresh();setCustomerInfo(prev=>({...prev,password:''}));setView(accessView(loginDestination,profile.rol));}
+    try{const profile=await signInWithProfile(supabase,{email:customerInfo.email,password:customerInfo.password},['cliente','barbero','admin']);await identity.refresh();setCustomerInfo(prev=>({...prev,password:''}));setView(bookingDestination(window.location.search,accessView(loginDestination,profile.rol)));}
     catch(error){alert(error.message);}
   };
 
@@ -584,7 +585,7 @@ const finalPrice = basePrice;
   if(view === 'team-invite')return <TeamInvite api={api} profile={identity.profile} onGoogle={handleGoogle} onEmail={()=>openLogin('team-invite')} onAccepted={async()=>{await identity.refresh();setView('barber');}} onBack={()=>setView('client')}/>;
   if(view === 'account-security')return identity.profile?<AdminMfa client={supabase} onVerified={async()=>{await identity.refresh();setAccessMessage('Authenticator verificado por Supabase. Tu rol no cambia. Registra un segundo factor en otro dispositivo para recuperación.');setView('client');}} onBack={()=>setView('client')}/>:<div className="min-h-screen bg-neutral-950 p-8 text-white"><button onClick={()=>setView('client-login')}>Iniciar sesión para proteger mi cuenta</button></div>;
   if(view === 'shop-manage') return <ShopManagement key={identity.profile?.id||'anonymous'} api={api} profile={identity.profile} onLogin={()=>setView('barber-login')} onBack={async()=>{await cargarBarberiasActivas();setView('client');}} onRegister={()=>{setShowAffiliateForm(true);setView('client');setTimeout(()=>document.getElementById('register-shop')?.scrollIntoView(),0);}}/>;
-  if(view === 'my-bookings') return <div className="min-h-screen bg-neutral-950 p-6 text-white"><div className="mx-auto max-w-5xl space-y-5"><a className="text-amber-300 underline" href="/#notifications">Avisos y permisos del celular</a><h1 className="text-3xl font-black">Mis citas <span className="text-amber-400">MERYO</span></h1><button onClick={()=>setView('client')} className="rounded-xl border border-white/20 px-4 py-2">Volver</button><Reservations key={`${identity.profile?.id}-${identity.profile?.rol}`} api={api} profile={identity.profile} onLogin={()=>openLogin('my-bookings')} onSearch={()=>{setQuery('');setDistrict('');setShowBookingModal(false);setView('client');}}/></div></div>;
+  if(view === 'my-bookings') return <div className="min-h-screen bg-neutral-950 p-6 text-white"><div className="mx-auto max-w-5xl space-y-5"><a className="text-amber-300 underline" href="/#notifications">Avisos y permisos del celular</a><h1 className="text-3xl font-black">Mis citas <span className="text-amber-400">MERYO</span></h1><button onClick={()=>{const url=new URL(window.location.href);url.searchParams.delete('cita');window.history.replaceState(null,'',url.pathname+url.search+url.hash);setView('client');}} className="rounded-xl border border-white/20 px-4 py-2">Volver</button><Reservations key={`${identity.profile?.id}-${identity.profile?.rol}`} api={api} profile={identity.profile} identityLoading={identity.loading} onLogin={()=>openLogin('my-bookings')} onSearch={()=>{const url=new URL(window.location.href);url.searchParams.delete('cita');window.history.replaceState(null,'',url.pathname+url.search+url.hash);setQuery('');setDistrict('');setShowBookingModal(false);setView('client');}}/></div></div>;
   if (view === "landing") {
     return (
       <div className="min-h-screen bg-neutral-950 text-white">

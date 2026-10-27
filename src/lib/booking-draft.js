@@ -11,7 +11,7 @@ export function clearDraft(storage){storage.removeItem(KEY);return null;}
 export async function beginGoogle(client,{enabled,origin,bookingId,adminView}){
  if(!enabled)throw Error('Google está pendiente de configurar en Supabase Auth. Puedes continuar con correo y contraseña.');
  const target=new URL('/?auth_callback=1',origin);if(/^[0-9a-f]{8}(-[0-9a-f]{4}){3}-[0-9a-f]{12}$/i.test(bookingId||''))target.searchParams.set('cita',bookingId);
- if(adminView==='avisos')target.searchParams.set('admin_view','avisos');
+ if(!target.searchParams.has('cita')&&adminView==='avisos')target.searchParams.set('admin_view','avisos');
  const {error}=await client.auth.signInWithOAuth({provider:'google',options:{redirectTo:target.href,scopes:'openid email profile',queryParams:{prompt:'select_account'}}});
  if(error)throw error;
 }
