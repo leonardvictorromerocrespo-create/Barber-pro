@@ -37,6 +37,7 @@ jobs:
           MERYO_DB_CONFIG: ${{ secrets.MERYO_DB_CONFIG }}
           MERYO_STORAGE_CONFIG: ${{ secrets.MERYO_STORAGE_CONFIG }}
           MERYO_BACKUP_KEY: ${{ secrets.MERYO_BACKUP_KEY }}
+          MERYO_DRIVE_CONFIG: ${{ secrets.MERYO_DRIVE_CONFIG }}
         run: node scripts/backup-hosted-cloud.mjs
       - name: Verify isolated restore from the encrypted archive
         env:
@@ -44,6 +45,7 @@ jobs:
           MERYO_BACKUP_KEY: ${{ secrets.MERYO_BACKUP_KEY }}
         run: node scripts/restore-hosted-check.mjs
       - name: Keep only the encrypted archive off-site for thirty days
+        if: steps.snapshot.outputs.external == 'artifact'
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: meryo-hosted-${{ github.run_id }}-${{ github.run_attempt }}
@@ -51,6 +53,13 @@ jobs:
           retention-days: 30
           if-no-files-found: error
           compression-level: 0
+      - name: Upload, download and restore the independent encrypted Drive copy
+        if: steps.snapshot.outputs.external == 'drive'
+        env:
+          MERYO_BACKUP_ROOT: ${{ steps.snapshot.outputs.root }}
+          MERYO_BACKUP_KEY: ${{ secrets.MERYO_BACKUP_KEY }}
+          MERYO_DRIVE_CONFIG: ${{ secrets.MERYO_DRIVE_CONFIG }}
+        run: node scripts/upload-hosted-drive-cloud.mjs
   failure-notice:
     needs: backup
     if: failure()

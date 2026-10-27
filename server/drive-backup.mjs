@@ -51,5 +51,5 @@ export async function uploadAndVerifyDrive(root,archive,connect=driveConnection)
   for(const old of expiredArchives(page.files||[],saved.folderId))await request(`${base}/files/${encodeURIComponent(old.id)}`,{method:'PATCH',headers:{'Content-Type':'application/json'},body:JSON.stringify({trashed:true})});
   pageToken=page.nextPageToken;
  }while(pageToken);
- return {verifiedAt:new Date().toISOString(),fileId:uploaded.id,downloaded,sha256:await sha256(downloaded),freeBytesBeforeUpload:String(BigInt(limit)-BigInt(usage)),retentionDays:30,scope:'local-native-only; Supabase Storage not connected'};
+ return {verifiedAt:new Date().toISOString(),fileId:uploaded.id,downloaded,sha256:await sha256(downloaded),freeBytesBeforeUpload:String(BigInt(limit)-BigInt(usage)),retentionDays:30,scope:'Encrypted archive transport only; coverage is determined by its verified manifest'};
 }
