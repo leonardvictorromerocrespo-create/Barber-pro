@@ -6,6 +6,7 @@ if(dump.status!==0)throw Error('Native schema export failed');let sql=dump.stdou
 if(/eyJ[A-Za-z0-9_-]{30,}\.[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+/.test(sql)||/^COPY /m.test(sql))throw Error('Unexpected token or rows in schema export');
 const db=new pg.Client(config);await db.connect();try{
  const roles=(await db.query("select rolname from pg_roles where rolname !~ '^pg_' and rolname<>'postgres' order by rolname")).rows.map(r=>r.rolname);
+ const extensionSchemas=(await db.query("select e.extname name,n.nspname schema from pg_extension e join pg_namespace n on n.oid=e.extnamespace where e.extname in ('pgcrypto','uuid-ossp','btree_gist') order by e.extname")).rows;
  const authVersions=(await db.query('select version from auth.schema_migrations order by version')).rows.map(r=>r.version);
  const restore=JSON.parse(await fs.readFile(path.join(process.env.LOCALAPPDATA,'MERYO-deployment/backups/hosted-restore-status.json'),'utf8'));
  if(!/^meryo_restore_hosted_\d+$/.test(restore.database))throw Error('Wrong metadata source');
@@ -13,6 +14,6 @@ const db=new pg.Client(config);await db.connect();try{
  try{storageVersions=(await copy.query('select id,name,hash from storage.migrations order by id')).rows;}finally{await copy.end();}
  await fs.mkdir('db/reference/storage-ci',{recursive:true});
  await fs.writeFile('db/reference/storage-ci/schema.sql',sql);
- await fs.writeFile('db/reference/storage-ci/system-metadata.json',JSON.stringify({roles,authVersions,storageVersions,sha256:createHash('sha256').update(sql).digest('hex'),scope:'Definitions and official migration identifiers/hashes only. No users, sessions, MFA factors, files, business rows or credentials.'},null,2));
+ await fs.writeFile('db/reference/storage-ci/system-metadata.json',JSON.stringify({roles,extensionSchemas,authVersions,storageVersions,sha256:createHash('sha256').update(sql).digest('hex'),scope:'Definitions and official migration identifiers/hashes only. No users, sessions, MFA factors, files, business rows or credentials.'},null,2));
  console.log(JSON.stringify({metadataOnly:true,bytes:Buffer.byteLength(sql),authMigrationVersions:authVersions.length}));
 }finally{await db.end();}

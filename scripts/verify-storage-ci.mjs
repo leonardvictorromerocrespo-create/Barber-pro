@@ -20,8 +20,9 @@ try{
  if(crypto.createHash('sha256').update(schema).digest('hex')!==metadata.sha256)throw Error('Schema reference changed');
  for(const role of metadata.roles)if(!(await db.query('select 1 from pg_roles where rolname=$1',[role])).rowCount)await db.query('create role "'+role.replaceAll('"','""')+'" nologin');
  const alter=(await db.query('select format(\'alter role %I password %L\',$1::text,$2::text) sql',[user,password])).rows[0].sql;await db.query(alter);
- await db.query('alter role service_role bypassrls');await db.query('create schema extensions');
- for(const ext of ['btree_gist','pgcrypto','uuid-ossp'])await db.query(`create extension "${ext}" with schema extensions`);
+ await db.query('alter role service_role bypassrls');
+ const quote=value=>'"'+value.replaceAll('"','""')+'"';
+ for(const ext of metadata.extensionSchemas){await db.query(`create schema if not exists ${quote(ext.schema)}`);await db.query(`create extension ${quote(ext.name)} with schema ${quote(ext.schema)}`);}
  await db.query(schema.replace('CREATE SCHEMA public;','CREATE SCHEMA IF NOT EXISTS public;'));
  for(const v of metadata.authVersions)await db.query('insert into auth.schema_migrations(version) values($1)',[v]);
  for(const m of metadata.storageVersions)await db.query('insert into storage.migrations(id,name,hash) values($1,$2,$3)',[m.id,m.name,m.hash]);
