@@ -18,7 +18,7 @@ try{
  const schema=await fs.readFile('db/reference/storage-ci/schema.sql','utf8'),metadata=JSON.parse(await fs.readFile('db/reference/storage-ci/system-metadata.json','utf8'));
  if(crypto.createHash('sha256').update(schema).digest('hex')!==metadata.sha256)throw Error('Schema reference changed');
  for(const role of metadata.roles)if(!(await db.query('select 1 from pg_roles where rolname=$1',[role])).rowCount)await db.query('create role "'+role.replaceAll('"','""')+'" nologin');
- const alter=(await db.query('select format(\'alter role %I password %L\',$1,$2) sql',[user,password])).rows[0].sql;await db.query(alter);
+ const alter=(await db.query('select format(\'alter role %I password %L\',$1::text,$2::text) sql',[user,password])).rows[0].sql;await db.query(alter);
  await db.query('alter role service_role bypassrls');await db.query('create schema extensions');
  for(const ext of ['btree_gist','pgcrypto','uuid-ossp'])await db.query(`create extension "${ext}" with schema extensions`);
  await db.query(schema);
