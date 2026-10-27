@@ -24,6 +24,12 @@ jobs:
           sudo pg_createcluster 17 meryo_storage --port 55440 --start
           sudo -u postgres createuser --host=/var/run/postgresql --port=55440 --superuser "$USER"
           createdb --host=/var/run/postgresql --port=55440 meryo_ci_storage
+      - name: Install MERYO dependencies
+        run: npm ci
+      - name: Validate isolated SQL bootstrap before compiling services
+        env:
+          MERYO_CI_SETUP_ONLY: 'true'
+        run: node scripts/verify-storage-ci.mjs
       - name: Compile pinned official Supabase services, without Docker
         run: |
           mkdir -p "$RUNNER_TEMP/meryo-official"
@@ -38,8 +44,6 @@ jobs:
           npm run build
           curl -fL https://github.com/PostgREST/postgrest/releases/download/v16.5/postgrest-v16.5-linux-static-x86-64.tar.xz -o "$RUNNER_TEMP/meryo-official/rest.tar.xz"
           tar -xJf "$RUNNER_TEMP/meryo-official/rest.tar.xz" -C "$RUNNER_TEMP/meryo-official"
-      - name: Install MERYO dependencies
-        run: npm ci
       - name: Verify real Storage upload, read, replacement, withdrawal and tenant permissions
         run: node scripts/verify-storage-ci.mjs
       - name: Publish non-secret verification result

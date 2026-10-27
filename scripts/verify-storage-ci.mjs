@@ -3,7 +3,7 @@ import fs from 'node:fs/promises';import {createWriteStream} from 'node:fs';impo
 import pg from 'pg';import {createClient} from '@supabase/supabase-js';import assert from 'node:assert/strict';
 import {createMeryoApi} from '../src/lib/meryo-api.js';import {uploadContent,CONTENT_BUCKET} from '../src/lib/shop-content.js';import {totp} from '../tests/helpers/totp.mjs';
 if(process.env.GITHUB_ACTIONS!=='true'||process.platform!=='linux'||!process.env.RUNNER_TEMP)throw Error('Disposable GitHub Linux runner only');
-const root=path.join(process.env.RUNNER_TEMP,'meryo-official'),dbName='meryo_ci_storage',user=process.env.USER;
+const root=path.join(process.env.RUNNER_TEMP,'meryo-official'),dbName='meryo_ci_storage',user=process.env.USER,setupOnly=process.env.MERYO_CI_SETUP_ONLY==='true';
 const jwtSecret=crypto.randomBytes(48).toString('hex'),password=crypto.randomBytes(24).toString('hex');
 function jwt(role){const body=Buffer.from(JSON.stringify({alg:'HS256',typ:'JWT'})).toString('base64url')+'.'+Buffer.from(JSON.stringify({role,aud:'authenticated',iat:Math.floor(Date.now()/1000),exp:Math.floor(Date.now()/1000)+3600})).toString('base64url');return body+'.'+crypto.createHmac('sha256',jwtSecret).update(body).digest('base64url');}
 const anon=jwt('anon'),service=jwt('service_role');for(const value of [jwtSecret,password,anon,service])console.log('::add-mask::'+value);
@@ -15,18 +15,20 @@ async function healthy(url,child){for(let i=0;i<180;i++){if(child.exitCode!==nul
 const make=()=>createClient('http://127.0.0.1:5178/__supabase',anon,{auth:{persistSession:false,autoRefreshToken:false}});
 const clients=[];let proof;
 try{
+ if(setupOnly)await db.query('begin');
  const schema=await fs.readFile('db/reference/storage-ci/schema.sql','utf8'),metadata=JSON.parse(await fs.readFile('db/reference/storage-ci/system-metadata.json','utf8'));
  if(crypto.createHash('sha256').update(schema).digest('hex')!==metadata.sha256)throw Error('Schema reference changed');
  for(const role of metadata.roles)if(!(await db.query('select 1 from pg_roles where rolname=$1',[role])).rowCount)await db.query('create role "'+role.replaceAll('"','""')+'" nologin');
  const alter=(await db.query('select format(\'alter role %I password %L\',$1::text,$2::text) sql',[user,password])).rows[0].sql;await db.query(alter);
  await db.query('alter role service_role bypassrls');await db.query('create schema extensions');
  for(const ext of ['btree_gist','pgcrypto','uuid-ossp'])await db.query(`create extension "${ext}" with schema extensions`);
- await db.query(schema);
+ await db.query(schema.replace('CREATE SCHEMA public;','CREATE SCHEMA IF NOT EXISTS public;'));
  for(const v of metadata.authVersions)await db.query('insert into auth.schema_migrations(version) values($1)',[v]);
  for(const m of metadata.storageVersions)await db.query('insert into storage.migrations(id,name,hash) values($1,$2,$3)',[m.id,m.name,m.hash]);
  await db.query("insert into public.configuracion(clave,valor) values('minutos_anticipacion_minima','30'),('paso_minutos','30'),('max_reservas_pendientes','2')");
  await db.query("insert into meryo_private.launch_settings(id,reservas_habilitadas,plazo_pago_segundos,entorno,modelo_comercial) values(1,true,600,'staging','mensualidad');insert into meryo_private.shop_content_settings values(1,true)");
  const clean=(await db.query('select (select count(*) from auth.users)::int users,(select count(*) from public.barberias)::int shops')).rows[0];assert.deepEqual(clean,{users:0,shops:0});
+ if(setupOnly){await db.query('rollback');console.log('Isolated schema bootstrap verified and rolled back; no services started');}else{
  const auth=launch(path.join(root,'gotrue'),[],{GOTRUE_DB_DRIVER:'postgres',GOTRUE_DB_DATABASE_URL:url,GOTRUE_DB_NAMESPACE:'auth',DB_NAMESPACE:'auth',GOTRUE_API_HOST:'127.0.0.1',PORT:'55441',API_EXTERNAL_URL:'http://127.0.0.1:5178/__supabase/auth/v1',GOTRUE_SITE_URL:'http://127.0.0.1:5178',GOTRUE_JWT_SECRET:jwtSecret,GOTRUE_JWT_AUD:'authenticated',GOTRUE_JWT_DEFAULT_GROUP_NAME:'authenticated',GOTRUE_EXTERNAL_EMAIL_ENABLED:'true',GOTRUE_MAILER_AUTOCONFIRM:'true',GOTRUE_DISABLE_SIGNUP:'false',GOTRUE_DB_MAX_POOL_SIZE:'3',LOG_LEVEL:'warn',GOMAXPROCS:'2',GOMEMLIMIT:'192MiB'},'auth');
  await healthy('http://127.0.0.1:55441/health',auth);
  const rest=launch(path.join(root,'postgrest'),[],{PGRST_DB_URI:url,PGRST_DB_SCHEMAS:'public',PGRST_DB_ANON_ROLE:'anon',PGRST_JWT_SECRET:jwtSecret,PGRST_JWT_AUD:'authenticated',PGRST_SERVER_HOST:'127.0.0.1',PGRST_SERVER_PORT:'55442',PGRST_DB_POOL:'3',PGRST_LOG_LEVEL:'error'},'rest');
@@ -67,5 +69,6 @@ try{
  const slots=await anonymous.rpc('horarios_disponibles',{p_barberia_id:shop,p_servicio_id:catalogue[0].services[0].id,p_fecha:new Date(Date.now()+2*86400000).toISOString().slice(0,10)});assert.ifError(slots.error);
  proof={verifiedAt:new Date().toISOString(),officialAuth:true,officialStorage:true,officialPostgrest:true,dockerUsed:false,productionAccess:false,syntheticAccountsOnly:true,uploadAndByteExactDownload:true,privateBeforeApproval:true,crossTenantDenied:true,formatAndSizeDenied:true,replacementAndRetirementPreserveFiles:true,serverMfaApproval:true,publicCatalogueAndVideoVerified:true,availabilityQueried:true,legacySignedURLsLifetimeSeconds:300};
  await fs.writeFile(path.join(process.env.RUNNER_TEMP,'meryo-storage-proof.json'),JSON.stringify(proof,null,2));console.log(JSON.stringify(proof));
+ }
 }catch(error){console.error('Isolated Storage verification failed: '+error.message);for(const file of logs){let log=await fs.readFile(file,'utf8').catch(()=>'');for(const value of [jwtSecret,password,anon,service])log=log.replaceAll(value,'[redacted]');console.error(path.basename(file)+'\n'+log.slice(-6000));}process.exitCode=1;}
 finally{for(const c of clients)await c.auth.signOut({scope:'local'}).catch(()=>{});if(proxy)await new Promise(resolve=>proxy.close(resolve));for(const c of children)c.kill();await db.end();}
