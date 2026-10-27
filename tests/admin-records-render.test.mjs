@@ -1,0 +1,6 @@
+import {test} from 'node:test';import assert from 'node:assert/strict';import fs from 'node:fs/promises';import path from 'node:path';import {pathToFileURL} from 'node:url';import {build} from 'esbuild';
+test('admin record screens initialize real date filters and show no invented totals before the server responds',async()=>{
+ const output=path.resolve('dist/admin-records-render/view.mjs');await fs.mkdir(path.dirname(output),{recursive:true});
+ await build({stdin:{contents:`import React from 'react';import {renderToStaticMarkup} from 'react-dom/server';import Records,{AdminSummary} from './src/components/AdminRecords.jsx';export const view=kind=>renderToStaticMarkup(kind==='resumen'?React.createElement(AdminSummary,{api:{}}):React.createElement(Records,{kind,api:{},shops:[]}));`,resolveDir:process.cwd(),loader:'jsx'},outfile:output,bundle:true,format:'esm',platform:'node',jsx:'automatic',external:['react','react-dom/server']});
+ const {view}=await import(pathToFileURL(output).href);assert.match(view('usuarios'),/Usuarios y relaciones/);assert.match(view('reservas'),/Reservas desde/);assert.match(view('resumen'),/Resumen de operación/);assert.doesNotMatch(view('resumen'),/S\/|Ingresos MERYO/);
+});

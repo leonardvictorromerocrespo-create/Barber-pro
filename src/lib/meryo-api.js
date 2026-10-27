@@ -64,6 +64,10 @@ export function createMeryoApi(client) {
     uploadAsset:async(shop,file,kind,title)=>{await requireRole(['barbero']);return uploadContent(client,shop,file,kind,title);},
     retireAsset:async(id)=>{await requireRole(['barbero']);return savedOperation(()=>client.rpc('meryo_retirar_archivo',{p_id:id}));},
     adminShops:async()=>{await requireRole(['admin']);return readResult(client.rpc('meryo_admin_barberias'));},
+    adminUsers:async(f,offset=0)=>{await requireRole(['admin']);return readResult(client.rpc('meryo_admin_usuarios',{p_search:f.search,p_role:f.role,p_active:f.active,p_offset:offset}));},
+    adminBookings:async(f,offset=0)=>{await requireRole(['admin']);return readResult(client.rpc('meryo_admin_reservas',{p_from:f.from,p_to:f.to,p_shop:f.shop?Number(f.shop):null,p_status:f.status,p_search:f.search,p_offset:offset}));},
+    adminBooking:async(id)=>{await requireRole(['admin']);return readResult(client.rpc('meryo_admin_reserva_detalle',{p_id:id}));},
+    adminSummary:async(from,to)=>{await requireRole(['admin']);return readResult(client.rpc('meryo_admin_resumen',{p_from:from,p_to:to}));},
     moderateShop:async(id,action,reason,expected)=>{await requireRole(['admin']);return savedOperation(()=>client.rpc('meryo_moderar_barberia',{p_id:id,p_action:action,p_reason:reason,p_expected:expected}));},
     activate:async(id)=>{await requireRole(['admin']);const {error}=await client.rpc('activar_barberia',{p_id:id});if(error)throw error;const row=await readResult(client.from('barberias').select('id,estado,verificada').eq('id',id).single());if(!row.verificada||row.estado!=='activa')throw new Error('No se confirmó la activación');return row;},
   };
