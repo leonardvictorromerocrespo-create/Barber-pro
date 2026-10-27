@@ -1,0 +1,32 @@
+name: MERYO isolated push dispatch
+on:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  push:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1
+        with:
+          node-version: '24'
+      - name: Official native pg_net and pg_cron, no Docker
+        timeout-minutes: 7
+        run: |
+          sudo /usr/share/postgresql-common/pgdg/apt.postgresql.org.sh -y
+          sudo apt-get update -qq
+          sudo apt-get install -y --no-install-recommends -o Acquire::Retries=2 -o Acquire::http::Timeout=30 postgresql-17 postgresql-server-dev-17 postgresql-17-cron libcurl4-openssl-dev build-essential
+          git clone --filter=blob:none --no-checkout https://github.com/supabase/pg_net.git "$RUNNER_TEMP/pg_net"
+          git -C "$RUNNER_TEMP/pg_net" checkout 8d7bb9efd0484331f7aff19aee2a3cd64ca5f886
+          make -C "$RUNNER_TEMP/pg_net" PG_CONFIG=/usr/lib/postgresql/17/bin/pg_config
+          sudo make -C "$RUNNER_TEMP/pg_net" PG_CONFIG=/usr/lib/postgresql/17/bin/pg_config install
+          sudo pg_createcluster 17 meryo_push --port 55440
+          printf "%s\n" "shared_preload_libraries='pg_net,pg_cron'" "cron.database_name='meryo_ci_push'" "pg_net.database_name='meryo_ci_push'" | sudo tee -a /etc/postgresql/17/meryo_push/postgresql.conf
+          sudo pg_ctlcluster 17 meryo_push start
+          sudo -u postgres createuser --host=/var/run/postgresql --port=55440 --superuser "$USER"
+          createdb --host=/var/run/postgresql --port=55440 meryo_ci_push
+      - run: npm ci --ignore-scripts --no-audit --no-fund
+      - name: Verify actual post-commit HTTP wake, cron retry and client isolation
+        run: node scripts/verify-push-dispatch-ci.mjs

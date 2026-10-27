@@ -437,13 +437,10 @@ $$;
 CREATE FUNCTION meryo_private.queue_push() RETURNS trigger
     LANGUAGE plpgsql SECURITY DEFINER
     SET search_path TO ''
-    AS $$
-begin
- if new.tipo in ('reserva_solicitada','reserva_aceptada','reserva_rechazada','reserva_expirada','reserva_confirmada') then
-  insert into meryo_private.push_outbox(notification_id,user_id,event,reserva_id) values(new.id,new.user_id,new.tipo,new.reserva_id);
- end if;
- return new;
-end $$;
+    AS $$begin
+ if new.tipo in ('reserva_solicitada','reserva_aceptada','reserva_rechazada','reserva_expirada','reserva_confirmada','push_diagnostico') then
+ insert into meryo_private.push_outbox(notification_id,user_id,event,reserva_id,available_at) values(new.id,new.user_id,new.tipo,new.reserva_id,clock_timestamp()+case when new.tipo='push_diagnostico' then interval '30 seconds' else interval '0 seconds' end);end if;return new;
+end$$;
 
 
 --
@@ -518,6 +515,16 @@ $$;
 
 
 --
+-- Name: signal_push(); Type: FUNCTION; Schema: meryo_private; Owner: -
+--
+
+CREATE FUNCTION meryo_private.signal_push() RETURNS trigger
+    LANGUAGE plpgsql SECURITY DEFINER
+    SET search_path TO ''
+    AS $$begin perform meryo_private.wake_push();return new;end$$;
+
+
+--
 -- Name: sync_general_hours(); Type: FUNCTION; Schema: meryo_private; Owner: -
 --
 
@@ -534,6 +541,23 @@ declare shop bigint:=coalesce(new.barberia_id,old.barberia_id);member uuid;begin
   on conflict(legacy_hour_id) do nothing;
  end if;return new;
 end$$;
+
+
+--
+-- Name: wake_push(); Type: FUNCTION; Schema: meryo_private; Owner: -
+--
+
+CREATE FUNCTION meryo_private.wake_push() RETURNS boolean
+    LANGUAGE plpgsql SECURITY DEFINER
+    SET search_path TO ''
+    AS $_$
+declare destination text;credential text;begin
+ if not exists(select 1 from pg_extension where extname='pg_net') then return false;end if;
+ update meryo_private.push_dispatch_settings set last_signal=clock_timestamp() where id=1 and enabled and (last_signal is null or last_signal<clock_timestamp()-interval '2 seconds') returning url,secret into destination,credential;
+ if destination is null then return false;end if;
+ execute 'select net.http_post(url:=$1,body:=$2,headers:=$3,timeout_milliseconds:=25000)' using destination,'{}'::jsonb,jsonb_build_object('Authorization','Bearer '||credential,'Content-Type','application/json');
+ return true;
+end$_$;
 
 
 --
@@ -1273,6 +1297,22 @@ end$$;
 
 
 --
+-- Name: meryo_probar_push(); Type: FUNCTION; Schema: public; Owner: -
+--
+
+CREATE FUNCTION public.meryo_probar_push() RETURNS bigint
+    LANGUAGE plpgsql SECURITY DEFINER
+    SET search_path TO ''
+    AS $$declare result bigint;begin
+ perform public.meryo_push_estado();
+ perform pg_advisory_xact_lock(hashtextextended('meryo-self-push-'||auth.uid()::text,0));
+ if not (public.meryo_reservas_config()->>'push_disponible')::boolean or not exists(select 1 from meryo_private.push_subscriptions where user_id=auth.uid()) then raise exception 'Activa primero los avisos en este dispositivo';end if;
+ if exists(select 1 from meryo_private.push_outbox where user_id=auth.uid() and event='push_diagnostico' and created_at>clock_timestamp()-interval '1 minute') then raise exception 'Espera un minuto antes de solicitar otra comprobación';end if;
+ insert into public.notificaciones(user_id,titulo,mensaje,tipo) values(auth.uid(),'Comprobación push MERYO','Comprobación solicitada por ti. No es una cita ni un cobro.','push_diagnostico') returning id into result;return result;
+end$$;
+
+
+--
 -- Name: meryo_publicar_archivo(text, text, text); Type: FUNCTION; Schema: public; Owner: -
 --
 
@@ -1292,6 +1332,20 @@ begin
  insert into public.meryo_shop_assets(barberia_id,kind,object_path,title,mime,bytes) values(shop,p_kind,p_path,coalesce(p_title,''),meta->>'mimetype',(meta->>'size')::bigint) returning id into asset;
  insert into meryo_private.shop_events(barberia_id,actor_id,action,after_data) values(shop,auth.uid(),'publicar_archivo',jsonb_build_object('asset',asset,'kind',p_kind));
  return asset;
+end$$;
+
+
+--
+-- Name: meryo_push_estado(); Type: FUNCTION; Schema: public; Owner: -
+--
+
+CREATE FUNCTION public.meryo_push_estado() RETURNS jsonb
+    LANGUAGE plpgsql STABLE SECURITY DEFINER
+    SET search_path TO ''
+    AS $$begin
+ if not public.meryo_cuenta_activa() or (exists(select 1 from public.profiles where id=auth.uid() and rol='admin') and not public.es_admin()) then raise exception 'Inicia sesión; administración requiere MFA' using errcode='42501';end if;
+ return jsonb_build_object('dispositivos',(select count(*) from meryo_private.push_subscriptions where user_id=auth.uid()),'ultimos',coalesce((select jsonb_agg(j order by j->>'created_at' desc) from (
+ select jsonb_build_object('id',o.id,'notification_id',o.notification_id,'evento',o.event,'estado',o.status,'created_at',o.created_at,'provider_accepted_at',o.provider_accepted_at,'recibida_en',max(d.received_at),'abierta_en',max(d.clicked_at)) j from meryo_private.push_outbox o left join meryo_private.push_deliveries d on d.outbox_id=o.id where o.user_id=auth.uid() group by o.id order by o.created_at desc limit 10) q),'[]'::jsonb));
 end$$;
 
 
@@ -1319,9 +1373,9 @@ CREATE FUNCTION public.meryo_registrar_push(p_subscription jsonb) RETURNS boolea
     AS $_$
 declare uid uuid:=auth.uid(); ep text:=p_subscription->>'endpoint'; pk text:=p_subscription->'keys'->>'p256dh'; ak text:=p_subscription->'keys'->>'auth';
 begin
- if uid is null or not public.meryo_cuenta_activa() then raise exception 'No autorizado' using errcode='42501'; end if;
+ if uid is null or not public.meryo_cuenta_activa() or (exists(select 1 from public.profiles where id=uid and rol='admin') and not public.es_admin()) then raise exception 'No autorizado' using errcode='42501'; end if;
  if ep is null or ep !~ '^https://' or length(ep)>2048 or pk is null or pk !~ '^[A-Za-z0-9_-]{80,150}$' or ak is null or ak !~ '^[A-Za-z0-9_-]{20,30}$' then raise exception 'Suscripcion invalida'; end if;
- insert into meryo_private.push_subscriptions(endpoint,user_id,p256dh,auth) values(ep,uid,pk,ak)
+ if not exists(select 1 from meryo_private.push_subscriptions where endpoint=ep and user_id=uid) and (select count(*) from meryo_private.push_subscriptions where user_id=uid)>=5 then raise exception 'Máximo cinco dispositivos; desactiva uno anterior';end if; insert into meryo_private.push_subscriptions(endpoint,user_id,p256dh,auth) values(ep,uid,pk,ak)
  on conflict(endpoint) do update set p256dh=excluded.p256dh,auth=excluded.auth,updated_at=clock_timestamp()
  where meryo_private.push_subscriptions.user_id=uid;
  if not found then raise exception 'Suscripcion pertenece a otra cuenta' using errcode='42501'; end if;
@@ -4365,7 +4419,24 @@ CREATE TABLE meryo_private.push_deliveries (
     ack_hash text NOT NULL,
     expires_at timestamp with time zone NOT NULL,
     provider_accepted_at timestamp with time zone,
-    received_at timestamp with time zone
+    received_at timestamp with time zone,
+    clicked_at timestamp with time zone
+);
+
+
+--
+-- Name: push_dispatch_settings; Type: TABLE; Schema: meryo_private; Owner: -
+--
+
+CREATE TABLE meryo_private.push_dispatch_settings (
+    id integer NOT NULL,
+    enabled boolean DEFAULT false NOT NULL,
+    url text NOT NULL,
+    secret text NOT NULL,
+    last_signal timestamp with time zone,
+    CONSTRAINT push_dispatch_settings_id_check CHECK ((id = 1)),
+    CONSTRAINT push_dispatch_settings_secret_check CHECK ((length(secret) >= 43)),
+    CONSTRAINT push_dispatch_settings_url_check CHECK ((url ~ '^https://barber-pro-phi-taupe\.vercel\.app/api/push/worker$|^http://127\.0\.0\.1:[0-9]+/api/push/worker$'::text))
 );
 
 
@@ -5474,6 +5545,14 @@ ALTER TABLE ONLY meryo_private.push_deliveries
 
 
 --
+-- Name: push_dispatch_settings push_dispatch_settings_pkey; Type: CONSTRAINT; Schema: meryo_private; Owner: -
+--
+
+ALTER TABLE ONLY meryo_private.push_dispatch_settings
+    ADD CONSTRAINT push_dispatch_settings_pkey PRIMARY KEY (id);
+
+
+--
 -- Name: push_outbox push_outbox_notification_id_key; Type: CONSTRAINT; Schema: meryo_private; Owner: -
 --
 
@@ -6490,6 +6569,13 @@ CREATE TRIGGER meryo_initialize_owner AFTER INSERT ON meryo_private.shop_owners 
 
 
 --
+-- Name: push_outbox meryo_signal_push; Type: TRIGGER; Schema: meryo_private; Owner: -
+--
+
+CREATE TRIGGER meryo_signal_push AFTER INSERT ON meryo_private.push_outbox FOR EACH STATEMENT EXECUTE FUNCTION meryo_private.signal_push();
+
+
+--
 -- Name: servicios meryo_assign_owner_service; Type: TRIGGER; Schema: public; Owner: -
 --
 
@@ -7262,6 +7348,12 @@ ALTER TABLE auth.users ENABLE ROW LEVEL SECURITY;
 ALTER TABLE meryo_private.catalog_exclusions ENABLE ROW LEVEL SECURITY;
 
 --
+-- Name: push_dispatch_settings; Type: ROW SECURITY; Schema: meryo_private; Owner: -
+--
+
+ALTER TABLE meryo_private.push_dispatch_settings ENABLE ROW LEVEL SECURITY;
+
+--
 -- Name: reservation_events; Type: ROW SECURITY; Schema: meryo_private; Owner: -
 --
 
@@ -7968,6 +8060,20 @@ GRANT ALL ON FUNCTION meryo_private.responder_reserva(p_reserva_id uuid, p_acept
 
 
 --
+-- Name: FUNCTION signal_push(); Type: ACL; Schema: meryo_private; Owner: -
+--
+
+REVOKE ALL ON FUNCTION meryo_private.signal_push() FROM PUBLIC;
+
+
+--
+-- Name: FUNCTION wake_push(); Type: ACL; Schema: meryo_private; Owner: -
+--
+
+REVOKE ALL ON FUNCTION meryo_private.wake_push() FROM PUBLIC;
+
+
+--
 -- Name: FUNCTION activar_barberia(p_id bigint); Type: ACL; Schema: public; Owner: -
 --
 
@@ -8289,11 +8395,27 @@ GRANT ALL ON FUNCTION public.meryo_moderar_barberia(p_id bigint, p_action text, 
 
 
 --
+-- Name: FUNCTION meryo_probar_push(); Type: ACL; Schema: public; Owner: -
+--
+
+REVOKE ALL ON FUNCTION public.meryo_probar_push() FROM PUBLIC;
+GRANT ALL ON FUNCTION public.meryo_probar_push() TO authenticated;
+
+
+--
 -- Name: FUNCTION meryo_publicar_archivo(p_path text, p_kind text, p_title text); Type: ACL; Schema: public; Owner: -
 --
 
 REVOKE ALL ON FUNCTION public.meryo_publicar_archivo(p_path text, p_kind text, p_title text) FROM PUBLIC;
 GRANT ALL ON FUNCTION public.meryo_publicar_archivo(p_path text, p_kind text, p_title text) TO authenticated;
+
+
+--
+-- Name: FUNCTION meryo_push_estado(); Type: ACL; Schema: public; Owner: -
+--
+
+REVOKE ALL ON FUNCTION public.meryo_push_estado() FROM PUBLIC;
+GRANT ALL ON FUNCTION public.meryo_push_estado() TO authenticated;
 
 
 --

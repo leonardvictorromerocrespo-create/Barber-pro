@@ -477,6 +477,6 @@
       "hash": "ba9244051be09f22f714fc0170a2539f8b5f0e68"
     }
   ],
-  "sha256": "4df9051641f5048909d86da1dd90af428bfa52eb3e44af3b4b611a449c2be14b",
+  "sha256": "e03a618c0382a6e838691dbe929c465907dae649e4ec5d1bf000bf6e343dc40a",
   "scope": "Definitions and official migration identifiers/hashes only. No users, sessions, MFA factors, files, business rows or credentials."
 }
