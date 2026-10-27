@@ -8,8 +8,8 @@ export default function ShopRegistration({profile,loading,form,setForm,busy,erro
   <p className="text-sm text-neutral-400">Completa tu local. La publicación requiere revisión y aprobación de Administración.</p>
   {[['nombre','Nombre de barbería'],['distrito','Distrito'],['whatsapp','WhatsApp'],['correo','Correo'],['direccion','Dirección del local']].map(([key,label])=><label key={key} className="block text-sm">{label}<input aria-label={label} required={['nombre','distrito','direccion'].includes(key)} type={key==='correo'?'email':key==='whatsapp'?'tel':'text'} value={form[key]||''} onChange={e=>setForm(p=>({...p,[key]:e.target.value}))} className="mt-1 w-full rounded-xl border border-white/10 bg-neutral-900 px-4 py-3 outline-none"/></label>)}
   <label className="block text-sm">Presentación<textarea aria-label="Presentación de la barbería" value={form.descripcion||''} onChange={e=>setForm(p=>({...p,descripcion:e.target.value}))} className="mt-1 w-full rounded-xl border border-white/10 bg-neutral-900 px-4 py-3"/></label>
-  <Suspense fallback={<p>Cargando mapa…</p>}><LocationPicker lat={form.lat} lng={form.lng} onChange={({lat,lng})=>setForm(p=>({...p,lat,lng}))}/></Suspense>
+  <Suspense fallback={<p>Cargando mapa…</p>}><LocationPicker lat={form.lat} lng={form.lng} onChange={({lat,lng})=>setForm(p=>({...p,lat,lng}))} onReady={locationConfirmed=>setForm(p=>({...p,locationConfirmed}))}/></Suspense>
   {error&&<p role="alert" className="text-red-300">{error}</p>}
-  <button disabled={busy} className="w-full rounded-xl bg-white py-3 font-bold text-black disabled:opacity-40">{busy?'Registrando…':'Registrar barbería'}</button>
+  <button disabled={busy||form.locationConfirmed!==true} className="w-full rounded-xl bg-white py-3 font-bold text-black disabled:opacity-40">{busy?'Registrando…':'Registrar barbería'}</button>
  </form>;
 }

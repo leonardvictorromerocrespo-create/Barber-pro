@@ -475,7 +475,7 @@ async function cargarNotificaciones() {
 }
   const handleAffiliateSubmit = async () => {
     if(affiliateBusy)return;setAffiliateBusy(true);setAffiliateError('');
-    try {if(!coordinates(affiliateForm))throw Error('Selecciona la ubicación del local en el mapa.');await api.registerShop(affiliateForm);const profile=await identity.refresh();if(!profile||profile.rol!=='barbero')throw Error('La solicitud se guardó, pero no se pudo actualizar tu sesión. Vuelve a iniciar sesión para consultar su estado.');setShowAffiliateForm(false);setView('shop-manage');}
+    try {if(affiliateForm.locationConfirmed!==true||!coordinates(affiliateForm))throw Error('Selecciona o confirma la ubicación del local en el mapa.');await api.registerShop(affiliateForm);const profile=await identity.refresh();if(!profile||profile.rol!=='barbero')throw Error('La solicitud se guardó, pero no se pudo actualizar tu sesión. Vuelve a iniciar sesión para consultar su estado.');setShowAffiliateForm(false);setView('shop-manage');}
     catch(error){setAffiliateError(error.message);}
     finally{setAffiliateBusy(false);}
   };
