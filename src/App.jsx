@@ -1,4 +1,6 @@
 import PushCenter from './components/PushCenter';
+import PublicShopLocation from './components/PublicShopLocation';
+import NotificationAccess from './components/NotificationAccess';
 import ShopRegistration from './components/ShopRegistration';
 import {visiblePolling} from './lib/visible-polling';
 import { endSession, signInWithProfile } from "./lib/operations";
@@ -104,10 +106,11 @@ export function ProfileModal({ selectedShop, onClose, onReserve }) {
             <div className="mt-2 text-xs text-neutral-500">Perfil tipo red social del barbero</div>
             <div className="mt-4 rounded-2xl border border-white/10 bg-black/30 p-5 text-sm text-neutral-300">
               <p className="leading-6 text-neutral-400">{selectedShop.about}</p>
-              <p className="mt-3">{selectedShop.direccion} · {selectedShop.district}</p>
+
               {selectedShop.image&&<img src={selectedShop.image} alt={`Portada de ${selectedShop.name}`} className="mt-4 max-h-72 w-full rounded-xl object-cover"/>}
             </div>
 
+            <PublicShopLocation key={selectedShop.id} shop={selectedShop}/>
             <div className="mt-4 rounded-2xl border border-white/10 bg-black/20 p-4">
               <p className="font-bold text-white">{selectedShop.introVideoTitle}</p>
               {selectedShop.assets?.some(a=>a.kind==='video'&&a.url)?selectedShop.assets.filter(a=>a.kind==='video'&&a.url).map(a=><video key={a.id} src={a.url} controls preload="metadata" className="mt-3 max-h-80 w-full rounded-2xl"/>):<p className="mt-3 text-sm text-neutral-400">Sin video publicado.</p>}
@@ -344,6 +347,10 @@ export function BookingModal({
 }
 
 export default function BarberProApp() {
+ const identity=useIdentity(supabase);
+ return <><NotificationAccess api={api} profile={identity.profile} loading={identity.loading}/><MeryoScreens identity={identity}/></>;
+}
+function MeryoScreens({identity}) {
   const [location, setLocation] = useState(null);
   const [locationError, setLocationError] = useState("");
   const [showMap, setShowMap] = useState(false);
@@ -351,11 +358,10 @@ export default function BarberProApp() {
   const [district, setDistrict] = useState("");
   const [order, setOrder] = useState("name");
   const [loginDestination,setLoginDestination]=useState('client');
-  const allowedViews=['landing','client','client-auth','client-register','client-login','barber','barber-login','admin','account-security','shop-manage','shop-register','my-bookings','team-invite','notifications'];
+  const allowedViews=['landing','client','client-auth','client-register','client-login','barber','barber-login','admin','account','account-security','shop-manage','shop-register','my-bookings','team-invite','notifications'];
   const [view, setView] = useState(()=>{const raw=typeof window==='undefined'?'':window.location.hash.slice(1);const hash=raw.startsWith('team-invite/')?'team-invite':raw;const search=typeof window==='undefined'?'':window.location.search,access=new URLSearchParams(search).get('access');return bookingDestination(search,access==='barber'?'barber-login':access==='shop-register'?'shop-register':allowedViews.includes(hash)?hash:'landing');});
   useEffect(()=>{window.history.replaceState(null,'',`#${view}`);},[view]);
   useEffect(()=>{const navigate=()=>{const raw=window.location.hash.slice(1),next=raw.startsWith('team-invite/')?'team-invite':raw;if(allowedViews.includes(next))setView(next);};window.addEventListener('hashchange',navigate);return()=>window.removeEventListener('hashchange',navigate);},[]);
-  const identity = useIdentity(supabase);
   const adminAccess = identity.profile?.rol === 'admin' && identity.profile?.activo === true;
   const [adminAal2,setAdminAal2]=useState(false);
   const [adminSecurityOpen,setAdminSecurityOpen]=useState(false);
@@ -589,11 +595,12 @@ async function cargarNotificaciones() {
 const finalPrice = basePrice;
   if(view === 'notifications')return <PushCenter api={api} profile={identity.profile} loading={identity.loading} onLogin={()=>openLogin('notifications')} onBack={()=>setView('client')}/>;
   if(view === 'team-invite')return <TeamInvite api={api} profile={identity.profile} onGoogle={handleGoogle} onEmail={()=>openLogin('team-invite')} onAccepted={async()=>{await identity.refresh();setView('barber');}} onBack={()=>setView('client')}/>;
+  if(view==='account')return <main className="min-h-screen bg-neutral-950 p-6 text-white"><div className="mx-auto max-w-3xl space-y-5"><h1 className="text-3xl font-black">Mi cuenta <span className="text-amber-400">MERYO</span></h1><button onClick={()=>setView('client')} className="rounded-xl border border-white/20 px-4 py-2">Volver</button>{identity.loading?<p>Comprobando sesión…</p>:identity.profile?<section className="space-y-4 rounded-2xl border border-white/10 bg-neutral-900 p-6"><p>{identity.profile.nombre||'Tu cuenta'}</p><button onClick={()=>setView('notifications')} className="block rounded-xl border border-white/20 px-4 py-3">Notificaciones</button><button onClick={()=>setView('account-security')} className="block rounded-xl border border-white/20 px-4 py-3">Seguridad y recuperación</button></section>:<button onClick={()=>openLogin('account')} className="rounded-xl bg-amber-400 px-4 py-3 font-bold text-black">Iniciar sesión</button>}</div></main>;
   if(view === 'account-security')return identity.profile?<AdminMfa client={supabase} onVerified={async()=>{await identity.refresh();setAccessMessage('Authenticator verificado por Supabase. Tu rol no cambia. Registra un segundo factor en otro dispositivo para recuperación.');setView('client');}} onBack={()=>setView('client')}/>:<div className="min-h-screen bg-neutral-950 p-8 text-white"><button onClick={()=>setView('client-login')}>Iniciar sesión para proteger mi cuenta</button></div>;
   const registration=<ShopRegistration profile={identity.profile} loading={identity.loading} form={affiliateForm} setForm={setAffiliateForm} busy={affiliateBusy} error={affiliateError||accessMessage||identity.error} onSubmit={handleAffiliateSubmit} onGoogle={()=>handleGoogle('shop-register')} onLogin={()=>openLogin('shop-register')} onManage={()=>setView('shop-manage')}/>;
   if(view==='shop-register')return <main className="min-h-screen bg-neutral-950 p-6 text-white"><div className="mx-auto max-w-2xl space-y-5 rounded-3xl border border-white/10 bg-neutral-900 p-6"><h1 className="text-3xl font-black">Registro de barberías <span className="text-amber-400">MERYO</span></h1><button onClick={()=>setView('client')} className="rounded-xl border border-white/20 px-4 py-2">Volver al catálogo</button>{registration}</div></main>;
   if(view === 'shop-manage') return <ShopManagement key={identity.profile?.id||'anonymous'} api={api} profile={identity.profile} onLogin={()=>setView('barber-login')} onBack={async()=>{await cargarBarberiasActivas();setView('client');}} onRegister={()=>setView('shop-register')}/>;
-  if(view === 'my-bookings') return <div className="min-h-screen bg-neutral-950 p-6 text-white"><div className="mx-auto max-w-5xl space-y-5"><a className="text-amber-300 underline" href="/#notifications">Avisos y permisos del celular</a><h1 className="text-3xl font-black">Mis citas <span className="text-amber-400">MERYO</span></h1><button onClick={()=>{const url=new URL(window.location.href);url.searchParams.delete('cita');window.history.replaceState(null,'',url.pathname+url.search+url.hash);setView('client');}} className="rounded-xl border border-white/20 px-4 py-2">Volver</button><Reservations key={`${identity.profile?.id}-${identity.profile?.rol}`} api={api} profile={identity.profile} identityLoading={identity.loading} onLogin={()=>openLogin('my-bookings')} onSearch={()=>{const url=new URL(window.location.href);url.searchParams.delete('cita');window.history.replaceState(null,'',url.pathname+url.search+url.hash);setQuery('');setDistrict('');setShowBookingModal(false);setView('client');}}/></div></div>;
+  if(view === 'my-bookings') return <div className="min-h-screen bg-neutral-950 p-6 text-white"><div className="mx-auto max-w-5xl space-y-5"><h1 className="text-3xl font-black">Mis citas <span className="text-amber-400">MERYO</span></h1><button onClick={()=>{const url=new URL(window.location.href);url.searchParams.delete('cita');window.history.replaceState(null,'',url.pathname+url.search+url.hash);setView('client');}} className="rounded-xl border border-white/20 px-4 py-2">Volver</button><Reservations key={`${identity.profile?.id}-${identity.profile?.rol}`} api={api} profile={identity.profile} identityLoading={identity.loading} onLogin={()=>openLogin('my-bookings')} onSearch={()=>{const url=new URL(window.location.href);url.searchParams.delete('cita');window.history.replaceState(null,'',url.pathname+url.search+url.hash);setQuery('');setDistrict('');setShowBookingModal(false);setView('client');}}/></div></div>;
   if (view === "landing") {
     return (
       <div className="min-h-screen bg-neutral-950 text-white">
@@ -819,7 +826,7 @@ if (view === "admin" && adminAccess) return <AdminShops api={api} profile={ident
             <button onClick={() => setView(adminAccess?'admin':"barber")} className={`rounded-xl border border-white/20 px-4 py-2 text-sm ${pointerClass}`}>{adminAccess?'Panel Administrador':'Panel Barbero'}</button>
             <button onClick={()=>setView('my-bookings')} className="rounded-xl border border-white/20 px-4 py-2 text-sm">Mis citas</button>
             <button onClick={()=>setView('shop-manage')} className="rounded-xl border border-white/20 px-4 py-2 text-sm">Mi barbería</button>
-            <button onClick={()=>setView(identity.profile?'account-security':'client-auth')} className="rounded-xl border border-white/20 px-4 py-2 text-sm">Mi cuenta</button>
+            <button onClick={()=>setView(identity.profile?'account':'client-auth')} className="rounded-xl border border-white/20 px-4 py-2 text-sm">Mi cuenta</button>
             {adminAccess&&<button onClick={()=>setView('admin')} className="rounded-xl border border-white/20 px-4 py-2 text-sm">Administración</button>}
 
             <button onClick={handleLogout} className="rounded-xl border border-white/20 px-4 py-2 text-sm">Cerrar sesión</button>

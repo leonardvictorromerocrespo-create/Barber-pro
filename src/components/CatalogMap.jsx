@@ -4,7 +4,7 @@ import 'leaflet/dist/leaflet.css';
 import { LIMA_CENTRO } from '../lib/distritos';
 
 // Read-only adaptation of ZIP MapView. No editing, URL injection or database calls.
-export default function CatalogMap({ markers, location, onSelect }) {
+export default function CatalogMap({ markers, location, onSelect,focusZoom=15,label='Mapa de barberías' }) {
   const element = useRef(null), map = useRef(null), layer = useRef(null), select = useRef(onSelect);
   useEffect(() => { select.current = onSelect; }, [onSelect]);
   useEffect(() => {
@@ -23,7 +23,7 @@ export default function CatalogMap({ markers, location, onSelect }) {
       const detail = document.createElement('p'); detail.textContent = marker.detail;
       const button = document.createElement('button'); button.textContent = 'Ver barbería';
       button.type = 'button'; button.addEventListener('click', () => select.current(marker.id));
-      popup.append(title, detail, button);
+      popup.append(title, detail);if(select.current)popup.append(button);
       L.circleMarker([marker.lat, marker.lng], { radius: 9, color: '#fbbf24', fillOpacity: 0.8 }).addTo(layer.current).bindPopup(popup);
     });
     const points = markers.map(marker => [marker.lat, marker.lng]);
@@ -31,8 +31,8 @@ export default function CatalogMap({ markers, location, onSelect }) {
       L.circleMarker([location.lat, location.lng], { radius: 7, color: '#3b82f6', fillOpacity: 1 }).addTo(layer.current).bindTooltip('Tu ubicación');
       points.push([location.lat, location.lng]);
     }
-    if (points.length) map.current.fitBounds(L.latLngBounds(points), { padding: [30, 30], maxZoom: 15 });
+    if (points.length) map.current.fitBounds(L.latLngBounds(points), { padding: [30, 30], maxZoom: focusZoom });
     else map.current.setView([LIMA_CENTRO.lat, LIMA_CENTRO.lng], 11);
-  }, [markers, location]);
-  return <div ref={element} className="relative z-0 h-[300px] w-full rounded-2xl" role="region" aria-label="Mapa de barberías" />;
+  }, [markers, location,focusZoom]);
+  return <div ref={element} className="relative z-0 h-[300px] w-full rounded-2xl" role="region" aria-label={label} />;
 }
