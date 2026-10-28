@@ -3,10 +3,12 @@ import {bookingLabel} from '../lib/meryo-api';
 import {remainingSeconds,countdown} from '../lib/booking-time';
 import {enableBookingPush} from '../lib/push';
 import {bookingIdFromSearch,bookingDeadline} from '../lib/booking-link';
+import {visiblePolling} from '../lib/visible-polling';
 
 export default function Reservations({api,profile,onLogin,onSearch,memberId,identityLoading=false}){
  const [focus,setFocus]=useState(()=>typeof window!=='undefined'?bookingIdFromSearch(window.location.search):null);
  const focused=useRef(false);
+ const polling=useRef(null);
  const [rows,setRows]=useState([]),[error,setError]=useState(''),[loading,setLoading]=useState(false),[busy,setBusy]=useState(false),[message,setMessage]=useState('');
  const [anchor,setAnchor]=useState(null),[now,setNow]=useState(0),[config,setConfig]=useState(null);
  const visibleRows=rows.filter(r=>(!memberId||r.barbero_id===memberId)&&(!focus||r.id===focus));
@@ -17,14 +19,15 @@ export default function Reservations({api,profile,onLogin,onSearch,memberId,iden
  },[api]);
  useEffect(()=>{
   if(!profile||!['cliente','barbero'].includes(profile.rol))return;
-  load();api.bookingConfig().then(setConfig).catch(e=>setError(e.message));
-  const poll=setInterval(load,3000),clock=setInterval(()=>setNow(performance.now()),1000);
-  return()=>{clearInterval(poll);clearInterval(clock);};
+  const reader=visiblePolling(load);polling.current=reader;api.bookingConfig().then(setConfig).catch(e=>setError(e.message));
+  const clock=setInterval(()=>setNow(performance.now()),1000);
+  return()=>{reader.stop();if(polling.current===reader)polling.current=null;clearInterval(clock);};
  },[load,api,profile]);
+ const refresh=()=>polling.current?.refresh()||Promise.resolve();
  useEffect(()=>{if(focus&&!focused.current&&rows.some(r=>r.id===focus)){document.getElementById('cita-'+focus)?.scrollIntoView({block:'center'});focused.current=true;}},[rows,focus]);
  async function respond(id,accept){
   if(busy)return;setBusy(true);setMessage('');
-  try{const state=await api.respond(id,accept);setMessage(state==='expirada'?'La solicitud venció; el horario se liberó.':state==='aceptada'?'Aceptada. Pendiente de pago; todavía no está confirmada.':'Rechazada. El horario se liberó.');await load();}
+  try{const state=await api.respond(id,accept);setMessage(state==='expirada'?'La solicitud venció; el horario se liberó.':state==='aceptada'?'Aceptada. Pendiente de pago; todavía no está confirmada.':'Rechazada. El horario se liberó.');await refresh();}
   catch(e){setError(e.message);}finally{setBusy(false);}
  }
  if(identityLoading)return <p role="status">Comprobando sesión para abrir tu cita…</p>;
@@ -32,7 +35,7 @@ export default function Reservations({api,profile,onLogin,onSearch,memberId,iden
  if(!['cliente','barbero'].includes(profile.rol))return <p role="alert">Esta cita requiere la cuenta de cliente o barbero que recibió el aviso. Este enlace no abre Administración.</p>;
  const elapsed=anchor?Math.max(0,now-anchor.received):0;
  return <section className="rounded-2xl border border-white/10 bg-neutral-900 p-6">
-  <div className="flex justify-between"><h2 className="text-xl font-bold">{focus?'Detalle de cita':profile.rol==='barbero'?'Solicitudes y citas de mi barbería':'Mis citas'}</h2><button onClick={load} disabled={loading} className="rounded-xl border border-white/20 px-4 py-2">Actualizar</button></div>
+  <div className="flex justify-between"><h2 className="text-xl font-bold">{focus?'Detalle de cita':profile.rol==='barbero'?'Solicitudes y citas de mi barbería':'Mis citas'}</h2><button onClick={refresh} disabled={loading} className="rounded-xl border border-white/20 px-4 py-2">Actualizar</button></div>
   {focus&&<button className="mt-3 text-amber-300 underline" onClick={()=>{const url=new URL(window.location.href);url.searchParams.delete('cita');window.history.replaceState(null,'',url.pathname+url.search+url.hash);setFocus(null);}}>Ver todas mis citas</button>}
   <p className="mt-3 text-sm text-neutral-400">MERYO: mensualidad por barbería, sin comisión por corte. Precios de planes propuestos; suscripciones sin cobro habilitado.</p>
   <p className="mt-2 text-sm text-amber-200">{config?.push_disponible===false?'Los avisos del celular no están disponibles por el momento. Puedes consultar las novedades en Mis citas.':'Activa las notificaciones para recibir las novedades de tus citas.'}</p>

@@ -1,5 +1,6 @@
 import PushCenter from './components/PushCenter';
 import ShopRegistration from './components/ShopRegistration';
+import {visiblePolling} from './lib/visible-polling';
 import { endSession, signInWithProfile } from "./lib/operations";
 import { supabase, googleAuthEnabled, emailSignupEnabled } from "./lib/supabase";
 import { lazy, Suspense, useEffect, useMemo, useRef, useState } from "react";
@@ -411,8 +412,8 @@ export default function BarberProApp() {
     setAgendaLoading(true);setAgendaError('');setActiveSlots([]);
     const refreshSlots=()=>api.slots(selectedShop.id,selectedService.id,selectedDate,selectedBarber).then(rows => {if(active){setActiveSlots(rows);setSelectedTime(current=>rows.some(s=>s.time===current)?current:"");}})
       .catch(error=>{if(active){setAgendaError(error.message);setActiveSlots([]);setSelectedTime('');}}).finally(()=>{if(active)setAgendaLoading(false);});
-    refreshSlots();const timer=setInterval(refreshSlots,5000);
-    return()=>{active=false;clearInterval(timer);};
+    const reader=visiblePolling(refreshSlots);
+    return()=>{active=false;reader.stop();};
   },[showBookingModal,selectedShop,selectedService,selectedDate,selectedBarber]);
 
 useEffect(() => {
@@ -432,13 +433,8 @@ useEffect(() => {
 }, [notificaciones, ultimaNoti]);
 useEffect(() => {
   if (view === "barber") {
-    cargarNotificaciones();
-
-    const interval = setInterval(() => {
-      cargarNotificaciones();
-    }, 3000);
-
-    return () => clearInterval(interval);
+    const reader=visiblePolling(cargarNotificaciones);
+    return () => reader.stop();
   }
 }, [view]);
   useEffect(() => {
