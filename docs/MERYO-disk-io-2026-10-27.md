@@ -26,3 +26,9 @@ Proyecto: `prdmcjykjpxpcomonwuy`. Hora de alerta indicada por el usuario: 27 de 
 - **Resultado observado:** tras el ajuste final a las 21:17 Lima, cinco ejecuciones naturales del cron (21:18–21:22) tuvieron éxito, la señal quedó sin cambios y hubo **cero** respuestas HTTP nuevas del despachador. No se invocó manualmente el emisor ni se crearon reservas/notificaciones de prueba en producción. La reducción del trabajo vacío está demostrada. La recuperación del presupuesto de disco y una caída atribuible del throughput global aún no están demostradas.
 
 Evidencia agregada privada, sin credenciales ni contenido de clientes: `io-budget-before.json`, `io-budget-correlations.json`, `io-idle-push-release.json`, `io-idle-push-after.json`. `scripts/inspect-io-budget.mjs` es de lectura y no reinicia contadores ni exporta filas comerciales. No confundir estas estadísticas con el respaldo de datos.
+
+## Publicación
+
+Commit funcional `d9939d6`, despliegue `dpl_GKNdztYRa9VdYV8BUojc465acoRh`, promovido al dominio habitual. Lectura pública comprobó HTTP 200 y el helper de sondeo visible en `index-DjnpdnqD.js`. Las pestañas antiguas necesitan recargar para usar el cliente nuevo; no se forzó el cierre de sesiones. Migraciones 019/020 registradas en el backend existente. Se detuvo el PostgreSQL nativo de comprobación y se cerró el panel temporal de métricas para no mantener lecturas innecesarias.
+
+El presupuesto acumulado no se dio por recuperado y el motivo exacto de la alerta no se dio por identificado. El resultado demostrado es la supresión de invocaciones vacías y la reducción configurada del sondeo. No comparar 28,8 KB/s, 280,6 KB/s y 565,8 KB/s como si fueran mediciones equivalentes antes/después.
