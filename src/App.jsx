@@ -18,6 +18,8 @@ import {saveDraft,readDraft,clearDraft,beginGoogle} from './lib/booking-draft';
 import {rememberAccess,consumeAccess,accessView,oauthFailure} from './lib/access-navigation';
 import {bookingDestination,bookingIdFromSearch} from './lib/booking-link';
 import ShopManagement from './components/management/ShopManagement';
+import LandingPage from './components/LandingPage';
+import {markLandingIntroSeen} from './lib/landing-intro';
 const api = createMeryoApi(supabase);
 import CatalogFilters from "./components/CatalogFilters";
 import CatalogStatus from './components/CatalogStatus';
@@ -362,6 +364,8 @@ function MeryoScreens({identity}) {
   const [loginDestination,setLoginDestination]=useState('client');
   const allowedViews=['landing','client','client-auth','client-register','client-login','barber','barber-login','admin','account','account-security','shop-manage','shop-register','my-bookings','team-invite','notifications'];
   const [view, setView] = useState(()=>{const raw=typeof window==='undefined'?'':window.location.hash.slice(1);const hash=raw.startsWith('team-invite/')?'team-invite':raw;const search=typeof window==='undefined'?'':window.location.search,access=new URLSearchParams(search).get('access');return bookingDestination(search,access==='barber'?'barber-login':access==='shop-register'?'shop-register':allowedViews.includes(hash)?hash:'landing');});
+  const initialView = useRef(view);
+  useEffect(()=>{if(initialView.current!=='landing')markLandingIntroSeen();},[]);
   useEffect(()=>{window.history.replaceState(null,'',`#${view}`);},[view]);
   useEffect(()=>{const navigate=()=>{const raw=window.location.hash.slice(1),next=raw.startsWith('team-invite/')?'team-invite':raw;if(allowedViews.includes(next))setView(next);};window.addEventListener('hashchange',navigate);return()=>window.removeEventListener('hashchange',navigate);},[]);
   const adminAccess = identity.profile?.rol === 'admin' && identity.profile?.activo === true;
@@ -604,62 +608,7 @@ const finalPrice = basePrice;
   if(view === 'shop-manage') return <ShopManagement key={identity.profile?.id||'anonymous'} api={api} profile={identity.profile} onLogin={()=>setView('barber-login')} onBack={async()=>{await cargarBarberiasActivas();setView('client');}} onRegister={()=>setView('shop-register')}/>;
   if(view === 'my-bookings') return <div className="min-h-screen bg-neutral-950 p-6 text-white"><div className="mx-auto max-w-5xl space-y-5"><h1 className="text-3xl font-black">Mis citas <span className="text-amber-400">MERYO</span></h1><button onClick={()=>{const url=new URL(window.location.href);url.searchParams.delete('cita');window.history.replaceState(null,'',url.pathname+url.search+url.hash);setView('client');}} className="rounded-xl border border-white/20 px-4 py-2">Volver</button><Reservations key={`${identity.profile?.id}-${identity.profile?.rol}`} api={api} profile={identity.profile} identityLoading={identity.loading} onLogin={()=>openLogin('my-bookings')} onSearch={()=>{const url=new URL(window.location.href);url.searchParams.delete('cita');window.history.replaceState(null,'',url.pathname+url.search+url.hash);setQuery('');setDistrict('');setShowBookingModal(false);setView('client');}}/></div></div>;
   if (view === "landing") {
-    return (
-      <div className="min-h-screen bg-neutral-950 text-white">
-        <section
-          className="relative overflow-hidden border-b border-white/10 bg-cover bg-center"
-          style={{
-            backgroundImage:
-              "url(https://images.unsplash.com/photo-1585747860715-2ba37e788b70?auto=format&fit=crop&w=1800&q=80)",
-          }}
-        >
-          <div className="absolute inset-0 bg-black/70" />
-          <div className="relative mx-auto max-w-6xl px-6 py-28 text-center">
-            <span className="mb-6 inline-block rounded-full border border-amber-400/30 bg-amber-400/10 px-5 py-2 text-xs tracking-[0.25em] text-amber-300">
-              EXPERIENCIA PREMIUM EN BARBERÍAS
-            </span>
-            <h1 className="text-5xl font-black leading-tight md:text-7xl">
-              El estilo no se improvisa.
-              <br />
-              <span className="text-amber-400">Se reserva.</span>
-            </h1>
-            <p className="mx-auto mt-6 max-w-2xl text-lg text-neutral-300">
-              Encuentra a los mejores barberos cerca de ti, descubre su trabajo real, revisa reseñas y reserva tu cita en segundos con MERYO.
-            </p>
-            <div className="mt-10 flex flex-wrap justify-center gap-4">
-              <button
-  onClick={() => setView("client")}
-  className="rounded-2xl bg-amber-400 px-8 py-4 font-bold text-black hover:scale-105 transition"
->
-  Buscar barbería
-</button>
-
-<button
-  onClick={() => setView("barber-login")}
-  className="rounded-2xl border border-white/20 px-8 py-4 font-bold text-white hover:bg-white/10 transition"
->
-  Soy barbero
-</button>
-            </div>
-            <div className="mt-14 grid gap-6 md:grid-cols-3">
-              <div className="rounded-2xl border border-white/10 bg-black/40 p-5 backdrop-blur">
-                <p className="text-2xl font-black text-amber-400">Catálogo</p>
-                <p className="text-sm text-neutral-400">Perfiles y servicios</p>
-              </div>
-              <div className="rounded-2xl border border-white/10 bg-black/40 p-5 backdrop-blur">
-                <p className="text-2xl font-black text-amber-400">En línea</p>
-                <p className="text-sm text-neutral-400">Solicitudes de cita</p>
-              </div>
-              <div className="rounded-2xl border border-white/10 bg-black/40 p-5 backdrop-blur">
-                <p className="text-2xl font-black text-amber-400">3 pasos</p>
-                <p className="text-sm text-neutral-400">Buscar · Reservar · Cortar</p>
-              </div>
-            </div>
-            <div className="mt-8 flex justify-center gap-5 text-xs text-neutral-400"><a href="/privacidad.html" className="hover:text-amber-400">Privacidad</a><a href="/condiciones.html" className="hover:text-amber-400">Condiciones</a></div>
-          </div>
-        </section>
-      </div>
-    );
+    return <LandingPage setView={setView}/>;
   }
 
   if (view === "barber" || view === "barber-login") {
