@@ -2,6 +2,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { coordinates, distanciaKm, selectShops, catalogMarkers } from '../src/lib/catalog.js';
 import { fechaLima, listaDias, sumarDias } from '../src/lib/dates.js';
+import { DISTRITOS } from '../src/lib/distritos.js';
 
 const shops = [
   { id: 1, name: 'Corte Rímac', district: 'Rímac', rating: 4.8, reviews: 1, basePrice: 30, lat: -12.04, lng: -77.04 },
@@ -13,6 +14,18 @@ test('search ignores accents/case and combines district without mutating source'
   assert.deepEqual(selectShops(shops, { query: ' RIMAC ', district: 'Rímac' }).map(s => s.id), [1, 3]);
   assert.deepEqual(selectShops(shops, { query: 'estilo', district: 'Rímac' }), []);
   assert.deepEqual(shops, before);
+});
+test('Ate Vitarte is a distinct filter value and does not rename Ate or Comas', () => {
+  assert.ok(DISTRITOS.includes('Ate Vitarte'));
+  assert.ok(DISTRITOS.includes('Ate'));
+  assert.ok(DISTRITOS.includes('Comas'));
+  const choices = [
+    { id: 1, name: 'Local Ate', district: 'Ate' },
+    { id: 2, name: 'Local Ate Vitarte', district: 'Ate Vitarte' },
+    { id: 3, name: 'Local Comas', district: 'Comas' },
+  ];
+  assert.deepEqual(selectShops(choices, { district: 'Ate Vitarte' }).map(shop => shop.id), [2]);
+  assert.deepEqual(selectShops(choices, { district: 'Comas' }).map(shop => shop.id), [3]);
 });
 test('default order is alphabetical; unavailable prices are last', () => {
   assert.deepEqual(selectShops(shops).map(s => s.id), [1, 2, 3]);

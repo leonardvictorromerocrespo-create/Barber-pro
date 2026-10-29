@@ -821,18 +821,18 @@ if (view === "admin" && adminAccess) return <AdminShops api={api} profile={ident
   return (
     <div className="min-h-screen bg-neutral-950 text-white">
       <header className="sticky top-0 z-30 border-b border-white/10 bg-neutral-950/95 backdrop-blur">
-        <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-4">
-          <span className="text-3xl font-black">MER<span className="text-amber-400">YO</span></span>
-          <div className="flex flex-wrap gap-3">
-            <button onClick={() => setView("landing")} className={`rounded-xl border border-white/20 px-4 py-2 text-sm ${pointerClass}`}>Inicio</button>
-            <button onClick={() => setView(adminAccess?'admin':"barber")} className={`rounded-xl border border-white/20 px-4 py-2 text-sm ${pointerClass}`}>{adminAccess?'Panel Administrador':'Panel Barbero'}</button>
-            <button onClick={()=>setView('my-bookings')} className="rounded-xl border border-white/20 px-4 py-2 text-sm">Mis citas</button>
-            <button onClick={()=>setView('shop-manage')} className="rounded-xl border border-white/20 px-4 py-2 text-sm">Mi barbería</button>
-            <button onClick={()=>setView(identity.profile?'account':'client-auth')} className="rounded-xl border border-white/20 px-4 py-2 text-sm">Mi cuenta</button>
-            {adminAccess&&<button onClick={()=>setView('admin')} className="rounded-xl border border-white/20 px-4 py-2 text-sm">Administración</button>}
+        <div className="mx-auto flex max-w-7xl flex-col items-stretch gap-2 px-3 py-2 md:flex-row md:items-center md:justify-between md:px-6 md:py-4">
+          <span className="whitespace-nowrap text-2xl font-black md:text-3xl">MER<span className="text-amber-400">YO</span></span>
+          <div className="grid w-full min-w-0 grid-cols-3 gap-1.5 md:flex md:w-auto md:flex-wrap md:gap-3">
+            <button onClick={() => setView("landing")} className={`min-h-11 w-full rounded-xl border border-white/20 px-2 py-2 text-xs leading-tight md:min-h-0 md:w-auto md:px-4 md:py-2 md:text-sm ${pointerClass}`}>Inicio</button>
+            <button onClick={() => setView(adminAccess?'admin':"barber")} className={`min-h-11 w-full rounded-xl border border-white/20 px-2 py-2 text-xs leading-tight md:min-h-0 md:w-auto md:px-4 md:py-2 md:text-sm ${pointerClass}`}>{adminAccess?'Panel Administrador':'Panel Barbero'}</button>
+            <button onClick={()=>setView('my-bookings')} className="min-h-11 w-full rounded-xl border border-white/20 px-2 py-2 text-xs leading-tight md:min-h-0 md:w-auto md:px-4 md:py-2 md:text-sm">Mis citas</button>
+            <button onClick={()=>setView('shop-manage')} className="min-h-11 w-full rounded-xl border border-white/20 px-2 py-2 text-xs leading-tight md:min-h-0 md:w-auto md:px-4 md:py-2 md:text-sm">Mi barbería</button>
+            <button onClick={()=>setView(identity.profile?'account':'client-auth')} className="min-h-11 w-full rounded-xl border border-white/20 px-2 py-2 text-xs leading-tight md:min-h-0 md:w-auto md:px-4 md:py-2 md:text-sm">Mi cuenta</button>
+            {adminAccess&&<button onClick={()=>setView('admin')} className="min-h-11 w-full rounded-xl border border-white/20 px-2 py-2 text-xs leading-tight md:min-h-0 md:w-auto md:px-4 md:py-2 md:text-sm">Administración</button>}
 
-            <button onClick={handleLogout} className="rounded-xl border border-white/20 px-4 py-2 text-sm">Cerrar sesión</button>
-            <button onClick={enableLocation} className={`rounded-xl bg-amber-400 px-4 py-2 font-semibold text-black ${pointerClass}`}>Usar ubicación</button>
+            <button onClick={handleLogout} className="min-h-11 w-full rounded-xl border border-white/20 px-2 py-2 text-xs leading-tight md:min-h-0 md:w-auto md:px-4 md:py-2 md:text-sm">Cerrar sesión</button>
+            <button onClick={enableLocation} className={`hidden rounded-xl bg-amber-400 px-4 py-2 font-semibold text-black md:block ${pointerClass}`}>Usar ubicación</button>
           </div>
         </div>
       </header>
@@ -842,13 +842,13 @@ if (view === "admin" && adminAccess) return <AdminShops api={api} profile={ident
         {identity.error&&<p role="alert" className="px-6 text-red-300">{identity.error}</p>}
         {accessMessage&&<p role="status" className="px-6 text-amber-300">{accessMessage}</p>}
         {catalogError&&<p role="alert" className="px-6 text-red-300">{catalogError}</p>}
-        <section className="mx-auto max-w-7xl px-6 py-16">
+        <section className="mx-auto max-w-7xl px-3 pt-4 pb-10 md:px-6 md:py-16">
           <ClientHero heroIndex={heroIndex} setHeroIndex={setHeroIndex} setView={setView} shops={shops} />
 
           <div className="mb-10 flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
             <div>
               <h2 className="text-3xl font-black">Barberías cerca de ti</h2>
-              <CatalogFilters query={query} district={district} order={order} hasLocation={!!location} onQuery={setQuery} onDistrict={setDistrict} onOrder={setOrder} />
+              <CatalogFilters query={query} district={district} order={order} hasLocation={!!location} onQuery={setQuery} onDistrict={setDistrict} onOrder={setOrder} onUseLocation={enableLocation} />
               <p className="mt-2 text-neutral-400">Solicita una cita. La confirmación requiere aceptación y verificación del adelanto por el servidor.</p>
             </div>
             <div className="rounded-2xl border border-white/10 bg-neutral-900 px-4 py-3 text-sm text-neutral-300">
