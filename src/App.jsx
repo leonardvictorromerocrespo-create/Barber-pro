@@ -83,17 +83,20 @@ function ClientHero({ heroIndex, setHeroIndex, setView }) {
 
 export function ProfileModal({ selectedShop, onClose, onReserve }) {
   if (!selectedShop) return null;
+  const photos = selectedShop.assets?.filter(a => a.kind === 'foto' && a.url) ?? [];
+  const videos = selectedShop.assets?.filter(a => a.kind === 'video' && a.url) ?? [];
+  const services = selectedShop.services ?? [];
+  const team = selectedShop.equipo ?? [];
+  const reviews = selectedShop.resenas ?? [];
+  const hasMedia = Boolean(selectedShop.image || photos.length || videos.length || selectedShop.contentError);
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4">
       <div className="max-h-[92vh] w-full max-w-4xl overflow-auto rounded-[2rem] border border-white/10 bg-neutral-950 p-6 text-white shadow-2xl">
         <div className="mb-6 flex items-start justify-between gap-4">
           <div>
-            <p className="text-sm uppercase tracking-[0.2em] text-amber-300">Perfil de barbería</p>
-            <h3 className="mt-2 text-3xl font-black">{selectedShop.name}</h3>
-            <p className="mt-2 text-neutral-400">
-              Aquí el cliente solo ve la información del barbero: presentación, experiencia, videos, reseñas y servicios.
-            </p>
+            <h3 className="text-3xl font-black">{selectedShop.name}</h3>
+            {selectedShop.about && <p className="mt-2 text-neutral-400">{selectedShop.about}</p>}
           </div>
           <button onClick={onClose} className={`rounded-xl border border-white/10 px-4 py-2 text-sm ${pointerClass}`}>
             Cerrar
@@ -102,35 +105,23 @@ export function ProfileModal({ selectedShop, onClose, onReserve }) {
 
         <div className="grid gap-6 lg:grid-cols-2">
           <div>
-            <h4 className="text-xl font-bold">Perfil del barbero</h4>
-            <div className="mt-2 text-xs text-neutral-500">Perfil tipo red social del barbero</div>
-            <div className="mt-4 rounded-2xl border border-white/10 bg-black/30 p-5 text-sm text-neutral-300">
-              <p className="leading-6 text-neutral-400">{selectedShop.about}</p>
-
-              {selectedShop.image&&<img src={selectedShop.image} alt={`Portada de ${selectedShop.name}`} className="mt-4 max-h-72 w-full rounded-xl object-cover"/>}
-            </div>
-
             <PublicShopLocation key={selectedShop.id} shop={selectedShop}/>
-            <div className="mt-4 rounded-2xl border border-white/10 bg-black/20 p-4">
-              <p className="font-bold text-white">{selectedShop.introVideoTitle}</p>
-              {selectedShop.assets?.some(a=>a.kind==='video'&&a.url)?selectedShop.assets.filter(a=>a.kind==='video'&&a.url).map(a=><video key={a.id} src={a.url} controls preload="metadata" className="mt-3 max-h-80 w-full rounded-2xl"/>):<p className="mt-3 text-sm text-neutral-400">Sin video publicado.</p>}
-              {selectedShop.contentError&&<p role="alert" className="mt-3 text-sm text-amber-300">{selectedShop.contentError}</p>}
-            </div>
+            {hasMedia && <section className="mt-4 rounded-2xl border border-white/10 bg-black/20 p-4">
+              <h4 className="font-bold">Fotos y videos</h4>
+              {selectedShop.image && <img src={selectedShop.image} alt={`Portada de ${selectedShop.name}`} className="mt-3 max-h-72 w-full rounded-xl object-cover"/>}
+              {videos.length > 0 && <div className="mt-4 space-y-3">{selectedShop.introVideoTitle && <h5 className="font-semibold">{selectedShop.introVideoTitle}</h5>}{videos.map(a=><video key={a.id} src={a.url} controls preload="metadata" className="max-h-80 w-full rounded-2xl"/>)}</div>}
+              {photos.length > 0 && <div className="mt-4"><h5 className="font-semibold">{selectedShop.cutsVideoTitle || 'Portafolio'}</h5><div className="mt-3 grid grid-cols-2 gap-3">{photos.map(a=><figure key={a.id}><img src={a.url} alt={a.title||'Trabajo publicado por la barbería'} className="h-40 w-full rounded-xl object-cover"/>{a.title&&<figcaption className="mt-1 text-xs text-neutral-400">{a.title}</figcaption>}</figure>)}</div></div>}
+              {selectedShop.contentError && <p role="alert" className="mt-3 text-sm text-amber-300">{selectedShop.contentError}</p>}
+            </section>}
           </div>
 
           <div>
-            <h4 className="text-xl font-bold">Videos y portafolio de cortes</h4>
-            <div className="mt-4 rounded-2xl border border-white/10 bg-black/20 p-4">
-              <p className="font-bold text-white">{selectedShop.cutsVideoTitle}</p>
-              <div className="mt-3 grid grid-cols-2 gap-3">{selectedShop.assets?.filter(a=>a.kind==='foto'&&a.url).map(a=><figure key={a.id}><img src={a.url} alt={a.title||'Trabajo publicado por la barbería'} className="h-40 w-full rounded-xl object-cover"/>{a.title&&<figcaption className="mt-1 text-xs text-neutral-400">{a.title}</figcaption>}</figure>)}</div>
-              {!selectedShop.assets?.some(a=>a.kind==='foto'&&a.url)&&<p className="mt-3 text-sm text-neutral-400">Sin fotos de portafolio publicadas.</p>}
-            </div>
-            <div className="mt-4 rounded-2xl border border-white/10 bg-black/20 p-4"><h4 className="font-bold">Equipo publicado</h4>{selectedShop.equipo?.length?selectedShop.equipo.map((p,i)=><p key={i} className="mt-2 text-sm text-neutral-300">{p.nombre}{p.propietario?' · propietario':''}</p>):<p className="mt-2 text-sm text-neutral-400">El equipo todavía no está publicado.</p>}</div>
+            {team.length > 0 && <section className="mt-4 rounded-2xl border border-white/10 bg-black/20 p-4"><h4 className="font-bold">Equipo</h4>{team.map((p,i)=><p key={i} className="mt-2 text-sm text-neutral-300">{p.nombre}{p.propietario?' · propietario':''}</p>)}</section>}
 
-            <div className="mt-4 rounded-2xl border border-white/10 bg-black/20 p-4">
-              <p className="font-bold text-white">Servicios disponibles</p>
+            {services.length > 0 && <section className="mt-4 rounded-2xl border border-white/10 bg-black/20 p-4">
+              <h4 className="font-bold text-white">Servicios</h4>
               <div className="mt-3 grid gap-2 sm:grid-cols-2">
-                {selectedShop.services.map((service) => (
+                {services.map((service) => (
                   <div key={service.id} className="rounded-xl border border-white/10 bg-black/30 p-3 text-sm">
                     <p className="font-semibold text-white">{service.name}</p>
                     <p className="mt-1 text-neutral-400">{service.duration}</p>
@@ -138,14 +129,13 @@ export function ProfileModal({ selectedShop, onClose, onReserve }) {
                   </div>
                 ))}
               </div>
-            </div>
+            </section>}
 
-            <div className="mt-4 rounded-2xl border border-white/10 bg-black/30 p-6">
-              <p className="text-lg font-bold text-white">Reseñas de clientes</p>
-              <p className="mt-2 text-neutral-400">{selectedShop.reviews>0?`⭐ ${selectedShop.rating} basado en ${selectedShop.reviews} reseñas registradas`:'Aún no hay reseñas registradas.'}</p>
-              <p className="mt-4 text-sm text-neutral-400">Las reseñas verificadas se incorporarán desde las citas completadas. No se muestran opiniones de demostración.</p>
-              {selectedShop.resenas?.map(r=><article key={r.id} className="mt-4 border-t border-white/10 pt-3"><p className="text-sm">{r.autor} · {r.calificacion}/5</p><p className="mt-1 text-neutral-400">{r.comentario}</p></article>)}
-            </div>
+            {(selectedShop.reviews > 0 || reviews.length > 0) && <section className="mt-4 rounded-2xl border border-white/10 bg-black/30 p-6">
+              <h4 className="text-lg font-bold text-white">Reseñas</h4>
+              {selectedShop.reviews > 0 && <p className="mt-2 text-neutral-400">⭐ {selectedShop.rating} basado en {selectedShop.reviews} reseñas</p>}
+              {reviews.map(r=><article key={r.id} className="mt-4 border-t border-white/10 pt-3"><p className="text-sm">{r.autor} · {r.calificacion}/5</p><p className="mt-1 text-neutral-400">{r.comentario}</p></article>)}
+            </section>}
           </div>
         </div>
 
