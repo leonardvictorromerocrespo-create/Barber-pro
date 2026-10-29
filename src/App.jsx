@@ -81,6 +81,10 @@ function ClientHero({ heroIndex, setHeroIndex, setView }) {
   );
 }
 
+function ProfileSectionTitle({children}) {
+  return <h4 className="border-b border-amber-400/40 pb-2 text-lg font-bold text-amber-300">{children}</h4>;
+}
+
 export function ProfileModal({ selectedShop, onClose, onReserve }) {
   if (!selectedShop) return null;
   const photos = selectedShop.assets?.filter(a => a.kind === 'foto' && a.url) ?? [];
@@ -88,56 +92,59 @@ export function ProfileModal({ selectedShop, onClose, onReserve }) {
   const services = selectedShop.services ?? [];
   const team = selectedShop.equipo ?? [];
   const reviews = selectedShop.resenas ?? [];
-  const hasMedia = Boolean(selectedShop.image || photos.length || videos.length || selectedShop.contentError);
+  const hasPresentation = Boolean(selectedShop.about || videos.length || selectedShop.contentError);
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4">
-      <div className="max-h-[92vh] w-full max-w-4xl overflow-auto rounded-[2rem] border border-white/10 bg-neutral-950 p-6 text-white shadow-2xl">
-        <div className="mb-6 flex items-start justify-between gap-4">
-          <div>
+      <div className="max-h-[92vh] w-full min-w-0 max-w-4xl overflow-auto rounded-[2rem] border border-white/10 bg-neutral-950 p-4 text-white shadow-2xl sm:p-6" style={{backgroundImage:`linear-gradient(rgba(10,10,10,.94),rgba(10,10,10,.96)),url("${HERO_IMAGES[0]}")`,backgroundSize:'cover',backgroundPosition:'center'}}>
+        <div className="mb-6 flex flex-col items-start justify-between gap-4 sm:flex-row">
+          <div className="min-w-0">
             <h3 className="text-3xl font-black">{selectedShop.name}</h3>
-            {selectedShop.about && <p className="mt-2 text-neutral-400">{selectedShop.about}</p>}
           </div>
-          <button onClick={onClose} className={`rounded-xl border border-white/10 px-4 py-2 text-sm ${pointerClass}`}>
+          <button onClick={onClose} className={`self-end rounded-xl border border-white/10 px-4 py-2 text-sm sm:self-auto ${pointerClass}`}>
             Cerrar
           </button>
         </div>
 
-        <div className="grid gap-6 lg:grid-cols-2">
-          <div>
-            <PublicShopLocation key={selectedShop.id} shop={selectedShop}/>
-            {hasMedia && <section className="mt-4 rounded-2xl border border-white/10 bg-black/20 p-4">
-              <h4 className="font-bold">Fotos y videos</h4>
-              {selectedShop.image && <img src={selectedShop.image} alt={`Portada de ${selectedShop.name}`} className="mt-3 max-h-72 w-full rounded-xl object-cover"/>}
-              {videos.length > 0 && <div className="mt-4 space-y-3">{selectedShop.introVideoTitle && <h5 className="font-semibold">{selectedShop.introVideoTitle}</h5>}{videos.map(a=><video key={a.id} src={a.url} controls preload="metadata" className="max-h-80 w-full rounded-2xl"/>)}</div>}
-              {photos.length > 0 && <div className="mt-4"><h5 className="font-semibold">{selectedShop.cutsVideoTitle || 'Portafolio'}</h5><div className="mt-3 grid grid-cols-2 gap-3">{photos.map(a=><figure key={a.id}><img src={a.url} alt={a.title||'Trabajo publicado por la barbería'} className="h-40 w-full rounded-xl object-cover"/>{a.title&&<figcaption className="mt-1 text-xs text-neutral-400">{a.title}</figcaption>}</figure>)}</div></div>}
-              {selectedShop.contentError && <p role="alert" className="mt-3 text-sm text-amber-300">{selectedShop.contentError}</p>}
-            </section>}
-          </div>
+        {selectedShop.image && <section className="mb-4 rounded-2xl border border-white/10 bg-black/35 p-4">
+          <ProfileSectionTitle>Portada</ProfileSectionTitle>
+          <img src={selectedShop.image} alt={`Portada de ${selectedShop.name}`} className="mt-3 max-h-64 w-full rounded-xl object-cover sm:max-h-80"/>
+        </section>}
 
-          <div>
-            {team.length > 0 && <section className="mt-4 rounded-2xl border border-white/10 bg-black/20 p-4"><h4 className="font-bold">Equipo</h4>{team.map((p,i)=><p key={i} className="mt-2 text-sm text-neutral-300">{p.nombre}{p.propietario?' · propietario':''}</p>)}</section>}
+        <PublicShopLocation key={selectedShop.id} shop={selectedShop} mapHeight="h-40 sm:h-44"/>
 
-            {services.length > 0 && <section className="mt-4 rounded-2xl border border-white/10 bg-black/20 p-4">
-              <h4 className="font-bold text-white">Servicios</h4>
-              <div className="mt-3 grid gap-2 sm:grid-cols-2">
-                {services.map((service) => (
-                  <div key={service.id} className="rounded-xl border border-white/10 bg-black/30 p-3 text-sm">
-                    <p className="font-semibold text-white">{service.name}</p>
-                    <p className="mt-1 text-neutral-400">{service.duration}</p>
-                    <p className="mt-2 text-amber-400">S/ {service.price}</p>
-                  </div>
-                ))}
+        {hasPresentation && <section className="mt-4 rounded-2xl border border-white/10 bg-black/35 p-4">
+          <ProfileSectionTitle>Presentación</ProfileSectionTitle>
+          {selectedShop.about && <p className="mt-3 text-sm leading-relaxed text-neutral-300 sm:text-base">{selectedShop.about}</p>}
+          {videos.map(a=><video key={a.id} src={a.url} controls preload="metadata" aria-label="Video de presentación" className="mt-3 max-h-80 w-full rounded-2xl"/>)}
+          {selectedShop.contentError && <p role="alert" className="mt-3 text-sm text-amber-300">{selectedShop.contentError}</p>}
+        </section>}
+
+        {photos.length > 0 && <section className="mt-4 rounded-2xl border border-white/10 bg-black/35 p-4">
+          <ProfileSectionTitle>Portafolio</ProfileSectionTitle>
+          <div className="mt-3 grid grid-cols-2 gap-3 sm:grid-cols-3">{photos.map(a=><figure key={a.id}><img src={a.url} alt={a.title||'Trabajo publicado por la barbería'} className="h-36 w-full rounded-xl object-cover sm:h-48"/>{a.title&&<figcaption className="mt-1 text-xs text-neutral-300">{a.title}</figcaption>}</figure>)}</div>
+        </section>}
+
+        {team.length > 0 && <section className="mt-4 rounded-2xl border border-white/10 bg-black/35 p-4"><ProfileSectionTitle>Equipo</ProfileSectionTitle>{team.map((p,i)=><p key={i} className="mt-2 text-sm text-neutral-300">{p.nombre}{p.propietario?' · propietario':''}</p>)}</section>}
+
+        {services.length > 0 && <section className="mt-4 rounded-2xl border border-white/10 bg-black/35 p-4">
+          <ProfileSectionTitle>Servicios</ProfileSectionTitle>
+          <div className="mt-3 grid gap-2 sm:grid-cols-2">
+            {services.map((service) => (
+              <div key={service.id} className="rounded-xl border border-white/10 bg-black/30 p-3 text-sm">
+                <p className="font-semibold text-white">{service.name}</p>
+                <p className="mt-1 text-neutral-400">{service.duration}</p>
+                <p className="mt-2 text-amber-400">S/ {service.price}</p>
               </div>
-            </section>}
-
-            {(selectedShop.reviews > 0 || reviews.length > 0) && <section className="mt-4 rounded-2xl border border-white/10 bg-black/30 p-6">
-              <h4 className="text-lg font-bold text-white">Reseñas</h4>
-              {selectedShop.reviews > 0 && <p className="mt-2 text-neutral-400">⭐ {selectedShop.rating} basado en {selectedShop.reviews} reseñas</p>}
-              {reviews.map(r=><article key={r.id} className="mt-4 border-t border-white/10 pt-3"><p className="text-sm">{r.autor} · {r.calificacion}/5</p><p className="mt-1 text-neutral-400">{r.comentario}</p></article>)}
-            </section>}
+            ))}
           </div>
-        </div>
+        </section>}
+
+        {(selectedShop.reviews > 0 || reviews.length > 0) && <section className="mt-4 rounded-2xl border border-white/10 bg-black/35 p-4">
+          <ProfileSectionTitle>Reseñas</ProfileSectionTitle>
+          {selectedShop.reviews > 0 && <p className="mt-3 text-neutral-300">⭐ {selectedShop.rating} basado en {selectedShop.reviews} reseñas</p>}
+          {reviews.map(r=><article key={r.id} className="mt-4 border-t border-white/10 pt-3"><p className="text-sm">{r.autor} · {r.calificacion}/5</p><p className="mt-1 text-neutral-300">{r.comentario}</p></article>)}
+        </section>}
 
         <div className="mt-8 flex justify-end">
           <button onClick={onReserve} className={`rounded-2xl bg-amber-400 px-6 py-3 font-bold text-black ${pointerClass}`}>

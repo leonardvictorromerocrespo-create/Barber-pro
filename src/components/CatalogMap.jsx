@@ -4,7 +4,7 @@ import 'leaflet/dist/leaflet.css';
 import { LIMA_CENTRO } from '../lib/distritos';
 
 // Read-only adaptation of ZIP MapView. No editing, URL injection or database calls.
-export default function CatalogMap({ markers, location, onSelect,focusZoom=15,label='Mapa de barberías' }) {
+export default function CatalogMap({ markers, location, onSelect,focusZoom=15,label='Mapa de barberías',mapHeight='h-[300px]' }) {
   const element = useRef(null), map = useRef(null), layer = useRef(null), select = useRef(onSelect);
   useEffect(() => { select.current = onSelect; }, [onSelect]);
   useEffect(() => {
@@ -34,5 +34,5 @@ export default function CatalogMap({ markers, location, onSelect,focusZoom=15,la
     if (points.length) map.current.fitBounds(L.latLngBounds(points), { padding: [30, 30], maxZoom: focusZoom });
     else map.current.setView([LIMA_CENTRO.lat, LIMA_CENTRO.lng], 11);
   }, [markers, location,focusZoom]);
-  return <div ref={element} className="relative z-0 h-[300px] w-full rounded-2xl" role="region" aria-label={label} />;
+  return <div ref={element} className={`relative z-0 ${mapHeight} w-full rounded-2xl`} role="region" aria-label={label} />;
 }
