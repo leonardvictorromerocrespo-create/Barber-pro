@@ -30,7 +30,7 @@ export default function LocationPicker({lat,lng,onChange,onReady,savedLocation=f
   if(!map.current)return;const point=selection.point||selection.candidate;
   if(!point){marker.current?.remove();marker.current=null;return;}
   if(marker.current)marker.current.setLatLng([point.lat,point.lng]);
-  else{marker.current=L.marker([point.lat,point.lng],{draggable:true,keyboard:true,title:'Ubicación de la barbería: arrastra para ajustar',icon:L.divIcon({className:'',html:'<span style="display:block;width:24px;height:24px;border:3px solid white;border-radius:50%;background:#fbbf24;box-shadow:0 2px 8px #000"></span>',iconSize:[24,24],iconAnchor:[12,12]})}).addTo(map.current);marker.current.on('dragend',()=>choose(marker.current.getLatLng()));}
+  else{marker.current=L.marker([point.lat,point.lng],{draggable:true,keyboard:true,title:'Ubicación de la barbería: arrastra para ajustar',icon:L.divIcon({className:'',html:'<span style="display:block;width:24px;height:24px;border:3px solid white;border-radius:50%;background:#06d6a0;box-shadow:0 2px 8px #001433"></span>',iconSize:[24,24],iconAnchor:[12,12]})}).addTo(map.current);marker.current.on('dragend',()=>choose(marker.current.getLatLng()));}
  },[selection.point,selection.candidate,choose]);
  function locate(){
   const version=++request.current;dispatch({type:'start'});

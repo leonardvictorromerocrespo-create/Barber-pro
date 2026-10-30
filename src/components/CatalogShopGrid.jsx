@@ -2,7 +2,7 @@ const pointerClass="cursor-pointer";
 
 export default function CatalogShopGrid({shops,onView,onReserve}) {
   return <div className="grid grid-cols-2 gap-3 sm:gap-5 lg:grid-cols-3 xl:grid-cols-4">
-    {shops.map(shop=><article key={shop.id} className="min-w-0 overflow-hidden rounded-2xl border border-white/10 bg-neutral-900">
+    {shops.map(shop=><article key={shop.id} className="meryo-shop-card min-w-0 overflow-hidden rounded-2xl border border-white/10 bg-neutral-900">
       {shop.image?<img src={shop.image} className="h-20 w-full object-cover sm:h-36 lg:h-48" alt={shop.name}/>:<div className="flex h-20 items-center justify-center bg-neutral-950 text-xl font-black text-amber-400 sm:h-36 sm:text-3xl" aria-label="Sin portada publicada">MERYO</div>}
       <div className="min-w-0 p-2 sm:p-4">
         <div className="mb-1 flex min-w-0 items-start justify-between gap-1 sm:mb-2 sm:gap-3">
@@ -19,7 +19,7 @@ export default function CatalogShopGrid({shops,onView,onReserve}) {
           <span className="truncate">{shop.reviews>0?`⭐ ${shop.rating} (${shop.reviews})`:'Aún sin reseñas'}</span>
           <p className="shrink-0 font-semibold text-amber-400">{shop.basePrice==null?'Servicios por publicar':`Desde S/ ${shop.basePrice}`}</p>
         </div>
-        <div className="mt-2 rounded-xl border border-white/10 bg-black/20 px-2 py-1.5 text-[10px] text-neutral-300 sm:mt-4 sm:rounded-2xl sm:p-3 sm:text-sm">
+        <div className="meryo-shop-card__services mt-2 rounded-xl border border-white/10 bg-black/20 px-2 py-1.5 text-[10px] text-neutral-300 sm:mt-4 sm:rounded-2xl sm:p-3 sm:text-sm">
           <p className="font-semibold text-white">Servicios:</p>
           <p className="mt-0.5 line-clamp-1 leading-tight sm:mt-1">{(shop.services??[]).map(service=>`${service.name} (${service.price})`).join(" • ")}</p>
         </div>

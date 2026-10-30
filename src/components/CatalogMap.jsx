@@ -24,7 +24,7 @@ export default function CatalogMap({ markers, location, onSelect,focusZoom=15,la
       const button = document.createElement('button'); button.textContent = 'Ver barbería';
       button.type = 'button'; button.addEventListener('click', () => select.current(marker.id));
       popup.append(title, detail);if(select.current)popup.append(button);
-      L.circleMarker([marker.lat, marker.lng], { radius: 9, color: '#fbbf24', fillOpacity: 0.8 }).addTo(layer.current).bindPopup(popup);
+      L.circleMarker([marker.lat, marker.lng], { radius: 9, color: '#048a81', fillOpacity: 0.8 }).addTo(layer.current).bindPopup(popup);
     });
     const points = markers.map(marker => [marker.lat, marker.lng]);
     if (location) {

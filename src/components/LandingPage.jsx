@@ -1,9 +1,9 @@
 import {useEffect, useLayoutEffect, useRef, useState} from 'react';
-import clipperPhoto from '../assets/meryo-landing-clipper.webp';
+import heroPhoto from '../assets/meryo-hero-barber.webp';
 import {consumeLandingIntro} from '../lib/landing-intro';
 import './LandingPage.css';
 
-const logoSource = '/meryo-logo.png';
+const logoSource = '/meryo-logo-coastal.png';
 const introDuration = 2700;
 
 function reducedMotionEnabled() {
@@ -64,7 +64,7 @@ export default function LandingPage({setView}) {
           <div className="meryo-cover__copy">
             <h1 id="meryo-cover-title">
               <span>El estilo no se improvisa.</span>
-              <span className="meryo-cover__gold">Se reserva.</span>
+              <span className="meryo-cover__accent">Se reserva.</span>
             </h1>
             <p>Encuentra barberías cerca de ti, conoce su trabajo y solicita tu cita.</p>
             <div className="meryo-cover__actions">
@@ -73,9 +73,8 @@ export default function LandingPage({setView}) {
             </div>
           </div>
 
-          <div className="meryo-cover__visual" aria-label="Barbero usando una máquina de corte profesional" role="img">
-            <img src={clipperPhoto} alt="" fetchPriority="high" decoding="async" />
-            <span className="meryo-cover__gold-light" aria-hidden="true" />
+          <div className="meryo-cover__visual" aria-label="Barbero trabajando con un cliente en una barbería" role="img">
+            <img src={heroPhoto} alt="" fetchPriority="high" decoding="async" />
             <span className="meryo-cover__edge-light" aria-hidden="true" />
           </div>
         </section>

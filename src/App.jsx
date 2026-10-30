@@ -769,7 +769,7 @@ if (view === "client-login") {
 if (view === "admin" && adminAccess) return <AdminShops api={api} profile={identity.profile} onSecurity={()=>setAdminSecurityOpen(true)} onLogout={handleLogout} onBack={()=>setView('client')} onChanged={cargarBarberiasActivas}/>;
   return (
     <div className="min-h-screen bg-neutral-950 text-white">
-      <header className="sticky top-0 z-30 border-b border-white/10 bg-neutral-950/95 backdrop-blur">
+      <header className="meryo-site-header sticky top-0 z-30 border-b border-white/10 bg-neutral-950/95 backdrop-blur">
         <div className="mx-auto flex max-w-7xl flex-col items-stretch gap-2 px-3 py-2 md:flex-row md:items-center md:justify-between md:px-6 md:py-4">
           <span className="whitespace-nowrap text-2xl font-black md:text-3xl">MER<span className="text-amber-400">YO</span></span>
           <div className="grid w-full min-w-0 grid-cols-3 gap-1.5 md:flex md:w-auto md:flex-wrap md:gap-3">
@@ -827,10 +827,10 @@ if (view === "admin" && adminAccess) return <AdminShops api={api} profile={ident
 
         <section className="border-y border-white/10 bg-neutral-900 py-16">
           <div className="mx-auto grid max-w-7xl gap-8 px-6 md:grid-cols-2">
-            <div className="rounded-3xl border border-white/10 bg-neutral-950 p-6">
+            <div className="meryo-info-block meryo-info-block--teal rounded-3xl border border-white/10 bg-neutral-950 p-6">
               <h2 className="text-2xl font-black">Solicita tu cita</h2><p className="mt-3 text-neutral-400">Elige un servicio en el catálogo. El adelanto del 50 % se solicita únicamente después de que el barbero acepte.</p>
             </div>
-            <div className="rounded-3xl border border-white/10 bg-neutral-950 p-6">
+            <div className="meryo-info-block meryo-info-block--sky rounded-3xl border border-white/10 bg-neutral-950 p-6">
               <div className="mb-6 flex items-center justify-between gap-3">
                 <div>
                   <h2 id="register-shop" className="text-2xl font-black">Registro de barberías</h2>
