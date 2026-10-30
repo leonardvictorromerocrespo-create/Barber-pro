@@ -7,7 +7,8 @@
 
 body { margin: 0; background: #0b0b0b; color: #f5f1e8; }
 main { max-width: 780px; margin: 0 auto; padding: 48px 24px 72px; }
-a { color: #c9ad7a; }
+a { color: #d4af37; }
+a:hover { color: #e8c766; }
 header { border-bottom: 1px solid rgba(245, 241, 232, .12); padding-bottom: 24px; margin-bottom: 32px; }
 header a { text-decoration: none; font-size: 24px; font-weight: 900; letter-spacing: .12em; }
 h1, h2 { color: #f5f1e8; }

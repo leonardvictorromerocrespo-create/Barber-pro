@@ -1,16 +1,16 @@
 @import "tailwindcss";
 
 @theme {
-  --color-amber-50: #faf7f0;
-  --color-amber-100: #f1e8d4;
-  --color-amber-200: #d9c49a;
-  --color-amber-300: #c9ad7a;
-  --color-amber-400: #b99b66;
-  --color-amber-500: #a48650;
-  --color-amber-600: #8b7043;
-  --color-amber-700: #6e5837;
-  --color-amber-800: #4c3b23;
-  --color-amber-900: #2c2113;
+  --color-amber-50: #fbf7e8;
+  --color-amber-100: #f5e9bc;
+  --color-amber-200: #efdb8d;
+  --color-amber-300: #e8c766;
+  --color-amber-400: #d4af37;
+  --color-amber-500: #b89525;
+  --color-amber-600: #9e7c17;
+  --color-amber-700: #765e12;
+  --color-amber-800: #4f400f;
+  --color-amber-900: #2b2209;
 
   --color-neutral-950: #0b0b0b;
   --color-neutral-900: #12110f;
@@ -24,11 +24,11 @@
   --color-neutral-100: #f5f1e8;
 
   /* Map informational/success accents to the same quiet antique-gold family. */
-  --color-sky-300: #c9ad7a;
-  --color-sky-400: #b99b66;
-  --color-emerald-300: #c9ad7a;
-  --color-emerald-400: #b99b66;
-  --color-emerald-500: #a48650;
+  --color-sky-300: #e8c766;
+  --color-sky-400: #d4af37;
+  --color-emerald-300: #e8c766;
+  --color-emerald-400: #d4af37;
+  --color-emerald-500: #b89525;
 }
 
 :root {
@@ -37,9 +37,9 @@
   --meryo-surface: #12110f;
   --meryo-surface-raised: #171613;
   --meryo-surface-soft: #201e19;
-  --meryo-gold: #b99b66;
-  --meryo-gold-light: #c9ad7a;
-  --meryo-gold-border: rgba(185, 155, 102, .35);
+  --meryo-gold: #d4af37;
+  --meryo-gold-light: #e8c766;
+  --meryo-gold-border: rgba(212, 175, 55, .38);
   --meryo-text: #f5f1e8;
   --meryo-text-muted: #b6afa1;
   --meryo-border: rgba(245, 241, 232, .12);
@@ -65,12 +65,12 @@ body {
 }
 
 .meryo-site-header button {
-  border-color: rgba(185, 155, 102, .42);
+  border-color: rgba(212, 175, 55, .45);
   color: var(--meryo-text);
 }
 
 .meryo-site-header button:hover {
-  background-color: rgba(185, 155, 102, .1);
+  background-color: rgba(232, 199, 102, .12);
 }
 
 .meryo-catalog-filters {
@@ -81,11 +81,11 @@ body {
 }
 
 .meryo-shop-card__services {
-  background: rgba(185, 155, 102, .07) !important;
+  background: rgba(212, 175, 55, .07) !important;
 }
 
 .meryo-shop-card:nth-child(3n + 1) .meryo-shop-card__services {
-  background: rgba(185, 155, 102, .11) !important;
+  background: rgba(212, 175, 55, .11) !important;
 }
 
 .meryo-shop-card:nth-child(3n + 2) .meryo-shop-card__services {
@@ -102,12 +102,12 @@ body {
 }
 
 .bg-emerald-500\/10 {
-  background-color: rgba(185, 155, 102, .1);
+  background-color: rgba(212, 175, 55, .1);
 }
 
 .border-emerald-500\/30,
 .border-emerald-500\/40 {
-  border-color: rgba(185, 155, 102, .35);
+  border-color: rgba(212, 175, 55, .4);
 }
 
 :where(button, a, input, select, textarea, [tabindex]):focus-visible {

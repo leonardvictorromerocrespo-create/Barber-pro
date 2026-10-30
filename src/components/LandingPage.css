@@ -1,6 +1,7 @@
 .meryo-cover {
   --meryo-cover-carbon: var(--meryo-carbon, #0b0b0b);
-  --meryo-cover-gold: var(--meryo-gold, #b99b66);
+  --meryo-cover-gold: var(--meryo-gold, #d4af37);
+  --meryo-cover-gold-light: var(--meryo-gold-light, #e8c766);
   min-height: 100svh;
   overflow: hidden;
   background: var(--meryo-cover-carbon);
@@ -80,15 +81,15 @@
 }
 
 .meryo-cover__secondary {
-  border-color: rgba(185, 155, 102, .55);
-  background: rgba(185, 155, 102, .08);
+  border-color: rgba(212, 175, 55, .55);
+  background: rgba(212, 175, 55, .08);
   color: #f5f1e8;
 }
 
 .meryo-cover__nav button:hover,
 .meryo-cover__secondary:hover {
-  border-color: var(--meryo-cover-gold);
-  background: rgba(185, 155, 102, .12);
+  border-color: var(--meryo-cover-gold-light);
+  background: rgba(232, 199, 102, .12);
 }
 
 .meryo-cover__secondary:hover { color: #f5f1e8; }
@@ -157,11 +158,12 @@
   font: inherit;
   font-weight: 750;
   cursor: pointer;
-  transition: transform .2s ease, filter .2s ease;
+  transition: transform .2s ease, background-color .2s ease, border-color .2s ease;
 }
 
 .meryo-cover__primary:hover {
-  filter: brightness(1.08);
+  border-color: var(--meryo-cover-gold-light);
+  background: var(--meryo-cover-gold-light);
   transform: translateY(-2px);
 }
 
@@ -231,7 +233,7 @@
   z-index: 20;
   inset: 0;
   overflow: hidden;
-  background: radial-gradient(ellipse at 50% 52%, rgba(185, 155, 102, .12), transparent 45%), rgba(8, 8, 8, .96);
+  background: radial-gradient(ellipse at 50% 52%, rgba(212, 175, 55, .09), transparent 45%), rgba(8, 8, 8, .96);
   animation: meryo-cover-intro-bg 2.7s ease forwards;
   pointer-events: none;
 }
@@ -258,7 +260,7 @@
 .meryo-cover__intro-light {
   position: absolute;
   inset: 0;
-  background: linear-gradient(105deg, transparent 34%, rgba(245, 241, 232, .96) 49%, rgba(185, 155, 102, .82) 51%, transparent 62%);
+  background: linear-gradient(105deg, transparent 34%, rgba(245, 241, 232, .88) 49%, rgba(232, 199, 102, .55) 51%, transparent 62%);
   background-size: 240% 100%;
   -webkit-mask: url('/meryo-logo.png') center / contain no-repeat;
   mask: url('/meryo-logo.png') center / contain no-repeat;
@@ -283,8 +285,8 @@
 }
 
 .meryo-cover__skip:hover {
-  border-color: var(--meryo-cover-gold);
-  color: var(--meryo-cover-gold);
+  border-color: var(--meryo-cover-gold-light);
+  color: var(--meryo-cover-gold-light);
 }
 
 @keyframes meryo-cover-copy-in {
