@@ -24,11 +24,11 @@ export default function CatalogMap({ markers, location, onSelect,focusZoom=15,la
       const button = document.createElement('button'); button.textContent = 'Ver barbería';
       button.type = 'button'; button.addEventListener('click', () => select.current(marker.id));
       popup.append(title, detail);if(select.current)popup.append(button);
-      L.circleMarker([marker.lat, marker.lng], { radius: 9, color: '#048a81', fillOpacity: 0.8 }).addTo(layer.current).bindPopup(popup);
+      L.circleMarker([marker.lat, marker.lng], { radius: 9, color: '#b99b66', fillOpacity: 0.8 }).addTo(layer.current).bindPopup(popup);
     });
     const points = markers.map(marker => [marker.lat, marker.lng]);
     if (location) {
-      L.circleMarker([location.lat, location.lng], { radius: 7, color: '#3b82f6', fillOpacity: 1 }).addTo(layer.current).bindTooltip('Tu ubicación');
+      L.circleMarker([location.lat, location.lng], { radius: 7, color: '#b99b66', fillColor: '#f5f1e8', fillOpacity: 1 }).addTo(layer.current).bindTooltip('Tu ubicación');
       points.push([location.lat, location.lng]);
     }
     if (points.length) map.current.fitBounds(L.latLngBounds(points), { padding: [30, 30], maxZoom: focusZoom });

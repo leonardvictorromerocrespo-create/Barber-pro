@@ -1,103 +1,116 @@
 @import "tailwindcss";
 
 @theme {
-  --color-amber-50: #e9fbf7;
-  --color-amber-100: #cff6ed;
-  --color-amber-200: #0b6e73;
-  --color-amber-300: #04b890;
-  --color-amber-400: #06d6a0;
-  --color-amber-500: #048a81;
-  --color-amber-600: #08776f;
-  --color-neutral-950: #f7faff;
-  --color-neutral-900: #ffffff;
-  --color-neutral-800: #eff5fc;
-  --color-neutral-700: #e0ebf8;
-  --color-neutral-600: #b9c8db;
-  --color-neutral-500: #61748e;
-  --color-neutral-400: #526780;
-  --color-neutral-300: #405773;
-  --color-neutral-200: #294361;
-  --color-neutral-100: #173252;
+  --color-amber-50: #faf7f0;
+  --color-amber-100: #f1e8d4;
+  --color-amber-200: #d9c49a;
+  --color-amber-300: #c9ad7a;
+  --color-amber-400: #b99b66;
+  --color-amber-500: #a48650;
+  --color-amber-600: #8b7043;
+  --color-amber-700: #6e5837;
+  --color-amber-800: #4c3b23;
+  --color-amber-900: #2c2113;
+
+  --color-neutral-950: #0b0b0b;
+  --color-neutral-900: #12110f;
+  --color-neutral-800: #171613;
+  --color-neutral-700: #26241f;
+  --color-neutral-600: #514d44;
+  --color-neutral-500: #817a6d;
+  --color-neutral-400: #b6afa1;
+  --color-neutral-300: #d7d0c4;
+  --color-neutral-200: #e6e0d4;
+  --color-neutral-100: #f5f1e8;
+
+  /* Map informational/success accents to the same quiet antique-gold family. */
+  --color-sky-300: #c9ad7a;
+  --color-sky-400: #b99b66;
+  --color-emerald-300: #c9ad7a;
+  --color-emerald-400: #b99b66;
+  --color-emerald-500: #a48650;
 }
 
 :root {
-  color-scheme: light;
-  --meryo-navy: #001433;
-  --meryo-soft-blue: #99c2ff;
-  --meryo-turquoise: #048a81;
-  --meryo-mint: #06d6a0;
-  --meryo-sky: #54c6eb;
-  --meryo-page: #f7faff;
-  --meryo-surface: #ffffff;
-  --meryo-surface-soft: #eff5fc;
-  --meryo-text-muted: #526780;
-  --meryo-border: rgba(0, 20, 51, .14);
-  background: var(--meryo-page);
-  color: var(--meryo-navy);
+  color-scheme: dark;
+  --meryo-carbon: #0b0b0b;
+  --meryo-surface: #12110f;
+  --meryo-surface-raised: #171613;
+  --meryo-surface-soft: #201e19;
+  --meryo-gold: #b99b66;
+  --meryo-gold-light: #c9ad7a;
+  --meryo-gold-border: rgba(185, 155, 102, .35);
+  --meryo-text: #f5f1e8;
+  --meryo-text-muted: #b6afa1;
+  --meryo-border: rgba(245, 241, 232, .12);
+  background: var(--meryo-carbon);
+  color: var(--meryo-text);
 }
 
 body {
   min-width: 320px;
   margin: 0;
-  background: var(--meryo-page);
-  color: var(--meryo-navy);
+  background: var(--meryo-carbon);
+  color: var(--meryo-text);
 }
 
-/* The existing amber/neutral utilities now draw from MERYO's coastal palette. */
-.text-amber-400,
-.text-amber-300 { color: var(--meryo-turquoise); }
-.text-amber-200 { color: #0b6e73; }
-.text-white,
-.text-black { color: var(--meryo-navy); }
-.text-neutral-400,
-.text-neutral-500 { color: var(--meryo-text-muted); }
-.text-neutral-300 { color: #405773; }
-.text-neutral-200,
-.text-neutral-100 { color: var(--meryo-navy); }
-
-[class~="bg-black"] { background-color: var(--meryo-surface); }
-[class~="bg-black/20"] { background-color: rgba(0, 20, 51, .035); }
-[class~="bg-black/30"] { background-color: rgba(153, 194, 255, .13); }
-[class~="bg-black/35"] { background-color: rgba(153, 194, 255, .16); }
-[class~="bg-black/40"] { background-color: rgba(0, 20, 51, .035); }
-[class~="bg-black/60"] { background-color: rgba(0, 20, 51, .08); }
-[class~="bg-black/70"] { background-color: rgba(0, 20, 51, .11); }
-[class~="hover:bg-black/60"]:hover { background-color: rgba(0, 20, 51, .08); }
-[class~="bg-white/10"] { background-color: rgba(0, 20, 51, .035); }
-[class~="hover:bg-white/10"]:hover { background-color: rgba(0, 20, 51, .06); }
-[class~="border-white/10"] { border-color: rgba(0, 20, 51, .12); }
-[class~="border-white/20"] { border-color: rgba(0, 20, 51, .2); }
-[class~="border-white/30"] { border-color: rgba(0, 20, 51, .3); }
+.text-white {
+  color: var(--meryo-text);
+}
 
 .meryo-site-header {
-  border-color: rgba(255, 255, 255, .16) !important;
-  background-color: var(--meryo-navy) !important;
-  color: #fff;
+  border-color: rgba(245, 241, 232, .12) !important;
+  background-color: var(--meryo-carbon) !important;
+  color: var(--meryo-text);
 }
 
 .meryo-site-header button {
-  border-color: rgba(255, 255, 255, .35);
-  color: #fff;
+  border-color: rgba(185, 155, 102, .42);
+  color: var(--meryo-text);
+}
+
+.meryo-site-header button:hover {
+  background-color: rgba(185, 155, 102, .1);
 }
 
 .meryo-catalog-filters {
-  border: 1px solid rgba(0, 20, 51, .1);
+  border: 1px solid var(--meryo-gold-border);
   border-radius: 1rem;
-  background: color-mix(in srgb, var(--meryo-soft-blue) 30%, white);
+  background: var(--meryo-surface);
   padding: .75rem;
 }
 
-.meryo-shop-card__services { background: rgba(84, 198, 235, .12) !important; }
-.meryo-shop-card:nth-child(3n + 1) .meryo-shop-card__services { background: rgba(4, 138, 129, .09) !important; }
-.meryo-shop-card:nth-child(3n + 2) .meryo-shop-card__services { background: rgba(6, 214, 160, .11) !important; }
+.meryo-shop-card__services {
+  background: rgba(185, 155, 102, .07) !important;
+}
 
-.meryo-info-block--teal { background: color-mix(in srgb, var(--meryo-turquoise) 9%, white) !important; }
-.meryo-info-block--sky { background: color-mix(in srgb, var(--meryo-sky) 14%, white) !important; }
+.meryo-shop-card:nth-child(3n + 1) .meryo-shop-card__services {
+  background: rgba(185, 155, 102, .11) !important;
+}
 
-.text-red-300 { color: #b42318; }
-.text-emerald-300 { color: #067647; }
+.meryo-shop-card:nth-child(3n + 2) .meryo-shop-card__services {
+  background: rgba(245, 241, 232, .045) !important;
+}
+
+.meryo-info-block--teal,
+.meryo-info-block--sky {
+  background: color-mix(in srgb, var(--meryo-gold) 8%, var(--meryo-surface)) !important;
+}
+
+.text-emerald-300 {
+  color: var(--meryo-gold-light);
+}
+
+.bg-emerald-500\/10 {
+  background-color: rgba(185, 155, 102, .1);
+}
+
+.border-emerald-500\/30,
+.border-emerald-500\/40 {
+  border-color: rgba(185, 155, 102, .35);
+}
 
 :where(button, a, input, select, textarea, [tabindex]):focus-visible {
-  outline: 3px solid var(--meryo-soft-blue);
+  outline: 3px solid var(--meryo-gold-light);
   outline-offset: 2px;
 }

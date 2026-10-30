@@ -1,10 +1,10 @@
 .meryo-cover {
-  --meryo-cover-navy: var(--meryo-navy, #001433);
-  --meryo-cover-mint: var(--meryo-mint, #06d6a0);
+  --meryo-cover-carbon: var(--meryo-carbon, #0b0b0b);
+  --meryo-cover-gold: var(--meryo-gold, #b99b66);
   min-height: 100svh;
   overflow: hidden;
-  background: var(--meryo-page, #f7faff);
-  color: var(--meryo-cover-navy);
+  background: var(--meryo-cover-carbon);
+  color: var(--meryo-text, #f5f1e8);
 }
 
 .meryo-cover__header,
@@ -24,10 +24,10 @@
   justify-content: space-between;
   gap: 1.25rem;
   margin: 0;
-  border-bottom: 1px solid rgba(255, 255, 255, .14);
-  background: var(--meryo-cover-navy);
+  border-bottom: 1px solid rgba(245, 241, 232, .08);
+  background: var(--meryo-cover-carbon);
   padding-inline: max(1.5rem, calc((100vw - 80rem) / 2));
-  color: #fff;
+  color: #f5f1e8;
 }
 
 .meryo-cover__brand {
@@ -51,7 +51,7 @@
 }
 
 .meryo-cover__wordmark {
-  color: #fff;
+  color: #f5f1e8;
   font-size: 1.8rem;
   font-weight: 800;
   letter-spacing: -.045em;
@@ -67,10 +67,10 @@
 .meryo-cover__nav button,
 .meryo-cover__secondary {
   min-height: 2.75rem;
-  border: 1px solid rgba(255, 255, 255, .48);
+  border: 1px solid rgba(245, 241, 232, .2);
   border-radius: 999px;
-  background: rgba(255, 255, 255, .04);
-  color: #fff;
+  background: transparent;
+  color: #f5f1e8;
   padding: .65rem 1.1rem;
   font: inherit;
   font-size: .9rem;
@@ -80,18 +80,18 @@
 }
 
 .meryo-cover__secondary {
-  border-color: rgba(0, 20, 51, .28);
-  background: rgba(255, 255, 255, .88);
-  color: var(--meryo-cover-navy);
+  border-color: rgba(185, 155, 102, .55);
+  background: rgba(185, 155, 102, .08);
+  color: #f5f1e8;
 }
 
 .meryo-cover__nav button:hover,
 .meryo-cover__secondary:hover {
-  border-color: var(--meryo-cover-mint);
-  background: rgba(6, 214, 160, .15);
+  border-color: var(--meryo-cover-gold);
+  background: rgba(185, 155, 102, .12);
 }
 
-.meryo-cover__secondary:hover { color: var(--meryo-cover-navy); }
+.meryo-cover__secondary:hover { color: #f5f1e8; }
 
 .meryo-cover__main {
   display: block;
@@ -121,7 +121,7 @@
   flex-direction: column;
   gap: .1em;
   margin: 0;
-  color: var(--meryo-cover-navy);
+  color: #f5f1e8;
   font-size: clamp(3.15rem, 5.55vw, 5.35rem);
   font-weight: 750;
   letter-spacing: -.055em;
@@ -129,13 +129,13 @@
 }
 
 .meryo-cover__accent {
-  color: #047f78;
+  color: var(--meryo-cover-gold);
 }
 
 .meryo-cover__copy p {
   max-width: 31rem;
   margin: 1.7rem 0 0;
-  color: #2f4765;
+  color: rgba(245, 241, 232, .76);
   font-size: clamp(1rem, 1.35vw, 1.18rem);
   line-height: 1.75;
 }
@@ -149,10 +149,10 @@
 
 .meryo-cover__primary {
   min-height: 3.25rem;
-  border: 1px solid var(--meryo-cover-mint);
+  border: 1px solid var(--meryo-cover-gold);
   border-radius: 999px;
-  background: var(--meryo-cover-mint);
-  color: var(--meryo-cover-navy);
+  background: var(--meryo-cover-gold);
+  color: #11100e;
   padding: .85rem 1.5rem;
   font: inherit;
   font-weight: 750;
@@ -161,7 +161,7 @@
 }
 
 .meryo-cover__primary:hover {
-  filter: saturate(1.12) brightness(.96);
+  filter: brightness(1.08);
   transform: translateY(-2px);
 }
 
@@ -171,7 +171,7 @@
   inset: 0;
   min-width: 0;
   overflow: hidden;
-  background: #dce8f6;
+  background: #171613;
 }
 
 .meryo-cover__visual img {
@@ -190,11 +190,11 @@
   inset: 0;
   pointer-events: none;
   background: linear-gradient(90deg,
-    rgba(247, 250, 255, .98) 0%,
-    rgba(247, 250, 255, .91) 28%,
-    rgba(247, 250, 255, .68) 43%,
-    rgba(247, 250, 255, .24) 58%,
-    rgba(247, 250, 255, 0) 75%);
+    rgba(11, 11, 11, .88) 0%,
+    rgba(11, 11, 11, .76) 27%,
+    rgba(11, 11, 11, .48) 43%,
+    rgba(11, 11, 11, .16) 57%,
+    rgba(11, 11, 11, 0) 70%);
 }
 
 .meryo-cover__footer {
@@ -203,14 +203,14 @@
   display: flex;
   justify-content: flex-end;
   gap: 1.25rem;
-  border-top: 1px solid rgba(0, 20, 51, .12);
+  border-top: 1px solid rgba(245, 241, 232, .08);
   padding-block: 1rem;
-  color: #526780;
+  color: rgba(245, 241, 232, .55);
   font-size: .75rem;
 }
 
 .meryo-cover__footer a:hover {
-  color: #047f78;
+  color: var(--meryo-cover-gold);
 }
 
 .meryo-cover[data-intro='playing'] .meryo-cover__brand-image {
@@ -231,7 +231,7 @@
   z-index: 20;
   inset: 0;
   overflow: hidden;
-  background: radial-gradient(ellipse at 50% 52%, rgba(153, 194, 255, .18), transparent 45%), rgba(0, 20, 51, .98);
+  background: radial-gradient(ellipse at 50% 52%, rgba(185, 155, 102, .12), transparent 45%), rgba(8, 8, 8, .96);
   animation: meryo-cover-intro-bg 2.7s ease forwards;
   pointer-events: none;
 }
@@ -258,10 +258,10 @@
 .meryo-cover__intro-light {
   position: absolute;
   inset: 0;
-  background: linear-gradient(105deg, transparent 34%, rgba(255, 255, 255, .96) 49%, rgba(6, 214, 160, .8) 51%, transparent 62%);
+  background: linear-gradient(105deg, transparent 34%, rgba(245, 241, 232, .96) 49%, rgba(185, 155, 102, .82) 51%, transparent 62%);
   background-size: 240% 100%;
-  -webkit-mask: url('/meryo-logo-coastal.png') center / contain no-repeat;
-  mask: url('/meryo-logo-coastal.png') center / contain no-repeat;
+  -webkit-mask: url('/meryo-logo.png') center / contain no-repeat;
+  mask: url('/meryo-logo.png') center / contain no-repeat;
   mix-blend-mode: screen;
   animation: meryo-cover-light-sweep 1.3s .25s ease-out both;
 }
@@ -271,10 +271,10 @@
   top: max(1rem, env(safe-area-inset-top));
   right: max(1rem, env(safe-area-inset-right));
   min-height: 2.75rem;
-  border: 1px solid rgba(255, 255, 255, .48);
+  border: 1px solid rgba(245, 241, 232, .42);
   border-radius: 999px;
-  background: rgba(255, 255, 255, .06);
-  color: #fff;
+  background: rgba(8, 8, 8, .35);
+  color: #f5f1e8;
   padding: .65rem 1rem;
   font: inherit;
   font-size: .9rem;
@@ -283,8 +283,8 @@
 }
 
 .meryo-cover__skip:hover {
-  border-color: var(--meryo-cover-mint);
-  color: var(--meryo-cover-mint);
+  border-color: var(--meryo-cover-gold);
+  color: var(--meryo-cover-gold);
 }
 
 @keyframes meryo-cover-copy-in {
@@ -344,10 +344,10 @@
   }
   .meryo-cover__edge-light {
     background: linear-gradient(180deg,
-      rgba(247, 250, 255, 1) 0%,
-      rgba(247, 250, 255, 1) 38%,
-      rgba(247, 250, 255, .72) 46%,
-      rgba(247, 250, 255, 0) 55%);
+      rgba(11, 11, 11, .96) 0%,
+      rgba(11, 11, 11, .92) 38%,
+      rgba(11, 11, 11, .62) 46%,
+      rgba(11, 11, 11, 0) 55%);
   }
   .meryo-cover__footer { width: min(100% - 2rem, 36rem); justify-content: center; padding-block: .8rem; }
   .meryo-cover__intro-logo { width: min(78vw, 24rem); }

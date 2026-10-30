@@ -3,7 +3,7 @@ import heroPhoto from '../assets/meryo-hero-barber.webp';
 import {consumeLandingIntro} from '../lib/landing-intro';
 import './LandingPage.css';
 
-const logoSource = '/meryo-logo-coastal.png';
+const logoSource = '/meryo-logo.png';
 const introDuration = 2700;
 
 function reducedMotionEnabled() {
