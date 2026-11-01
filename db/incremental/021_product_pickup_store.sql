@@ -104,7 +104,7 @@ declare title text;body text;begin
   else 'El plazo de recojo terminó y las unidades volvieron al stock.' end;
  insert into public.notificaciones(user_id,titulo,mensaje,tipo,pedido_id)
  values(p_user,title,body,p_event,p_order);
-end$$;
+end;$$;
 revoke all on function meryo_private.notify_pickup_order(uuid,uuid,text) from public,anon,authenticated,service_role;
 
 create or replace function meryo_private.queue_push() returns trigger
@@ -117,7 +117,7 @@ language plpgsql security definer set search_path='' as $$begin
   values(new.id,new.user_id,new.tipo,null,new.pedido_id,clock_timestamp());
  end if;
  return new;
-end$$;
+end;$$;
 revoke all on function meryo_private.queue_push() from public,anon,authenticated,service_role;
 
 create or replace function public.meryo_save_product(p_id bigint,p_data jsonb) returns bigint
@@ -146,7 +146,7 @@ begin
   if result is null then raise exception 'Producto no encontrado o archivado';end if;
  end if;
  return result;
-end$$;
+end;$$;
 revoke all on function public.meryo_save_product(bigint,jsonb) from public,anon;
 grant execute on function public.meryo_save_product(bigint,jsonb) to authenticated;
 
@@ -157,7 +157,7 @@ declare shop bigint:=public.mi_barberia_id();begin
  update public.meryo_products set publicado=false,archivado_en=coalesce(archivado_en,clock_timestamp()),updated_at=clock_timestamp()
  where id=p_id and barberia_id=shop;
  if not found then raise exception 'Producto no encontrado';end if;return true;
-end$$;
+end;$$;
 revoke all on function public.meryo_archive_product(bigint) from public,anon;
 grant execute on function public.meryo_archive_product(bigint) to authenticated;
 
@@ -194,7 +194,7 @@ begin
  where p.barberia_id=p_shop and p.publicado and p.archivado_en is null order by p.id;
  perform meryo_private.notify_pickup_order(o.user_id,result,'pedido_solicitado') from meryo_private.shop_owners o where o.barberia_id=p_shop;
  return result;
-end$$;
+end;$$;
 revoke all on function public.meryo_request_pickup(bigint,jsonb,uuid) from public,anon;
 grant execute on function public.meryo_request_pickup(bigint,jsonb,uuid) to authenticated;
 
@@ -222,11 +222,11 @@ begin
  end loop;
  update public.meryo_pickup_orders set estado='aceptado',recogida_hasta=p_deadline,estado_stock='reservado',updated_at=clock_timestamp() where id=p_id;
  perform meryo_private.notify_pickup_order(o.cliente_id,p_id,'pedido_aceptado');return 'aceptado';
-end$$;
+end;$$;
 revoke all on function meryo_private.accept_pickup_order(uuid,timestamptz) from public,anon,authenticated,service_role;
 
 create function public.meryo_accept_pickup_order(p_id uuid,p_deadline timestamptz) returns text
-language plpgsql security definer set search_path='' as $$begin return meryo_private.accept_pickup_order(p_id,p_deadline);end$$;
+language plpgsql security definer set search_path='' as $$begin return meryo_private.accept_pickup_order(p_id,p_deadline);end;$$;
 revoke all on function public.meryo_accept_pickup_order(uuid,timestamptz) from public,anon;
 grant execute on function public.meryo_accept_pickup_order(uuid,timestamptz) to authenticated;
 
@@ -237,7 +237,7 @@ language plpgsql security definer set search_path='' as $$declare o public.meryo
  if not public.meryo_es_propietario(o.barberia_id) then raise exception 'Solo el propietario de esta barbería puede responder' using errcode='42501';end if;
  if o.estado<>'pendiente' then raise exception 'La solicitud ya no está pendiente';end if;
  update public.meryo_pickup_orders set estado='rechazado',updated_at=clock_timestamp() where id=p_id;
- perform meryo_private.notify_pickup_order(o.cliente_id,p_id,'pedido_rechazado');return 'rechazado';end$$;
+ perform meryo_private.notify_pickup_order(o.cliente_id,p_id,'pedido_rechazado');return 'rechazado';end;$$;
 revoke all on function public.meryo_reject_pickup_order(uuid) from public,anon;
 grant execute on function public.meryo_reject_pickup_order(uuid) to authenticated;
 
@@ -246,7 +246,7 @@ language plpgsql security definer set search_path='' as $$declare item record;be
  for item in select producto_id,cantidad from public.meryo_pickup_order_items where pedido_id=p_id order by producto_id loop
   update public.meryo_products set stock_disponible=stock_disponible+item.cantidad,updated_at=clock_timestamp() where id=item.producto_id;
  end loop;
-end$$;
+end;$$;
 revoke all on function meryo_private.release_pickup_stock(uuid) from public,anon,authenticated,service_role;
 
 create function meryo_private.expire_pickup_orders() returns integer
@@ -255,7 +255,7 @@ language plpgsql security definer set search_path='' as $$declare item record;ch
   perform meryo_private.release_pickup_stock(item.id);
   update public.meryo_pickup_orders set estado='vencido',estado_stock='liberado',updated_at=clock_timestamp() where id=item.id and estado='aceptado' and estado_stock='reservado';
   if found then perform meryo_private.notify_pickup_order(item.cliente_id,item.id,'pedido_vencido');changed:=changed+1;end if;
- end loop;return changed;end$$;
+ end loop;return changed;end;$$;
 revoke all on function meryo_private.expire_pickup_orders() from public,anon,authenticated,service_role;
 
 create function public.meryo_cancel_pickup_order(p_id uuid) returns text
@@ -267,7 +267,7 @@ language plpgsql security definer set search_path='' as $$declare o public.meryo
  if o.estado='entregado' then raise exception 'Un pedido entregado no se puede cancelar';end if;
  if o.estado_stock='reservado' then perform meryo_private.release_pickup_stock(p_id);end if;
  update public.meryo_pickup_orders set estado='cancelado',estado_stock=case when estado_stock='reservado' then 'liberado' else 'sin_reserva' end,updated_at=clock_timestamp() where id=p_id;
- perform meryo_private.notify_pickup_order(o.cliente_id,p_id,'pedido_cancelado');return 'cancelado';end$$;
+ perform meryo_private.notify_pickup_order(o.cliente_id,p_id,'pedido_cancelado');return 'cancelado';end;$$;
 revoke all on function public.meryo_cancel_pickup_order(uuid) from public,anon;
 grant execute on function public.meryo_cancel_pickup_order(uuid) to authenticated;
 
@@ -283,7 +283,7 @@ language plpgsql security definer set search_path='' as $$declare o public.meryo
  end if;
  if o.estado<>'aceptado' or o.estado_stock<>'reservado' then raise exception 'El pedido ya no está disponible para entrega';end if;
  update public.meryo_pickup_orders set estado='entregado',estado_stock='entregado',updated_at=clock_timestamp() where id=p_id;
- return 'entregado';end$$;
+ return 'entregado';end;$$;
 revoke all on function public.meryo_deliver_pickup_order(uuid) from public,anon;
 grant execute on function public.meryo_deliver_pickup_order(uuid) to authenticated;
 
@@ -302,7 +302,7 @@ language plpgsql security definer set search_path='' as $$declare uid uuid:=auth
  from public.meryo_pickup_orders o join public.barberias b on b.id=o.barberia_id
  where (p_id is null or o.id=p_id) and (o.cliente_id=uid or (role_name='barbero' and public.meryo_es_propietario(o.barberia_id)));
  return coalesce(result,'[]'::jsonb);
-end$$;
+end;$$;
 revoke all on function public.meryo_pickup_orders(uuid) from public,anon;
 grant execute on function public.meryo_pickup_orders(uuid) to authenticated;
 
@@ -324,7 +324,7 @@ do $$begin
  if to_regclass('cron.job') is null then raise exception 'pg_cron is required to expire accepted pickup orders on the server';end if;
  if exists(select 1 from cron.job where jobname='meryo-pickup-order-expiry') then perform cron.unschedule(jobid) from cron.job where jobname='meryo-pickup-order-expiry';end if;
  perform cron.schedule('meryo-pickup-order-expiry','* * * * *','select meryo_private.expire_pickup_orders()');
-end$$;
+end;$$;
 
 notify pgrst,'reload schema';
 commit;
