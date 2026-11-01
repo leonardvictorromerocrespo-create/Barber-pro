@@ -171,7 +171,9 @@ try{
  await ownerApi.acceptPickup(loserOrder,new Date(Date.now()+120000).toISOString());await ownerApi.cancelPickup(loserOrder);await ownerApi.cancelPickup(loserOrder);
  assert.equal((await ownerApi.ownerProducts()).find(p=>p.id===productA).stock_disponible,1,'Cancellation releases an accepted reservation once');
  phase='pickup delivery and exact notifications';
- await db.query("update meryo_private.push_outbox set status='expired' where event like 'pedido_%'");
+ // Remove only synthetic queue entries from earlier reservation/booking checks so
+ // this section can assert the pickup-order push deterministically.
+ await db.query("update meryo_private.push_outbox set status='expired' where event like 'pedido_%' or event like 'reserva_%'");
  const vapid=webpush.generateVAPIDKeys(),pushConfig={...vapid,subject:'mailto:meryo-isolated@example.invalid'},ownerEndpoint=`https://fcm.googleapis.com/meryo-ci-store/${crypto.randomUUID()}/owner`,buyerEndpoint=`https://fcm.googleapis.com/meryo-ci-store/${crypto.randomUUID()}/buyer`,pushKey=webpush.generateVAPIDKeys().publicKey,pushAuth=crypto.randomBytes(16).toString('base64url'),sent=[];
  await db.query('insert into meryo_private.push_subscriptions(endpoint,user_id,p256dh,auth) values($1,$3,$5,$6),($2,$4,$5,$6)',[ownerEndpoint,buyerEndpoint,ownerId,strangerId,pushKey,pushAuth]);
  const deliveryOrder=await buyerApi.requestPickup({shop,items:[{productId:productB,quantity:1}],requestKey:crypto.randomUUID()});
