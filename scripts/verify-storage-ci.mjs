@@ -37,11 +37,12 @@ try{
  await db.query("insert into public.configuracion(clave,valor) values('minutos_anticipacion_minima','30'),('paso_minutos','30'),('max_reservas_pendientes','2')");
  await db.query("insert into meryo_private.launch_settings(id,reservas_habilitadas,plazo_pago_segundos,entorno,modelo_comercial) values(1,true,600,'staging','mensualidad');insert into meryo_private.shop_content_settings values(1,true)");
  await db.query(await fs.readFile('db/incremental/021_product_pickup_store.sql','utf8'));
+ await db.query(await fs.readFile('db/incremental/022_beauty_business_catalog.sql','utf8'));
  const clean=(await db.query('select (select count(*) from auth.users)::int users,(select count(*) from public.barberias)::int shops')).rows[0];assert.deepEqual(clean,{users:0,shops:0});
  console.log('Disposable isolated schema and store migration prepared; no services started');
  }else{
- const ready=(await db.query("select to_regclass('public.meryo_products') is not null as products,to_regclass('public.meryo_pickup_orders') is not null as orders,(select count(*) from auth.users)::int users,(select count(*) from public.barberias)::int shops")).rows[0];
- assert.deepEqual(ready,{products:true,orders:true,users:0,shops:0},'The second isolated runner phase requires the clean prepared schema');
+ const ready=(await db.query("select to_regclass('public.meryo_products') is not null as products,to_regclass('public.meryo_pickup_orders') is not null as orders,to_regclass('public.meryo_catalogo_categoria(text)') is not null as beauty_catalog,(select count(*) from auth.users)::int users,(select count(*) from public.barberias)::int shops")).rows[0];
+ assert.deepEqual(ready,{products:true,orders:true,beauty_catalog:true,users:0,shops:0},'The second isolated runner phase requires the clean prepared schema');
  }
  if(!setupOnly){
  // Match the existing native Auth role's search_path: Pop's migration ledger is
@@ -61,10 +62,10 @@ try{
  const owner=make(),admin=make(),stranger=make(),anonymous=make();clients.push(owner,admin,stranger);
  const signup=async(c,label)=>{const r=await c.auth.signUp({email:label+'.'+crypto.randomUUID()+'@example.com',password:crypto.randomBytes(24).toString('base64url'),options:{data:{full_name:'Cuenta sintética '+label}}});assert.ifError(r.error);assert.ok(r.data.session);return r.data.user.id;};
  phase='genuine Auth accounts and MFA';
- const ownerId=await signup(owner,'owner'),adminId=await signup(admin,'admin'),strangerId=await signup(stranger,'stranger'),buyerTwo=make();clients.push(buyerTwo);const buyerTwoId=await signup(buyerTwo,'buyer-two');
+ const ownerId=await signup(owner,'owner'),adminId=await signup(admin,'admin'),strangerId=await signup(stranger,'stranger'),buyerTwo=make(),beautyOwner=make(),mixedOwner=make();clients.push(buyerTwo,beautyOwner,mixedOwner);const buyerTwoId=await signup(buyerTwo,'buyer-two'),beautyOwnerId=await signup(beautyOwner,'beauty-owner'),mixedOwnerId=await signup(mixedOwner,'mixed-owner');
  await db.query("update public.profiles set rol='admin' where id=$1",[adminId]);assert.ok((await admin.rpc('meryo_admin_barberias')).error,'AAL1 denied');
  const factor=await admin.auth.mfa.enroll({factorType:'totp',issuer:'MERYO CI synthetic'});assert.ifError(factor.error);assert.ifError((await admin.auth.mfa.challengeAndVerify({factorId:factor.data.id,code:totp(factor.data.totp.secret)})).error);
- const ownerApi=createMeryoApi(owner),adminApi=createMeryoApi(admin),publicApi=createMeryoApi(anonymous),buyerApi=createMeryoApi(stranger),buyerTwoApi=createMeryoApi(buyerTwo);
+ const ownerApi=createMeryoApi(owner),adminApi=createMeryoApi(admin),publicApi=createMeryoApi(anonymous),buyerApi=createMeryoApi(stranger),buyerTwoApi=createMeryoApi(buyerTwo),beautyApi=createMeryoApi(beautyOwner),mixedApi=createMeryoApi(mixedOwner);
  phase='owner profile, services and private upload';
  const shop=await ownerApi.registerShop({nombre:'MERYO CI Storage',distrito:'Ate',direccion:'Dirección sintética CI',descripcion:'Contenido privado hasta aprobación',lat:-12.04,lng:-77.03,whatsapp:'',correo:''});
  assert.ifError((await owner.from('servicios').insert({barberia_id:shop,nombre:'Corte CI',precio:30,duracion_min:30,activo:true})).error);
@@ -92,6 +93,35 @@ try{
  phase='published individual availability';
  const date=[2,3,4].map(n=>sumarDias(fechaLima(new Date()),n)).find(d=>new Date(d+'T12:00:00Z').getUTCDay()!==0);
  const slots=await anonymous.rpc('meryo_horarios_barbero',{p_shop:shop,p_service:catalogue[0].services[0].id,p_date:date,p_member:catalogue[0].equipo[0].id});assert.ifError(slots.error);assert.ok(slots.data.length>0,'Approved owner service must expose its actual individual schedule');
+ phase='salon and mixed-business registration, approval and category visibility';
+ const salon=await beautyApi.registerShop({nombre:'MERYO CI Salon',distrito:'Ate',direccion:'Dirección sintética de salón',descripcion:'Salón sintético de pruebas aisladas',lat:-12.05,lng:-77.04,whatsapp:'',correo:'',tipo_negocio:'belleza'});
+ const mixedShop=await mixedApi.registerShop({nombre:'MERYO CI Negocio Mixto',distrito:'Ate',direccion:'Dirección sintética mixta',descripcion:'Negocio sintético de pruebas aisladas',lat:-12.06,lng:-77.05,whatsapp:'',correo:'',tipo_negocio:'ambos'});
+ assert.equal((await beautyApi.profile()).rol,'barbero');assert.equal(String((await beautyApi.ownerShop()).id),String(salon));assert.deepEqual((await beautyApi.ownerShop()).tipos_negocio,['belleza']);
+ assert.ifError((await beautyOwner.from('servicios').insert([{barberia_id:salon,nombre:'Coloración sintética',descripcion:'Servicio de prueba',precio:80,duracion_min:60,categoria:'coloracion',activo:true},{barberia_id:salon,nombre:'Evaluación capilar sintética',descripcion:'Requiere valoración',precio:null,duracion_min:null,categoria:'tratamientos_capilares',requiere_evaluacion:true,activo:true}])).error);
+ assert.ifError((await mixedOwner.from('servicios').insert({barberia_id:mixedShop,nombre:'Servicio mixto sintético',precio:30,duracion_min:30,categoria:'cortes',activo:true})).error);
+ await adminApi.moderateShop(salon,'aprobar','Registro sintético revisado en CI','pendiente');await adminApi.moderateShop(mixedShop,'aprobar','Registro sintético revisado en CI','pendiente');
+ const beautyCatalog=await publicApi.catalog('belleza'),barberCatalog=await publicApi.catalog('barberia');
+ assert.ok(beautyCatalog.some(item=>String(item.id)===String(salon)),'Approved beauty shop appears in beauty catalog');
+ assert.ok(!barberCatalog.some(item=>String(item.id)===String(salon)),'Beauty-only shop is excluded from the barber catalog');
+ assert.ok(beautyCatalog.some(item=>String(item.id)===String(mixedShop))&&barberCatalog.some(item=>String(item.id)===String(mixedShop)),'Mixed business appears in both category catalogs');
+ const salonListed=beautyCatalog.find(item=>String(item.id)===String(salon));const evalService=salonListed.services.find(service=>service.requiresEvaluation);
+ assert.equal(evalService.price,null);assert.equal(evalService.duration,null);assert.equal(evalService.bookable,false);assert.equal(evalService.category,'tratamientos_capilares');
+ const reservable=salonListed.services.find(service=>service.name==='Coloración sintética');assert.equal(reservable.bookable,true);assert.equal(reservable.price,80);assert.equal(reservable.durationMinutes,60);
+ assert.ok((await beautyApi.ownerServices()).some(service=>service.requiere_evaluacion&&service.precio===null&&service.duracion_min===null),'Owner can manage an evaluation-only service');
+ assert.ok((await buyerApi.catalog('belleza')).some(item=>String(item.id)===String(salon)),'Customer sees the salon only through the public category contract');
+ phase='salon service full-duration availability and manual booking acceptance';
+ const salonDate=[2,3,4,5,6].map(n=>sumarDias(fechaLima(new Date()),n)).find(day=>new Date(day+'T12:00:00Z').getUTCDay()!==0);
+ const salonMember=salonListed.equipo.find(member=>member.servicios?.some(id=>String(id)===String(reservable.id)));
+ assert.ok(salonMember,'Approved salon owner is assigned to the priced service');
+ const salonSlots=await publicApi.slots(salon,salonListed.services.find(s=>s.bookable).id,salonDate,salonMember.id);assert.ok(salonSlots.length>1,'A full 60-minute service exposes actual owner availability');
+ const salonStart=salonSlots[0].time,salonBooking=await buyerApi.request({shop:salon,service:reservable.id,barber:salonMember.id,start:salonStart,name:'Cliente CI Belleza',phone:'999999999',note:''});
+ const salonBookingRow=await db.query('select estado,extract(epoch from expira_respuesta_en-created_at)::int as response_seconds from public.reservas where id=$1',[salonBooking]);assert.equal(salonBookingRow.rows[0].estado,'solicitada');assert.equal(salonBookingRow.rows[0].response_seconds,900,'Salon request uses the existing 15-minute server response deadline');
+ const nextOverlappingSlot=new Date(Date.parse(salonStart)+30*60000).toISOString();const afterRequest=await publicApi.slots(salon,reservable.id,salonDate,salonMember.id);assert.ok(!afterRequest.some(slot=>Date.parse(slot.time)===Date.parse(nextOverlappingSlot)),'A 60-minute reservation blocks overlapping slots for the same professional');
+ assert.equal(await beautyApi.respond(salonBooking,true),'aceptada');
+ const acceptedSalonRow=await db.query('select estado,extract(epoch from expira_pago_en-aceptada_en)::int as payment_seconds from public.reservas where id=$1',[salonBooking]);assert.equal(acceptedSalonRow.rows[0].estado,'aceptada');assert.equal(acceptedSalonRow.rows[0].payment_seconds,600,'Acceptance starts the existing 10-minute payment deadline');
+ assert.ok((await beautyApi.notifications(beautyOwnerId)).some(n=>String(n.reserva_id)===String(salonBooking)),'Salon owner receives the server reservation notification');
+ assert.ok((await buyerApi.notifications(strangerId)).some(n=>String(n.reserva_id)===String(salonBooking)),'Customer receives the acceptance notification');
+ assert.equal((await buyerApi.bookingState()).payments_enabled,false,'Beauty appointments keep live payments disabled');
  phase='pickup store product visibility and owner photo upload';
  const productPhoto=await ownerApi.uploadProductPhoto(shop,new File([png],'product.png',{type:'image/png'}));
  const hiddenPhoto=await ownerApi.uploadProductPhoto(shop,new File([png],'hidden.png',{type:'image/png'}));

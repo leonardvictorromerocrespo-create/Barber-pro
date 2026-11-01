@@ -18,7 +18,7 @@ test('catalog rejects legacy counters and reads only the server public catalogue
  assert.equal(mapShop({...legacy,reviews_verified:true,total_resenas:0}).rating,null);
  assert.equal(mapShop({...legacy,reviews_verified:true,total_resenas:2}).reviews,2);
  const c=clientFor(null,{data:[],error:null});assert.deepEqual(await createMeryoApi(c).catalog(),[]);
- assert.deepEqual(c.calls,[{name:'meryo_catalogo_publico',args:undefined}]);
+ assert.deepEqual(c.calls,[{name:'meryo_catalogo_categoria',args:{p_categoria:'barberia'}}]);
  await assert.rejects(createMeryoApi(clientFor(null,{data:null,error:{message:'Unavailable'}})).catalog(),/Unavailable/);
 });
 test('no identity fallback: local private operations never send a request',async()=>{
@@ -54,9 +54,15 @@ test('Mis citas filters by authenticated customer or assigned shop',async()=>{
  for(const p of [{id:'real-subject',rol:'cliente',activo:true},{id:'real-subject',rol:'barbero',barberia_id:42,activo:true}]){
  const c=clientFor(p);await createMeryoApi(c).bookings();assert.deepEqual(c.calls.find(x=>x.table==='reservas').filters,[[p.rol==='barbero'?'barberia_id':'cliente_id',p.rol==='barbero'?42:'real-subject']]);}
 });
-test('barber registration uses RPC without granting admin, auto acceptance or commercial rules',async()=>{
- const c=clientFor({id:'real-subject',rol:'cliente',activo:true});await createMeryoApi(c).registerShop({nombre:' MERYO ',distrito:'Ate',direccion:'Calle 1',lat:'-12',lng:'-77'});
- const call=c.calls.find(x=>x.name);assert.equal(call.name,'registrar_barberia');assert.equal(call.args.p_nombre,'MERYO');assert.equal(call.args.p_lat,-12);assert.ok(!('acepta_auto' in call.args));assert.ok(!('rol' in call.args));
+test('business registration supports categories through the existing authenticated owner RPC',async()=>{
+ for(const category of ['barberia','belleza','ambos']){
+  const c=clientFor({id:'real-subject',rol:'cliente',activo:true});await createMeryoApi(c).registerShop({nombre:' MERYO ',distrito:'Ate',direccion:'Calle 1',lat:'-12',lng:'-77',tipo_negocio:category});
+  const call=c.calls.find(x=>x.name);assert.equal(call.name,'registrar_negocio');assert.equal(call.args.p_nombre,'MERYO');assert.equal(call.args.p_lat,-12);assert.equal(call.args.p_tipo_negocio,category);assert.ok(!('acepta_auto' in call.args));assert.ok(!('rol' in call.args));
+ }
+});
+test('evaluation-only services stay visible without a fabricated price and are not reservable',()=>{
+ const mapped=mapShop({id:1,nombre:'Salón',tipos_negocio:['belleza'],servicios:[{id:4,nombre:'Tratamiento capilar',activo:true,categoria:'tratamientos_capilares',requiere_evaluacion:true,precio:null,duracion_min:null}]});
+ assert.deepEqual(mapped.businessTypes,['belleza']);assert.equal(mapped.services[0].price,null);assert.equal(mapped.services[0].duration,null);assert.equal(mapped.services[0].bookable,false);assert.equal(mapped.services[0].category,'tratamientos_capilares');
 });
 test('simulation receipts never receive a real-payment confirmation label',()=>{
  assert.equal(bookingLabel({estado:'aceptada'}),'Aceptada · pendiente de pago');assert.match(bookingLabel({estado:'confirmada',pagos:[{proveedor:'localhost-fixture'}]}),/no acredita un cobro/);

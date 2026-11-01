@@ -16,7 +16,7 @@ export default function StoreModal({api,shop,profile,initialCart,onLogin,onClose
  function quantity(id,next){const product=products.find(p=>String(p.id)===String(id));if(!product)return;setCart(current=>{const copy=new Map(current);const value=Math.max(0,Math.min(99,Number(next)||0));if(value===0)copy.delete(String(id));else copy.set(String(id),value);return copy;});requestKey.current=newKey();setSuccess('');}
  async function submit(){
   if(busy||!selected.length)return;
-  if(!profile){try{savePickupCart(sessionStorage,{shop:shop.id,items:selected.map(p=>({productId:p.id,quantity:p.cantidad}))});onClose();onLogin('store');}catch(e){setError(e.message);}return;}
+  if(!profile){try{savePickupCart(sessionStorage,{shop:shop.id,category:shop.businessTypes?.includes('belleza')&&!shop.businessTypes?.includes('barberia')?'belleza':'barberia',items:selected.map(p=>({productId:p.id,quantity:p.cantidad}))});onClose();onLogin('store');}catch(e){setError(e.message);}return;}
   if(profile.rol!=='cliente'){setError('Para solicitar productos, inicia sesión con una cuenta de cliente.');return;}
   setBusy(true);setError('');setSuccess('');
   try{const orderId=await api.requestPickup({shop:shop.id,items:selected.map(p=>({productId:p.id,quantity:p.cantidad})),requestKey:requestKey.current});setCreatedId(orderId);clearPickupCart(sessionStorage);setCart(new Map());setSuccess('Solicitud enviada y pendiente de disponibilidad. No garantiza unidades hasta que la barbería la acepte. Pagas al recoger en la barbería.');}

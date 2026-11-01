@@ -20,17 +20,25 @@ export async function verifiedProfile(client) {
 export function mapShop(item) {
   const count=Number(item.total_resenas),score=Number(item.rating);
   const verifiedReviews=item.reviews_verified===true&&Number.isInteger(count)&&count>0&&Number.isFinite(score)&&score>=1&&score<=5;
+  const services=(item.servicios??[]).filter(s=>s.activo).map(s=>{
+    const price=s.precio==null?null:Number(s.precio),minutes=s.duracion_min==null?null:Number(s.duracion_min);
+    const requiresEvaluation=s.requiere_evaluacion===true;
+    return {...s,name:s.nombre,price,duration:Number.isInteger(minutes)&&minutes>0?`${minutes} min`:null,
+      durationMinutes:minutes,requiresEvaluation,category:s.categoria||'general',
+      bookable:!requiresEvaluation&&price!==null&&price>0&&Number.isInteger(minutes)&&minutes>0};
+  });
   return {...item,id:item.id,name:item.nombre,district:item.distrito,about:item.descripcion||'',
+    businessTypes:Array.isArray(item.tipos_negocio)&&item.tipos_negocio.length?item.tipos_negocio:['barberia'],
     lat:item.lat??null,lng:item.lng??null,distance:'Ubicación por consultar',rating:verifiedReviews?score:null,reviews:verifiedReviews?count:0,
     basePrice:item.precio_desde==null?null:Number(item.precio_desde),originalBasePrice:item.precio_desde==null?null:Number(item.precio_desde),
     discount:'',tags:[],image:item.imagen_url||'',introVideoTitle:'Presentación',introVideoNote:item.video_presentacion_url?'Video de presentación disponible':'Sin video publicado',cutsVideoTitle:'Portafolio',cutsVideoNote:'Consulta el trabajo publicado por la barbería.',
-    services:(item.servicios??[]).filter(s=>s.activo).map(s=>({...s,name:s.nombre,price:Number(s.precio),duration:`${s.duracion_min} min`})),calendar:{}};
+    services,calendar:{}};
 }
 export function createMeryoApi(client) {
   async function requireRole(roles){const p=await verifiedProfile(client);if(!p||!roles.includes(p.rol))throw new Error(client.authUnavailable?'Falta conectar Supabase Auth de pruebas. No se creará una sesión ficticia.':'Inicia sesión con el rol correspondiente');return p;}
   return {
     profile:()=>verifiedProfile(client),
-    catalog:async()=> Promise.all((await readResult(client.rpc('meryo_catalogo_publico'))).map(async row=>{
+    catalog:async(category='barberia')=> Promise.all((await readResult(client.rpc('meryo_catalogo_categoria',{p_categoria:category}))).map(async row=>{
       const shop=mapShop(row);
       try{shop.assets=await signContent(client,row.assets??[]);const cover=shop.assets.find(a=>a.kind==='portada'&&a.url);if(cover)shop.image=cover.url;}
       catch(error){shop.assets=[];shop.contentError=error.message;}
@@ -59,7 +67,8 @@ export function createMeryoApi(client) {
     respond:async(id,accept)=>{await requireRole(['barbero']);const result=await savedOperation(()=>client.rpc('responder_reserva',{p_reserva_id:id,p_aceptar:accept}));if(!['aceptada','rechazada','expirada'].includes(result))throw new Error('Respuesta de reserva inesperada');return result;},
     registerShop:async(form)=>{
       await requireRole(['cliente']);
-      return savedOperation(()=>client.rpc('registrar_barberia',{p_nombre:form.nombre.trim(),p_distrito:form.distrito.trim(),p_direccion:form.direccion.trim(),p_descripcion:form.descripcion||'',p_lat:form.lat===''||form.lat==null?null:Number(form.lat),p_lng:form.lng===''||form.lng==null?null:Number(form.lng),p_whatsapp:form.whatsapp||null,p_correo:form.correo||null}));
+      const type=['barberia','belleza','ambos'].includes(form.tipo_negocio)?form.tipo_negocio:'barberia';
+      return savedOperation(()=>client.rpc('registrar_negocio',{p_nombre:form.nombre.trim(),p_distrito:form.distrito.trim(),p_direccion:form.direccion.trim(),p_descripcion:form.descripcion||'',p_lat:form.lat===''||form.lat==null?null:Number(form.lat),p_lng:form.lng===''||form.lng==null?null:Number(form.lng),p_whatsapp:form.whatsapp||null,p_correo:form.correo||null,p_tipo_negocio:type}));
     },
     ownerShop:async()=>{const p=await requireRole(['barbero']);return readResult(client.from('barberias').select('*').eq('id',p.barberia_id).single());},
     ownerServices:async()=>{const p=await requireRole(['barbero']);return readResult(client.from('servicios').select('*').eq('barberia_id',p.barberia_id).order('nombre'));},

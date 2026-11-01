@@ -4,7 +4,7 @@ function clean(cart,now){
  const items=[];
  for(const item of cart.items){if(!/^\d+$/.test(String(item?.productId))||!Number.isInteger(item?.quantity)||item.quantity<1||item.quantity>99)return null;items.push({productId:String(item.productId),quantity:item.quantity});}
  if(new Set(items.map(item=>item.productId)).size!==items.length)return null;
- return {shop:String(cart.shop),items,savedAt:cart.savedAt};
+ return {shop:String(cart.shop),category:cart.category==='belleza'?'belleza':'barberia',items,savedAt:cart.savedAt};
 }
 export function savePickupCart(storage,cart,now=Date.now()){
  const value=clean({...cart,savedAt:now},now);if(!value)throw Error('La selección de productos ya no es válida. Vuelve a elegirla.');
