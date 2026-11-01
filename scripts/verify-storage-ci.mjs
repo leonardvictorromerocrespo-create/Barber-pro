@@ -118,10 +118,10 @@ try{
  const ownerNotifications=await ownerApi.notifications(ownerId);assert.ok(ownerNotifications.some(n=>n.pedido_id===orderA&&n.tipo==='pedido_solicitado'));
  phase='atomic stock acceptance, price validation and reject';
  const deadline=new Date(Date.now()+120000).toISOString();
- const changedB=await ownerApi.saveProduct(productB,{nombre:'Shampoo sintético CI',descripcion:'Segundo producto de prueba',precio:31,stock_disponible:1,foto_path:productPhoto,publicado:true});assert.equal(changedB,productB);
- await assert.rejects(()=>ownerApi.acceptPickup(priceOrder,deadline),/precio|publicado|producto/i);
  await assert.rejects(()=>ownerApi.acceptPickup(atomicOrder,deadline),/unidades|stock|disponible/i);
  assert.equal((await ownerApi.ownerProducts()).find(p=>p.id===productB).stock_disponible,1,'Atomic rejection does not decrement an earlier in-stock line');
+ const changedB=await ownerApi.saveProduct(productB,{nombre:'Shampoo sintético CI',descripcion:'Segundo producto de prueba',precio:31,stock_disponible:1,foto_path:productPhoto,publicado:true});assert.equal(changedB,productB);
+ await assert.rejects(()=>ownerApi.acceptPickup(priceOrder,deadline),/precio|publicado|producto/i);
  await ownerApi.saveProduct(productB,{nombre:'Shampoo sintético CI',descripcion:'Segundo producto de prueba',precio:30,stock_disponible:1,foto_path:productPhoto,publicado:true});
  const concurrent=await Promise.allSettled([ownerApi.acceptPickup(orderA,deadline),ownerApi.acceptPickup(orderA2,deadline)]);
  assert.equal(concurrent.filter(result=>result.status==='fulfilled').length,1,'Only one concurrent acceptance reserves the last unit');
