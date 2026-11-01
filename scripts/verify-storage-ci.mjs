@@ -41,7 +41,7 @@ try{
  const clean=(await db.query('select (select count(*) from auth.users)::int users,(select count(*) from public.barberias)::int shops')).rows[0];assert.deepEqual(clean,{users:0,shops:0});
  console.log('Disposable isolated schema and store migration prepared; no services started');
  }else{
- const ready=(await db.query("select to_regclass('public.meryo_products') is not null as products,to_regclass('public.meryo_pickup_orders') is not null as orders,to_regclass('public.meryo_catalogo_categoria(text)') is not null as beauty_catalog,(select count(*) from auth.users)::int users,(select count(*) from public.barberias)::int shops")).rows[0];
+ const ready=(await db.query("select to_regclass('public.meryo_products') is not null as products,to_regclass('public.meryo_pickup_orders') is not null as orders,to_regprocedure('public.meryo_catalogo_categoria(text)') is not null as beauty_catalog,(select count(*) from auth.users)::int users,(select count(*) from public.barberias)::int shops")).rows[0];
  assert.deepEqual(ready,{products:true,orders:true,beauty_catalog:true,users:0,shops:0},'The second isolated runner phase requires the clean prepared schema');
  }
  if(!setupOnly){
