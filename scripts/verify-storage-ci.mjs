@@ -16,9 +16,9 @@ async function healthy(url,child){for(let i=0;i<180;i++){if(child.exitCode!==nul
 const make=()=>createClient('http://127.0.0.1:5178/__supabase',anon,{auth:{persistSession:false,autoRefreshToken:false}});
 const clients=[];let proof,phase='schema bootstrap';
 try{
- if(setupOnly)await db.query('begin');
  const schema=await fs.readFile('db/reference/storage-ci/schema.sql','utf8'),metadata=JSON.parse(await fs.readFile('db/reference/storage-ci/system-metadata.json','utf8'));
  if(crypto.createHash('sha256').update(schema).digest('hex')!==metadata.sha256)throw Error('Schema reference changed');
+ if(setupOnly){
  for(const role of metadata.roles)if(!(await db.query('select 1 from pg_roles where rolname=$1',[role])).rowCount)await db.query('create role "'+role.replaceAll('"','""')+'" nologin');
  const alter=(await db.query('select format(\'alter role %I password %L\',$1::text,$2::text) sql',[user,password])).rows[0].sql;await db.query(alter);
  await db.query('alter role service_role bypassrls');
@@ -38,7 +38,12 @@ try{
  await db.query("insert into meryo_private.launch_settings(id,reservas_habilitadas,plazo_pago_segundos,entorno,modelo_comercial) values(1,true,600,'staging','mensualidad');insert into meryo_private.shop_content_settings values(1,true)");
  await db.query(await fs.readFile('db/incremental/021_product_pickup_store.sql','utf8'));
  const clean=(await db.query('select (select count(*) from auth.users)::int users,(select count(*) from public.barberias)::int shops')).rows[0];assert.deepEqual(clean,{users:0,shops:0});
- if(setupOnly){await db.query('rollback');console.log('Isolated schema bootstrap verified and rolled back; no services started');}else{
+ console.log('Disposable isolated schema and store migration prepared; no services started');
+ }else{
+ const ready=(await db.query("select to_regclass('public.meryo_products') is not null as products,to_regclass('public.meryo_pickup_orders') is not null as orders,(select count(*) from auth.users)::int users,(select count(*) from public.barberias)::int shops")).rows[0];
+ assert.deepEqual(ready,{products:true,orders:true,users:0,shops:0},'The second isolated runner phase requires the clean prepared schema');
+ }
+ if(!setupOnly){
  // Match the existing native Auth role's search_path: Pop's migration ledger is
  // unqualified even though the actual Auth table definitions use auth.*.
  const authUrl=url+'&options='+encodeURIComponent('-c search_path=auth,public');
