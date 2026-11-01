@@ -103,16 +103,17 @@ try{
  assert.ok((await owner.from('meryo_products').delete().eq('id',productA)).error,'Product deletion is denied so historical snapshots remain valid');
  assert.ok((await anonymous.storage.from(CONTENT_BUCKET).createSignedUrl(hiddenPhoto,300)).error,'Unpublished product photo stays private');
  assert.ok((await stranger.rpc('meryo_save_product',{p_id:null,p_data:{nombre:'Foreign',precio:5,stock_disponible:1,publicado:true,foto_path:productPhoto}})).error,'A client cannot create or manage another shop products');
- phase='pickup request snapshots and idempotency';
+ phase='pickup first request';
  const requestKey=crypto.randomUUID();let orderA;
  try{orderA=await buyerApi.requestPickup({shop,items:[{productId:productA,quantity:1}],requestKey});}
  catch(error){const raw=await buyer.rpc('meryo_request_pickup',{p_shop:shop,p_items:[{product_id:String(productA),quantity:1}],p_request_key:requestKey});if(raw.error)console.error('Pickup RPC SQL diagnostics '+JSON.stringify({code:raw.error.code,message:raw.error.message,details:raw.error.details,hint:raw.error.hint}));throw error;}
- assert.equal(await buyerApi.requestPickup({shop,items:[{productId:productA,quantity:1}],requestKey}),orderA,'Retrying the same request key returns the same order');
- const orderA2=await buyerTwoApi.requestPickup({shop,items:[{productId:productA,quantity:1}],requestKey:crypto.randomUUID()});
- const atomicOrder=await buyerApi.requestPickup({shop,items:[{productId:productB,quantity:1},{productId:productC,quantity:1}],requestKey:crypto.randomUUID()});
- const priceOrder=await buyerTwoApi.requestPickup({shop,items:[{productId:productB,quantity:1}],requestKey:crypto.randomUUID()});
- const initialOrders=await buyerApi.pickupOrders(orderA);assert.equal(initialOrders[0].estado,'pendiente');assert.equal(Number(initialOrders[0].total),12);assert.equal(Number(initialOrders[0].items[0].precio),12);
- const foreignOrder=await buyerTwoApi.pickupOrders(orderA);assert.equal(foreignOrder.length,0,'A customer sees only their own order');
+ phase='pickup idempotent retry';assert.equal(await buyerApi.requestPickup({shop,items:[{productId:productA,quantity:1}],requestKey}),orderA,'Retrying the same request key returns the same order');
+ phase='pickup request from second customer';const orderA2=await buyerTwoApi.requestPickup({shop,items:[{productId:productA,quantity:1}],requestKey:crypto.randomUUID()});
+ phase='pickup request with unavailable item';const atomicOrder=await buyerApi.requestPickup({shop,items:[{productId:productB,quantity:1},{productId:productC,quantity:1}],requestKey:crypto.randomUUID()});
+ phase='pickup price snapshot request';const priceOrder=await buyerTwoApi.requestPickup({shop,items:[{productId:productB,quantity:1}],requestKey:crypto.randomUUID()});
+ phase='pickup customer order read';const initialOrders=await buyerApi.pickupOrders(orderA);assert.equal(initialOrders[0].estado,'pendiente');assert.equal(Number(initialOrders[0].total),12);assert.equal(Number(initialOrders[0].items[0].precio),12);
+ phase='pickup cross-customer order read';const foreignOrder=await buyerTwoApi.pickupOrders(orderA);assert.equal(foreignOrder.length,0,'A customer sees only their own order');
+ phase='pickup owner stock read';
  assert.equal((await ownerApi.ownerProducts()).find(p=>p.id===productA).stock_disponible,1,'Pending orders do not reserve stock');
  const ownerNotifications=await ownerApi.notifications(ownerId);assert.ok(ownerNotifications.some(n=>n.pedido_id===orderA&&n.tipo==='pedido_solicitado'));
  phase='atomic stock acceptance, price validation and reject';
