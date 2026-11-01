@@ -1,6 +1,6 @@
 import {useEffect, useLayoutEffect, useRef, useState} from 'react';
-import barberPhoto from '../assets/meryo-entry-barber.jpeg';
-import beautyPhoto from '../assets/meryo-entry-beauty.jpeg';
+import barberPhoto from '../assets/meryo-entry-barber-reference.png';
+import beautyPhoto from '../assets/meryo-entry-beauty-reference.png';
 import {consumeLandingIntro} from '../lib/landing-intro';
 import './LandingPage.css';
 
@@ -60,29 +60,24 @@ export default function LandingPage({setView, onExplore}) {
 
       <main className="meryo-cover__main">
         <section className="meryo-cover__hero" aria-labelledby="meryo-cover-title">
-          <div className="meryo-cover__copy">
-            <p className="meryo-cover__eyebrow">MERYO · CUIDADO PERSONAL</p>
-            <h1 id="meryo-cover-title">Encuentra tu próximo estilo.</h1>
-            <p>Explora profesionales, conoce su trabajo y solicita tu cita.</p>
-          </div>
-
+          <h1 id="meryo-cover-title" className="meryo-cover__sr-only">Explora barberías y salones de belleza en MERYO</h1>
           <div className="meryo-cover__entry-grid" aria-label="Elige qué explorar">
             <article className="meryo-cover__entry meryo-cover__entry--barber">
               <div className="meryo-cover__portrait">
-                <img src={barberPhoto} alt="Imagen ilustrativa de un barbero profesional" fetchPriority="high" decoding="async" />
+                <img src={barberPhoto} alt="Ilustración de perfil de un barbero" fetchPriority="high" decoding="async" />
               </div>
               <div className="meryo-cover__entry-copy">
                 <h2>Barberías</h2>
-                <p>Encuentra el corte y el profesional para tu estilo.</p>
+                <p>Encuentra al profesional para tu próximo corte.</p>
                 <button type="button" onClick={() => explore('barberia')}>Explorar barberías</button>
               </div>
             </article>
             <article className="meryo-cover__entry meryo-cover__entry--beauty">
               <div className="meryo-cover__portrait">
-                <img src={beautyPhoto} alt="Imagen ilustrativa de una profesional de peluquería" loading="eager" decoding="async" />
+                <img src={beautyPhoto} alt="Ilustración de perfil de una profesional de peluquería" loading="eager" decoding="async" />
               </div>
               <div className="meryo-cover__entry-copy">
-                <h2>Peluquerías y salones</h2>
+                <h2>Peluquerías y belleza</h2>
                 <p>Descubre cuidado capilar y servicios de belleza.</p>
                 <button type="button" onClick={() => explore('belleza')}>Explorar salones</button>
               </div>

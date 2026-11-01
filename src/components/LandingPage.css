@@ -2,6 +2,8 @@
   --meryo-cover-carbon: var(--meryo-carbon, #0b0b0b);
   --meryo-cover-gold: var(--meryo-gold, #d4af37);
   --meryo-cover-gold-light: var(--meryo-gold-light, #e8c766);
+  --meryo-entry-navy: #001433;
+  --meryo-entry-rose: #d1908e;
   min-height: 100svh;
   overflow: hidden;
   background: var(--meryo-cover-carbon);
@@ -9,7 +11,6 @@
 }
 
 .meryo-cover__header,
-.meryo-cover__main,
 .meryo-cover__footer {
   width: min(100% - 3rem, 80rem);
   margin-inline: auto;
@@ -79,140 +80,126 @@
   background: rgba(232, 199, 102, .12);
 }
 
-.meryo-cover__main { display: block; }
-
-.meryo-cover__hero {
+.meryo-cover__main {
   width: 100%;
-  padding-block: clamp(2.5rem, 6vh, 5rem) 2rem;
-}
-
-.meryo-cover__copy { max-width: 51rem; margin: 0 auto 2rem; text-align: center; }
-
-.meryo-cover__eyebrow {
-  margin: 0 0 .75rem;
-  color: var(--meryo-cover-gold-light);
-  font-size: .76rem;
-  font-weight: 700;
-  letter-spacing: .2em;
-}
-
-.meryo-cover__copy h1 {
   margin: 0;
-  color: #f5f1e8;
-  font-size: clamp(2.35rem, 5vw, 4.5rem);
-  font-weight: 750;
-  letter-spacing: -.055em;
-  line-height: 1.02;
 }
 
-.meryo-cover__copy > p:last-child {
-  max-width: 34rem;
-  margin: 1rem auto 0;
-  color: rgba(245, 241, 232, .76);
-  font-size: clamp(.98rem, 1.35vw, 1.15rem);
-  line-height: 1.65;
+.meryo-cover__hero { width: 100%; }
+
+.meryo-cover__sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  clip-path: inset(50%);
 }
 
 .meryo-cover__entry-grid {
   display: grid;
+  width: 100%;
+  min-height: clamp(36rem, calc(100svh - 8.5rem), 58rem);
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: clamp(.75rem, 2.2vw, 1.5rem);
-  max-width: 70rem;
-  margin-inline: auto;
 }
 
 .meryo-cover__entry {
-  display: flex;
+  display: grid;
   min-width: 0;
-  min-height: 23rem;
-  flex-direction: column;
+  min-height: 0;
+  grid-template-rows: minmax(0, 1fr) auto;
   overflow: hidden;
-  border: 1px solid rgba(245, 241, 232, .12);
-  border-radius: 1.6rem;
-  transition: border-color .25s ease, transform .25s ease, box-shadow .25s ease;
+  transition: filter .25s ease;
 }
 
 .meryo-cover__entry--barber {
-  background: linear-gradient(148deg, rgba(0, 20, 51, .96), rgba(13, 28, 51, .72));
+  background: var(--meryo-entry-navy);
+  color: #f5eee3;
 }
 
 .meryo-cover__entry--beauty {
-  background: linear-gradient(148deg, rgba(75, 34, 50, .88), rgba(36, 24, 32, .8));
+  background: var(--meryo-entry-rose);
+  color: var(--meryo-entry-navy);
 }
 
-.meryo-cover__entry:hover {
-  transform: translateY(-3px);
-  border-color: rgba(232, 199, 102, .48);
-  box-shadow: 0 18px 45px rgba(0, 0, 0, .22);
-}
+.meryo-cover__entry:hover { filter: saturate(1.06); }
 
 .meryo-cover__portrait {
-  position: relative;
   display: flex;
-  height: clamp(13rem, 30vw, 23rem);
-  align-items: flex-end;
+  min-height: clamp(15rem, 55svh, 34rem);
+  align-items: center;
   justify-content: center;
   overflow: hidden;
-  background: radial-gradient(ellipse at 50% 60%, rgba(232, 199, 102, .13), transparent 70%);
 }
 
 .meryo-cover__portrait img {
   display: block;
-  width: 100%;
+  width: auto;
   height: 100%;
+  max-width: min(100%, 34rem);
   object-fit: contain;
-  object-position: center bottom;
-  mask-image: linear-gradient(to bottom, #000 82%, transparent 100%);
+  object-position: center;
 }
 
 .meryo-cover__entry-copy {
-  position: relative;
-  z-index: 1;
   display: grid;
-  justify-items: start;
-  gap: .55rem;
-  margin-top: auto;
-  padding: .2rem clamp(.85rem, 2.2vw, 1.65rem) clamp(.9rem, 2vw, 1.5rem);
+  justify-items: center;
+  gap: .8rem;
+  padding: 0 1.5rem clamp(2rem, 5vh, 3.5rem);
+  text-align: center;
 }
 
 .meryo-cover__entry-copy h2 {
   margin: 0;
-  color: #fffaf0;
-  font-size: clamp(1.05rem, 2.2vw, 1.65rem);
-  font-weight: 750;
-  line-height: 1.15;
+  color: inherit;
+  font-family: Georgia, 'Times New Roman', serif;
+  font-size: clamp(2rem, 3.9vw, 3.6rem);
+  font-weight: 400;
+  letter-spacing: -.035em;
+  line-height: 1.08;
 }
 
 .meryo-cover__entry-copy p {
-  min-height: 2.7em;
+  max-width: 27rem;
   margin: 0;
-  color: rgba(255, 250, 240, .77);
-  font-size: clamp(.75rem, 1.2vw, .9rem);
-  line-height: 1.45;
+  color: currentColor;
+  font-size: clamp(.9rem, 1.2vw, 1.05rem);
+  line-height: 1.5;
+  opacity: .82;
 }
 
 .meryo-cover__entry-copy button {
   display: inline-flex;
-  min-height: 2.85rem;
+  min-width: min(20rem, 100%);
+  min-height: 3.25rem;
   align-items: center;
   justify-content: center;
-  border: 1px solid rgba(232, 199, 102, .72);
-  border-radius: 999px;
-  background: var(--meryo-cover-gold);
-  color: #17140c;
-  padding: .65rem 1.05rem;
+  margin-top: .45rem;
+  border: 1px solid currentColor;
+  border-radius: .8rem;
+  background: transparent;
+  color: inherit;
+  padding: .72rem 1.25rem;
   font: inherit;
-  font-size: .82rem;
-  font-weight: 750;
+  font-size: 1rem;
+  font-weight: 550;
+  letter-spacing: .02em;
   cursor: pointer;
-  transition: background-color .2s ease, border-color .2s ease, transform .2s ease;
+  transition: color .2s ease, background-color .2s ease, border-color .2s ease, transform .2s ease;
 }
 
-.meryo-cover__entry-copy button:hover {
-  border-color: var(--meryo-cover-gold-light);
-  background: var(--meryo-cover-gold-light);
-  transform: translateY(-1px);
+.meryo-cover__entry--barber .meryo-cover__entry-copy button:hover {
+  background: #f5eee3;
+  color: var(--meryo-entry-navy);
 }
+
+.meryo-cover__entry--beauty .meryo-cover__entry-copy button:hover {
+  background: var(--meryo-entry-navy);
+  color: #f5eee3;
+}
+
+.meryo-cover__entry-copy button:hover { transform: translateY(-1px); }
 
 .meryo-cover__footer {
   display: flex;
@@ -228,15 +215,10 @@
 
 .meryo-cover[data-intro='playing'] .meryo-cover__brand-image { opacity: 0; }
 
-.meryo-cover[data-intro='playing'] .meryo-cover__copy > *,
-.meryo-cover[data-intro='playing'] .meryo-cover__nav,
 .meryo-cover[data-intro='playing'] .meryo-cover__entry {
   animation: meryo-cover-copy-in .32s both;
-  animation-delay: 2.28s;
+  animation-delay: 2.3s;
 }
-
-.meryo-cover[data-intro='playing'] .meryo-cover__copy > p:last-child { animation-delay: 2.42s; }
-.meryo-cover[data-intro='playing'] .meryo-cover__entry--beauty { animation-delay: 2.55s; }
 
 .meryo-cover__intro {
   position: fixed;
@@ -318,29 +300,23 @@
   .meryo-cover__nav { gap: .35rem; }
   .meryo-cover__nav button { min-height: 2.65rem; padding-inline: .75rem; font-size: .74rem; }
   .meryo-cover__nav button:not(:last-child) { display: none; }
-  .meryo-cover__hero { padding-block: 2rem 1.5rem; }
-  .meryo-cover__copy { margin-bottom: 1.25rem; }
-  .meryo-cover__eyebrow { margin-bottom: .55rem; font-size: .65rem; }
-  .meryo-cover__copy h1 { font-size: clamp(1.8rem, 7.3vw, 2.55rem); }
-  .meryo-cover__copy > p:last-child { margin-top: .65rem; font-size: .88rem; line-height: 1.5; }
-  .meryo-cover__entry { min-height: 0; border-radius: 1rem; }
-  .meryo-cover__portrait { height: clamp(7.25rem, 38vw, 10.5rem); }
-  .meryo-cover__portrait img { object-fit: cover; object-position: center 30%; }
-  .meryo-cover__entry-copy { gap: .45rem; padding: .2rem .7rem .8rem; }
-  .meryo-cover__entry-copy h2 { font-size: clamp(.9rem, 4.1vw, 1.12rem); }
-  .meryo-cover__entry-copy p { min-height: 3.2em; font-size: .69rem; }
-  .meryo-cover__entry-copy button { width: 100%; min-height: 2.8rem; padding-inline: .35rem; font-size: clamp(.65rem, 3.1vw, .8rem); }
+  .meryo-cover__entry-grid { min-height: clamp(34rem, calc(100svh - 7rem), 50rem); }
+  .meryo-cover__portrait { min-height: clamp(10rem, 44vw, 16rem); }
+  .meryo-cover__portrait img { width: auto; max-width: 100%; }
+  .meryo-cover__entry-copy { gap: .55rem; padding: 0 .65rem 1.5rem; }
+  .meryo-cover__entry-copy h2 { font-size: clamp(.92rem, 4.4vw, 1.45rem); line-height: 1.12; }
+  .meryo-cover__entry-copy p { min-height: 3.1em; font-size: clamp(.68rem, 3.1vw, .82rem); line-height: 1.4; }
+  .meryo-cover__entry-copy button { width: 100%; min-width: 0; min-height: 3rem; margin-top: .1rem; padding: .5rem .3rem; font-size: clamp(.68rem, 3vw, .82rem); line-height: 1.2; }
   .meryo-cover__footer { width: min(100% - 2rem, 36rem); justify-content: center; padding-block: .8rem; }
   .meryo-cover__intro-logo { width: min(78vw, 24rem); }
 }
 
 @media (max-width: 370px) {
   .meryo-cover__header,
-  .meryo-cover__main,
   .meryo-cover__footer { width: calc(100% - 1.5rem); }
-  .meryo-cover__entry-grid { gap: .55rem; }
-  .meryo-cover__portrait { height: 7rem; }
-  .meryo-cover__entry-copy { padding-inline: .55rem; }
+  .meryo-cover__entry-copy { padding-inline: .45rem; }
+  .meryo-cover__entry-copy h2 { font-size: .9rem; }
+  .meryo-cover__entry-copy button { font-size: .65rem; }
 }
 
 @media (prefers-reduced-motion: reduce) {

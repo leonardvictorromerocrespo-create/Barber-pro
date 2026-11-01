@@ -14,6 +14,9 @@ alter table public.barberias add constraint barberias_tipos_negocio_check check 
 alter table public.servicios
   add column if not exists categoria text not null default 'general',
   add column if not exists requiere_evaluacion boolean not null default false;
+-- Older installations may already contain the flag from an earlier draft but
+-- without a default; keep existing clients that omit the new field working.
+alter table public.servicios alter column requiere_evaluacion set default false;
 alter table public.servicios alter column precio drop not null;
 alter table public.servicios alter column duracion_min drop not null;
 alter table public.servicios drop constraint if exists servicios_categoria_check;
