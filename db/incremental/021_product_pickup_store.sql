@@ -294,7 +294,7 @@ language plpgsql security definer set search_path='' as $$declare uid uuid:=auth
  if role_name not in ('cliente','barbero') then raise exception 'Esta cuenta no puede consultar pedidos' using errcode='42501';end if;
  if role_name='barbero' and not exists(select 1 from meryo_private.shop_owners where user_id=uid) then raise exception 'Solo el propietario administra pedidos' using errcode='42501';end if;
  perform meryo_private.expire_pickup_orders();
- select coalesce(jsonb_agg(to_jsonb(o)||jsonb_build_object(
+ select jsonb_agg(to_jsonb(o)||jsonb_build_object(
   'barberias',jsonb_build_object('nombre',b.nombre,'direccion',b.direccion),
   'horario_recojo',coalesce((select jsonb_agg(jsonb_build_object('dia',h.dia_semana,'apertura',h.hora_apertura,'cierre',h.hora_cierre) order by h.dia_semana) from public.horarios h where h.barberia_id=b.id),'[]'::jsonb),
   'items',coalesce((select jsonb_agg(jsonb_build_object('producto_id',i.producto_id,'nombre',i.nombre_snapshot,'descripcion',i.descripcion_snapshot,'precio',i.precio_snapshot,'foto_path',i.foto_path_snapshot,'cantidad',i.cantidad,'subtotal',i.subtotal) order by i.id) from public.meryo_pickup_order_items i where i.pedido_id=o.id),'[]'::jsonb)
