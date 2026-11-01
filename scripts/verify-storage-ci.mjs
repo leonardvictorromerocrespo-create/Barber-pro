@@ -104,7 +104,9 @@ try{
  assert.ok((await anonymous.storage.from(CONTENT_BUCKET).createSignedUrl(hiddenPhoto,300)).error,'Unpublished product photo stays private');
  assert.ok((await stranger.rpc('meryo_save_product',{p_id:null,p_data:{nombre:'Foreign',precio:5,stock_disponible:1,publicado:true,foto_path:productPhoto}})).error,'A client cannot create or manage another shop products');
  phase='pickup request snapshots and idempotency';
- const requestKey=crypto.randomUUID(),orderA=await buyerApi.requestPickup({shop,items:[{productId:productA,quantity:1}],requestKey});
+ const requestKey=crypto.randomUUID();let orderA;
+ try{orderA=await buyerApi.requestPickup({shop,items:[{productId:productA,quantity:1}],requestKey});}
+ catch(error){const raw=await buyer.rpc('meryo_request_pickup',{p_shop:shop,p_items:[{product_id:String(productA),quantity:1}],p_request_key:requestKey});if(raw.error)console.error('Pickup RPC SQL diagnostics '+JSON.stringify({code:raw.error.code,message:raw.error.message,details:raw.error.details,hint:raw.error.hint}));throw error;}
  assert.equal(await buyerApi.requestPickup({shop,items:[{productId:productA,quantity:1}],requestKey}),orderA,'Retrying the same request key returns the same order');
  const orderA2=await buyerTwoApi.requestPickup({shop,items:[{productId:productA,quantity:1}],requestKey:crypto.randomUUID()});
  const atomicOrder=await buyerApi.requestPickup({shop,items:[{productId:productB,quantity:1},{productId:productC,quantity:1}],requestKey:crypto.randomUUID()});
