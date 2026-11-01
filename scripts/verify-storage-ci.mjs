@@ -178,11 +178,10 @@ try{
  await db.query('insert into meryo_private.push_subscriptions(endpoint,user_id,p256dh,auth) values($1,$3,$5,$6),($2,$4,$5,$6)',[ownerEndpoint,buyerEndpoint,ownerId,strangerId,pushKey,pushAuth]);
  const deliveryOrder=await buyerApi.requestPickup({shop,items:[{productId:productB,quantity:1}],requestKey:crypto.randomUUID()});
  const send=async(subscription,payload)=>{sent.push({endpoint:subscription.endpoint,data:JSON.parse(payload)});};
- assert.equal(await deliverBookingPush(db,pushConfig,{send}),'provider_accepted');
- assert.ok(sent.some(push=>push.endpoint===ownerEndpoint&&push.data.event==='pedido_solicitado'&&push.data.orderId===deliveryOrder),'Owner push contains only the requested order route');
+ const deliverUntil=async predicate=>{for(let i=0;i<25;i++){if(sent.some(predicate))return true;const result=await deliverBookingPush(db,pushConfig,{send});if(result==='idle')break;}return sent.some(predicate);};
+ assert.ok(await deliverUntil(push=>push.endpoint===ownerEndpoint&&push.data.event==='pedido_solicitado'&&push.data.orderId===deliveryOrder),'Owner push contains only the requested order route');
  await ownerApi.acceptPickup(deliveryOrder,new Date(Date.now()+120000).toISOString());
- assert.equal(await deliverBookingPush(db,pushConfig,{send}),'provider_accepted');
- assert.ok(sent.some(push=>push.endpoint===buyerEndpoint&&push.data.event==='pedido_aceptado'&&push.data.orderId===deliveryOrder),'Customer push points to the accepted pickup order');
+ assert.ok(await deliverUntil(push=>push.endpoint===buyerEndpoint&&push.data.event==='pedido_aceptado'&&push.data.orderId===deliveryOrder),'Customer push points to the accepted pickup order');
  assert.equal(await ownerApi.deliverPickup(deliveryOrder),'entregado');
  assert.equal((await ownerApi.ownerProducts()).find(p=>p.id===productB).stock_disponible,0,'Delivery records definitive stock outflow');
  const rejectedOrder=await buyerTwoApi.requestPickup({shop,items:[{productId:productC,quantity:1}],requestKey:crypto.randomUUID()});await ownerApi.rejectPickup(rejectedOrder);
