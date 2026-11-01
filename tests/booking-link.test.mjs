@@ -1,10 +1,16 @@
-import {test} from 'node:test';import assert from 'node:assert/strict';import {bookingIdFromSearch,bookingDestination,bookingDeadline} from '../src/lib/booking-link.js';import {beginGoogle} from '../src/lib/booking-draft.js';
+import {test} from 'node:test';import assert from 'node:assert/strict';import {bookingIdFromSearch,pickupOrderIdFromSearch,bookingDestination,bookingDeadline} from '../src/lib/booking-link.js';import {beginGoogle} from '../src/lib/booking-draft.js';import {accessView} from '../src/lib/access-navigation.js';
 import vm from 'node:vm';import fs from 'node:fs/promises';
 test('reservation destination wins over stale administrative navigation on OAuth',async()=>{
  const id='10000000-0000-0000-0000-000000000001';let request;
  await beginGoogle({auth:{signInWithOAuth:async r=>{request=r;return {};}}},{enabled:true,origin:'https://meryo.example',bookingId:id,adminView:'avisos'});
  const callback=new URL(request.options.redirectTo);assert.equal(callback.searchParams.get('cita'),id);assert.equal(callback.searchParams.has('admin_view'),false);assert.equal(bookingDestination(callback.search,'admin'),'my-bookings');
  assert.equal(bookingDestination('?cita=https://evil.example','client'),'client');assert.equal(bookingIdFromSearch('?cita='+id),id);
+});
+test('pickup order destination returns to the customer or owner order after login',async()=>{
+ const id='20000000-0000-0000-0000-000000000002';assert.equal(pickupOrderIdFromSearch('?pedido='+id),id);assert.equal(bookingDestination('?pedido='+id,'client'),'my-orders');
+ assert.equal(bookingDestination('?pedido='+id+'&pedido_origen=negocio','shop-manage'),'shop-manage');assert.equal(accessView('shop-order','barbero'),'shop-manage');assert.equal(accessView('shop-order','cliente'),'client');
+ let request;await beginGoogle({auth:{signInWithOAuth:async r=>{request=r;return {};}}},{enabled:true,origin:'https://meryo.example',orderId:id,destination:'shop-order'});
+ const callback=new URL(request.options.redirectTo);assert.equal(callback.searchParams.get('pedido'),id);assert.equal(callback.searchParams.get('pedido_origen'),'negocio');assert.equal(callback.searchParams.get('shop_view'),'tienda');assert.equal(callback.searchParams.get('tienda_view'),'pedidos');
 });
 test('deadline follows current server state, not stale notification or prior response deadline',()=>{
  const row={estado:'aceptada',expira_respuesta_en:'old-response',expira_pago_en:'server-payment'};assert.equal(bookingDeadline(row),'server-payment');assert.equal(bookingDeadline({...row,estado:'solicitada'}),'old-response');for(const estado of ['expirada','cancelada_cliente','cancelada_barbero','rechazada','confirmada'])assert.equal(bookingDeadline({...row,estado}),null);

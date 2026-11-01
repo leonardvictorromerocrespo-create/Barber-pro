@@ -1,5 +1,6 @@
 export const CONTENT_BUCKET='meryo-shop-content';
 const formats={'image/jpeg':'jpg','image/png':'png','image/webp':'webp','video/mp4':'mp4','video/webm':'webm'};
+const productFormats={'image/jpeg':'jpg','image/png':'png','image/webp':'webp'};
 export function validateContent(file,kind){
  const image=['portada','foto'].includes(kind),limit=image?5*1024*1024:20*1024*1024;
  if(!['portada','foto','video'].includes(kind)||!formats[file.type]||image!==file.type.startsWith('image/'))throw Error('Usa JPG, PNG o WebP para imágenes; MP4 o WebM para video.');
@@ -20,4 +21,12 @@ export async function uploadContent(client,shop,file,kind,title=''){
  if(saved.error)throw Error('El archivo se subió, pero no se publicó: '+saved.error.message+'. No repitas la subida sin revisar el espacio.');
  if(!saved.data)throw Error('El servidor no confirmó el contenido');
  return saved.data;
+}
+export async function uploadProductPhoto(client,shop,file){
+ if(!productFormats[file?.type]||!file.size||file.size>5*1024*1024)throw Error('La foto del producto debe ser JPG, PNG o WebP y ocupar como máximo 5 MB.');
+ if(!/^\d+$/.test(String(shop)))throw Error('Barbería inválida');
+ const path=`${shop}/${crypto.randomUUID()}.${productFormats[file.type]}`;
+ const {error}=await client.storage.from(CONTENT_BUCKET).upload(path,file,{contentType:file.type,upsert:false});
+ if(error)throw Error('Storage no guardó la fotografía: '+error.message);
+ return path;
 }

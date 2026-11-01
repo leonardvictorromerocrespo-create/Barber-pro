@@ -2,7 +2,7 @@ import {useCallback,useEffect,useRef,useState} from 'react';
 import {enableBookingPush,disableBookingPush,pushDeviceState} from '../lib/push';
 const button='rounded-xl border border-white/20 px-4 py-3 disabled:opacity-40';
 const permissions={default:'Sin decidir',granted:'Permitidas',denied:'Bloqueadas','no compatible':'No compatible'};
-const events={reserva_solicitada:'Solicitud de cita',reserva_aceptada:'Aceptación de cita',reserva_rechazada:'Solicitud rechazada',reserva_expirada:'Solicitud vencida',push_diagnostico:'Comprobación propia'};
+const events={reserva_solicitada:'Solicitud de cita',reserva_aceptada:'Aceptación de cita',reserva_rechazada:'Solicitud rechazada',reserva_expirada:'Solicitud vencida',pedido_solicitado:'Nueva solicitud de recojo',pedido_aceptado:'Solicitud de recojo aceptada',pedido_rechazado:'Solicitud de recojo rechazada',pedido_cancelado:'Pedido cancelado',pedido_vencido:'Plazo de recojo vencido',push_diagnostico:'Comprobación propia'};
 const statuses={pending_provider:'Pendiente de envío',queued:'Pendiente de reintento',leased:'Procesando envío',accepted:'Envío aceptado por el servicio',expired:'Aviso vencido',failed:'No se pudo entregar'};
 export default function PushCenter({api,profile,loading=false,onLogin,onBack,diagnostic=false,embedded=false}){
  const [config,setConfig]=useState(null),[device,setDevice]=useState(null),[synced,setSynced]=useState(null),[notes,setNotes]=useState([]),[evidence,setEvidence]=useState(null),[notesOwner,setNotesOwner]=useState(null);
@@ -33,7 +33,7 @@ export default function PushCenter({api,profile,loading=false,onLogin,onBack,dia
   <section className="space-y-4 rounded-2xl border border-white/10 bg-neutral-900 p-6">
    <h2 className="text-xl font-bold">Avisos en este dispositivo</h2>
    <p>Permiso: {permissions[device?.permission]||'consultando'} · {linked===null?'Consultando vinculación…':linked?'Dispositivo vinculado a tu cuenta':'Dispositivo sin vincular'}</p>
-   <p className="text-sm text-neutral-400">Recibe novedades de tus citas aunque MERYO esté cerrada. El sonido depende de los ajustes del celular, Chrome y No molestar.</p>
+   <p className="text-sm text-neutral-400">Recibe avisos de citas y pedidos para recoger, incluso con MERYO cerrada. El sonido depende de los ajustes del celular, Chrome y No molestar.</p>
    {!profile?(loading?<p role="status">Comprobando sesión…</p>:<button className={button} onClick={onLogin}>Continuar con Google o iniciar sesión</button>):<>
     <div className="flex flex-wrap gap-3"><button disabled={busy||enabled||!config?.push_disponible||device?.permission==='denied'} className="rounded-xl bg-amber-400 px-4 py-3 font-bold text-black disabled:opacity-40" onClick={()=>act(()=>enableBookingPush(api,config))}>{enabled?'Notificaciones activadas':'Activar notificaciones'}</button>
     <button disabled={busy||!device?.subscribed} className={button} onClick={()=>act(async()=>{await disableBookingPush(api);return 'Avisos desactivados en este dispositivo.';})}>Desactivar en este dispositivo</button></div>
@@ -53,7 +53,7 @@ export default function PushCenter({api,profile,loading=false,onLogin,onBack,dia
   </section>}
   {profile&&<section className="rounded-2xl border border-white/10 bg-neutral-900 p-6"><h2 className="text-xl font-bold">Avisos guardados</h2>
    {!visibleNotes.length&&<p className="mt-3 text-neutral-400">Todavía no tienes avisos.</p>}
-   {visibleNotes.map(n=><article key={n.id} className="mt-3 border-t border-white/10 pt-3"><p className="font-bold">{n.titulo}</p><p className="mt-2 text-sm">{n.mensaje}</p>{n.reserva_id&&<a className="mt-2 inline-block text-amber-300 underline" href={`/?cita=${n.reserva_id}#my-bookings`}>Abrir cita</a>}</article>)}
+   {visibleNotes.map(n=><article key={n.id} className="mt-3 border-t border-white/10 pt-3"><p className="font-bold">{n.titulo}</p><p className="mt-2 text-sm">{n.mensaje}</p>{n.reserva_id&&<a className="mt-2 inline-block text-amber-300 underline" href={`/?cita=${n.reserva_id}#my-bookings`}>Abrir cita</a>}{n.pedido_id&&(n.tipo==='pedido_solicitado'?<a className="mt-2 inline-block text-amber-300 underline" href={`/?pedido=${n.pedido_id}&pedido_origen=negocio&shop_view=tienda&tienda_view=pedidos#shop-manage`}>Abrir solicitud</a>:<a className="mt-2 inline-block text-amber-300 underline" href={`/?pedido=${n.pedido_id}#my-orders`}>Abrir pedido</a>)}</article>)}
   </section>}
  </div></Wrapper>;
 }

@@ -21,8 +21,10 @@ jobs:
         run: |
           sudo /usr/share/postgresql-common/pgdg/apt.postgresql.org.sh -y
           sudo apt-get update -qq
-          sudo apt-get install -y --no-install-recommends -o Acquire::Retries=2 -o Acquire::http::Timeout=30 postgresql-17 postgresql-contrib-17 ffmpeg
-          sudo pg_createcluster 17 meryo_storage --port 55440 --start
+          sudo apt-get install -y --no-install-recommends -o Acquire::Retries=2 -o Acquire::http::Timeout=30 postgresql-17 postgresql-contrib-17 postgresql-17-cron ffmpeg
+          sudo pg_createcluster 17 meryo_storage --port 55440
+          printf "%s\n" "shared_preload_libraries='pg_cron'" "cron.database_name='meryo_ci_storage'" "cron.use_background_workers=on" | sudo tee -a /etc/postgresql/17/meryo_storage/postgresql.conf
+          sudo pg_ctlcluster 17 meryo_storage start
           sudo -u postgres createuser --host=/var/run/postgresql --port=55440 --superuser "$USER"
           createdb --host=/var/run/postgresql --port=55440 meryo_ci_storage
       - name: Install MERYO dependencies

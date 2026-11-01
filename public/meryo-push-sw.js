@@ -7,13 +7,14 @@ async function rememberShown(id){if(!id||!self.caches)return;const cache=await s
 self.addEventListener('push',event=>event.waitUntil((async()=>{
  let data={};try{data=event.data?.json()||{};}catch{}
  const id=/^[\da-f-]{36}$/i.test(data.bookingId||'')?data.bookingId:null;
+ const orderId=/^[\da-f-]{36}$/i.test(data.orderId||'')?data.orderId:null;
  const notification=/^\d+$/.test(String(data.notificationId||''))?data.notificationId:null;
- const url=id?`/?cita=${id}#my-bookings`:data.event==='push_diagnostico'?`/?admin_view=avisos${notification?'&aviso='+notification:''}#admin`:notification?`/?aviso=${notification}#notifications`:'/#notifications';
+ const url=orderId?(data.event==='pedido_solicitado'?`/?pedido=${orderId}&pedido_origen=negocio&shop_view=tienda&tienda_view=pedidos#shop-manage`:`/?pedido=${orderId}#my-orders`):id?`/?cita=${id}#my-bookings`:data.event==='push_diagnostico'?`/?admin_view=avisos${notification?'&aviso='+notification:''}#admin`:notification?`/?aviso=${notification}#notifications`:'/#notifications';
  const delivery=/^[\da-f-]{36}$/i.test(data.receipt?.id||'')?data.receipt.id:null;
  if(!await alreadyShown(delivery).catch(()=>false)){
   await self.registration.showNotification(typeof data.title==='string'?data.title.slice(0,70):'MERYO · Tu cita',{
    body:typeof data.body==='string'?data.body.slice(0,250):'Hay una actualización en tus solicitudes.',
-   tag:`meryo-${id||notification||'reserva'}`,data:{url,receipt:data.receipt},silent:false,vibrate:[150,100,150],renotify:true,
+   tag:`meryo-${orderId||id||notification||'reserva'}`,data:{url,receipt:data.receipt},silent:false,vibrate:[150,100,150],renotify:true,
   });await rememberShown(delivery).catch(()=>{});
  }
  await receipt(data.receipt,'received');

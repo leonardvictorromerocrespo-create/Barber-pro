@@ -12,3 +12,9 @@ test('diagnostic notification returns to protected administration and OAuth pres
  const handlers={},shown=[];const self={location:{origin:'https://meryo.example'},addEventListener:(k,fn)=>{handlers[k]=fn;},registration:{showNotification:async(_t,o)=>shown.push(o)}};
  vm.runInNewContext(await fs.readFile('public/meryo-push-sw.js','utf8'),{self,URL,Response,fetch:async()=>{}});let task;handlers.push({data:{json:()=>({event:'push_diagnostico',notificationId:123,body:'Comprobación propia'})},waitUntil:p=>{task=p;}});await task;assert.equal(shown[0].data.url,'/?admin_view=avisos&aviso=123#admin');
 });
+test('store notifications open the exact owner or customer order rather than administration',async()=>{
+ const handlers={},shown=[],opened=[];const self={location:{origin:'https://meryo.example'},addEventListener:(kind,fn)=>{handlers[kind]=fn;},registration:{showNotification:async(_title,o)=>shown.push(o)},clients:{matchAll:async()=>[],openWindow:async url=>opened.push(url)}};
+ vm.runInNewContext(await fs.readFile('public/meryo-push-sw.js','utf8'),{self,URL,Response,fetch:async()=>{}});
+ const order='20000000-0000-0000-0000-000000000002';
+ for(const [event,url] of [['pedido_solicitado',`https://meryo.example/?pedido=${order}&pedido_origen=negocio&shop_view=tienda&tienda_view=pedidos#shop-manage`],['pedido_aceptado',`https://meryo.example/?pedido=${order}#my-orders`]]){let work;handlers.push({data:{json:()=>({event,orderId:order})},waitUntil:p=>{work=p;}});await work;handlers.notificationclick({notification:{close(){},data:shown.at(-1).data},waitUntil:p=>{work=p;}});await work;assert.equal(opened.at(-1),url);assert.doesNotMatch(opened.at(-1),/admin|avisos/);}
+});
