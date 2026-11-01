@@ -122,7 +122,7 @@ try{
  const acceptedSalonRow=await db.query('select estado,extract(epoch from expira_pago_en-aceptada_en)::int as payment_seconds from public.reservas where id=$1',[salonBooking]);assert.equal(acceptedSalonRow.rows[0].estado,'aceptada');assert.equal(acceptedSalonRow.rows[0].payment_seconds,600,'Acceptance starts the existing 10-minute payment deadline');
  assert.ok((await beautyApi.notifications(beautyOwnerId)).some(n=>String(n.reserva_id)===String(salonBooking)),'Salon owner receives the server reservation notification');
  assert.ok((await buyerApi.notifications(strangerId)).some(n=>String(n.reserva_id)===String(salonBooking)),'Customer receives the acceptance notification');
- assert.equal((await buyerApi.bookingState()).payments_enabled,false,'Beauty appointments keep live payments disabled');
+ assert.equal((await buyerApi.bookingConfig()).cobros_habilitados,false,'Beauty appointments keep live payments disabled');
  phase='pickup store product visibility and owner photo upload';
  const productPhoto=await ownerApi.uploadProductPhoto(shop,new File([png],'product.png',{type:'image/png'}));
  const hiddenPhoto=await ownerApi.uploadProductPhoto(shop,new File([png],'hidden.png',{type:'image/png'}));
