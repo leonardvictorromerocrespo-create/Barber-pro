@@ -23,8 +23,8 @@ try{
  const alter=(await db.query('select format(\'alter role %I password %L\',$1::text,$2::text) sql',[user,password])).rows[0].sql;await db.query(alter);
  await db.query('alter role service_role bypassrls');
  const quote=value=>'"'+value.replaceAll('"','""')+'"';
- for(const ext of metadata.extensionSchemas){await db.query(`create schema if not exists ${quote(ext.schema)}`);await db.query(`create extension ${quote(ext.name)} with schema ${quote(ext.schema)}`);}
- await db.query('create extension pg_cron');
+ for(const ext of metadata.extensionSchemas){await db.query(`create schema if not exists ${quote(ext.schema)}`);await db.query(`create extension if not exists ${quote(ext.name)} with schema ${quote(ext.schema)}`);}
+ await db.query('create extension if not exists pg_cron');
  await db.query(schema.replace('CREATE SCHEMA public;','CREATE SCHEMA IF NOT EXISTS public;'));
  // The recovered native policy fixture contains client ACLs, but not hosted
  // platform service-role grants. Mirror those for the trusted Storage service
