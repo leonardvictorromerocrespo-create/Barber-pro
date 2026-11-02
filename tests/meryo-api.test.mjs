@@ -60,6 +60,17 @@ test('business registration supports categories through the existing authenticat
   const call=c.calls.find(x=>x.name);assert.equal(call.name,'registrar_negocio');assert.equal(call.args.p_nombre,'MERYO');assert.equal(call.args.p_lat,-12);assert.equal(call.args.p_tipo_negocio,category);assert.ok(!('acepta_auto' in call.args));assert.ok(!('rol' in call.args));
  }
 });
+test('booking state delegates scope to the authenticated server RPC, not the visual catalog category',async()=>{
+ const answer={data:{server_now:'2026-11-01T12:00:00Z',reservas:[]},error:null};
+ for(const profile of [{id:'real-subject',rol:'cliente',activo:true},{id:'real-subject',rol:'barbero',barberia_id:42,activo:true}]){
+  const c=clientFor(profile,answer),api=createMeryoApi(c);await api.bookingState();
+  assert.deepEqual(c.calls.find(x=>x.name==='meryo_reservas_estado'),{name:'meryo_reservas_estado',args:undefined});
+  assert.ok(!c.calls.some(x=>x.name==='meryo_reservas_estado'&&x.args?.p_categoria),'booking scope cannot come from the visual category');
+ }
+ const admin=clientFor({id:'real-subject',rol:'admin',activo:true},answer),api=createMeryoApi(admin);
+ await assert.rejects(api.bookingState(),/rol correspondiente/);
+ assert.ok(!admin.calls.some(x=>x.name==='meryo_reservas_estado'),'unrelated roles cannot query booking state');
+});
 test('evaluation-only services stay visible without a fabricated price and are not reservable',()=>{
  const mapped=mapShop({id:1,nombre:'Salón',tipos_negocio:['belleza'],servicios:[{id:4,nombre:'Tratamiento capilar',activo:true,categoria:'tratamientos_capilares',requiere_evaluacion:true,precio:null,duracion_min:null}]});
  assert.deepEqual(mapped.businessTypes,['belleza']);assert.equal(mapped.services[0].price,null);assert.equal(mapped.services[0].duration,null);assert.equal(mapped.services[0].bookable,false);assert.equal(mapped.services[0].category,'tratamientos_capilares');

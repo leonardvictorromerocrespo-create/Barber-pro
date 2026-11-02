@@ -26,6 +26,7 @@ import beautySalonBlowdry from './assets/beauty-carousel/salon-blowdry.webp';
 import beautySalonManicure from './assets/beauty-carousel/salon-manicure.webp';
 import beautySalonColor from './assets/beauty-carousel/salon-color.webp';
 import {catalogCountLabel} from './lib/catalog-copy';
+import {createCatalogLoader} from './lib/catalog-loader';
 const api = createMeryoApi(supabase);
 import CatalogFilters from "./components/CatalogFilters";
 import CatalogStatus from './components/CatalogStatus';
@@ -393,12 +394,16 @@ function MeryoScreens({identity}) {
   const resumed=useRef('');
   useEffect(()=>{let active=true;setAdminAal2(false);if(adminAccess)supabase.auth.mfa.getAuthenticatorAssuranceLevel().then(({data,error})=>{if(active)setAdminAal2(!error&&data?.currentLevel==='aal2');});return()=>{active=false;};},[identity.profile,adminAccess]);
   const barberLoggedIn = identity.profile?.rol === 'barbero';
-  const [catalogError,setCatalogError] = useState('');
-  const [catalogLoading,setCatalogLoading]=useState(true);
+  const [catalogState,setCatalogState]=useState({category:null,rows:[],loading:true,error:''});
   const [activeSlots,setActiveSlots] = useState([]);
   const [agendaError,setAgendaError] = useState('');
   const [agendaLoading,setAgendaLoading] = useState(false);
-  const [shops, setShops] = useState([]);
+  const catalogLoader=useRef(null);
+  const catalogNavigation=useRef(0);
+  if(!catalogLoader.current)catalogLoader.current=createCatalogLoader(category=>api.catalog(category),setCatalogState);
+  const loadedCatalogCategory=catalogState.category,shops=catalogState.rows,catalogLoading=catalogState.loading,catalogError=catalogState.error;
+  const catalogMatchesCategory=loadedCatalogCategory===catalogCategory;
+  const catalogRows=useMemo(()=>catalogMatchesCategory?shops:[],[catalogMatchesCategory,shops]);
   // Public RPC contract; authenticated requests stay blocked without real Auth.
   const reservationsEnabled = identity.profile?.rol === 'cliente' && !supabase.authUnavailable;
   const [savingReservation, setSavingReservation] = useState(false);
@@ -431,12 +436,13 @@ function MeryoScreens({identity}) {
   const [customRequest, setCustomRequest] = useState("");
   const [customerInfo, setCustomerInfo] = useState({ name: "", phone: "" });
   const [heroIndex, setHeroIndex] = useState(0);
-  const cargarBarberiasActivas = useCallback(async () => {
-    setCatalogLoading(true);
-    try { const data = await api.catalog(catalogCategory); setShops(data); setCatalogError(''); }
-    catch(error) { setCatalogError(error.message); }
-    finally{setCatalogLoading(false);}
-  },[catalogCategory]);
+  const cargarBarberiasActivas = useCallback(() => catalogLoader.current.load(catalogCategory),[catalogCategory]);
+  const cambiarCategoriaCatalogo = useCallback(category => {
+    const next=category==='belleza'?'belleza':'barberia';
+    catalogNavigation.current+=1;
+    catalogLoader.current.reset(next);
+    setCatalogCategory(next);
+  },[]);
 
   useEffect(() => {
     let active=true;
@@ -476,8 +482,8 @@ useEffect(() => {
   }, []);
 
   const ranking = useMemo(
-    () => selectShops(shops, { query, district, order, location }),
-    [shops, query, district, order, location]
+    () => selectShops(catalogRows, { query, district, order, location }),
+    [catalogRows, query, district, order, location]
   );
 
   const markers = useMemo(() => catalogMarkers(ranking), [ranking]);
@@ -510,7 +516,7 @@ async function cargarNotificaciones() {
     const next=category==='belleza'?'belleza':'barberia';
     const url=new URL(window.location.href);url.searchParams.set('catalogo',next);
     window.history.replaceState(null,'',url.pathname+url.search+url.hash);
-    setCatalogCategory(next);setQuery('');setDistrict('');setView('client');
+    cambiarCategoriaCatalogo(next);setQuery('');setDistrict('');setView('client');
   };
 
   const enableLocation = () => {
@@ -569,14 +575,14 @@ async function cargarNotificaciones() {
     const pickupDraft=readPickupCart(sessionStorage);
     if(pickupDraft){
       if(profile.rol!=='cliente'){clearPickupCart(sessionStorage);resumed.current=profile.id;setAccessMessage('La selección de tienda se guardó, pero esta cuenta no tiene rol de cliente. Usa una cuenta de cliente para solicitar productos.');return;}
-      let active=true;api.catalog(pickupDraft.category).then(catalog=>{if(!active)return;const shop=catalog.find(item=>String(item.id)===pickupDraft.shop);if(!shop)throw Error('El negocio ya no está visible. Vuelve al catálogo para elegir otro.');const category=pickupDraft.category==='belleza'?'belleza':'barberia';const url=new URL(window.location.href);url.searchParams.set('catalogo',category);window.history.replaceState(null,'',url.pathname+url.search+url.hash);setCatalogCategory(category);setStoreCategory(category);setStoreShop(shop);setRestoredPickupCart(pickupDraft);setShowStoreModal(true);setView('client');setAccessMessage('Recuperamos tu selección de tienda. Revisa productos y cantidades antes de enviarla.');clearPickupCart(sessionStorage);resumed.current=profile.id;}).catch(error=>{if(active){setAccessMessage(error.message);clearPickupCart(sessionStorage);resumed.current=profile.id;}});return()=>{active=false;};
+      let active=true;const navigationAtStart=catalogNavigation.current;api.catalog(pickupDraft.category).then(catalog=>{if(!active||navigationAtStart!==catalogNavigation.current)return;const shop=catalog.find(item=>String(item.id)===pickupDraft.shop);if(!shop)throw Error('El negocio ya no está visible. Vuelve al catálogo para elegir otro.');const category=pickupDraft.category==='belleza'?'belleza':'barberia';const url=new URL(window.location.href);url.searchParams.set('catalogo',category);window.history.replaceState(null,'',url.pathname+url.search+url.hash);cambiarCategoriaCatalogo(category);setStoreCategory(category);setStoreShop(shop);setRestoredPickupCart(pickupDraft);setShowStoreModal(true);setView('client');setAccessMessage('Recuperamos tu selección de tienda. Revisa productos y cantidades antes de enviarla.');clearPickupCart(sessionStorage);resumed.current=profile.id;}).catch(error=>{if(active&&navigationAtStart===catalogNavigation.current){setAccessMessage(error.message);clearPickupCart(sessionStorage);resumed.current=profile.id;}});return()=>{active=false;};
     }
     if(['barber','barber-login','shop-register','shop-manage'].includes(view)){resumed.current=profile.id;return;}
     const draft=readDraft(sessionStorage);if(!draft||profile.rol!=='cliente')return;
-    let active=true;
-    api.catalog(draft.category).then(catalog=>{if(!active)return;const shop=catalog.find(s=>String(s.id)===draft.shop),service=shop?.services.find(s=>String(s.id)===draft.service);if(!shop||!service?.bookable)throw Error('El servicio ya no está disponible para reservar. Consulta si requiere evaluación.');setSelectedShop(shop);setSelectedService(service);setSelectedBarber(draft.barber||'');setSelectedDate(draft.date);setSelectedTime(draft.barber&&!(shop.equipo??[]).some(m=>m.id===draft.barber&&m.servicios?.some(id=>String(id)===String(service.id)))?'':draft.time);setCustomRequest(draft.note);setCustomerInfo(prev=>({...prev,name:draft.name||profile.nombre||'',phone:draft.phone||profile.telefono||''}));resumed.current=profile.id;setView('client');setCatalogCategory(draft.category);setShowBookingModal(true);clearDraft(sessionStorage);setAccessMessage('Recuperamos tu reserva. Revisa el horario y completa solo los datos que faltan.');}).catch(error=>{if(active)setAccessMessage(error.message);});
+    let active=true;const navigationAtStart=catalogNavigation.current;
+    api.catalog(draft.category).then(catalog=>{if(!active||navigationAtStart!==catalogNavigation.current)return;const shop=catalog.find(s=>String(s.id)===draft.shop),service=shop?.services.find(s=>String(s.id)===draft.service);if(!shop||!service?.bookable)throw Error('El servicio ya no está disponible para reservar. Consulta si requiere evaluación.');setSelectedShop(shop);setSelectedService(service);setSelectedBarber(draft.barber||'');setSelectedDate(draft.date);setSelectedTime(draft.barber&&!(shop.equipo??[]).some(m=>m.id===draft.barber&&m.servicios?.some(id=>String(id)===String(service.id)))?'':draft.time);setCustomRequest(draft.note);setCustomerInfo(prev=>({...prev,name:draft.name||profile.nombre||'',phone:draft.phone||profile.telefono||''}));resumed.current=profile.id;setView('client');cambiarCategoriaCatalogo(draft.category);setShowBookingModal(true);clearDraft(sessionStorage);setAccessMessage('Recuperamos tu reserva. Revisa el horario y completa solo los datos que faltan.');}).catch(error=>{if(active&&navigationAtStart===catalogNavigation.current)setAccessMessage(error.message);});
     return()=>{active=false;};
-  },[identity.profile]);
+  },[identity.profile,cambiarCategoriaCatalogo]);
   const submitReservation = async () => {
     if(!reservationsEnabled){requireBookingLogin();return;}
     if (savingReservation || !selectedTime || !selectedService || !selectedBarber) return;
@@ -640,7 +646,7 @@ const finalPrice = basePrice;
   if(view==='shop-register')return <main className="min-h-screen bg-neutral-950 p-6 text-white"><div className="mx-auto max-w-2xl space-y-5 rounded-3xl border border-white/10 bg-neutral-900 p-6"><h1 className="text-3xl font-black">Registro de negocios <span className="text-amber-400">MERYO</span></h1><button onClick={()=>setView('client')} className="rounded-xl border border-white/20 px-4 py-2">Volver al catálogo</button>{registration}</div></main>;
   if(view === 'shop-manage') return <ShopManagement key={identity.profile?.id||'anonymous'} api={api} profile={identity.profile} onLogin={()=>openLogin(pickupOrderIdFromSearch(window.location.search)?'shop-order':'barber')} onBack={async()=>{await cargarBarberiasActivas();setView('client');}} onRegister={()=>setView('shop-register')}/>;
   if(view==='my-orders') return <div data-meryo-theme={catalogCategory==='belleza'?'beauty':'barberia'}><Suspense fallback={<p className="min-h-screen bg-neutral-950 p-8 text-white">Cargando pedidos…</p>}><MyPickupOrders api={api} profile={identity.profile} identityLoading={identity.loading} onLogin={destination=>openLogin(destination)} onBack={()=>{const url=new URL(window.location.href);url.searchParams.delete('pedido');window.history.replaceState(null,'',url.pathname+url.search+url.hash);setView('client');}}/></Suspense></div>;
-  if(view === 'my-bookings') return <div data-meryo-theme={catalogCategory==='belleza'?'beauty':'barberia'} className="min-h-screen bg-neutral-950 p-6 text-white"><div className="mx-auto max-w-5xl space-y-5"><h1 className="text-3xl font-black">Mis citas <span className="text-amber-400">MERYO</span></h1><button onClick={()=>{const url=new URL(window.location.href);url.searchParams.delete('cita');window.history.replaceState(null,'',url.pathname+url.search+url.hash);setView('client');}} className="rounded-xl border border-white/20 px-4 py-2">Volver</button><Reservations key={`${identity.profile?.id}-${identity.profile?.rol}`} api={api} profile={identity.profile} businessCategory={catalogCategory} identityLoading={identity.loading} onLogin={()=>openLogin('my-bookings')} onSearch={()=>{const url=new URL(window.location.href);url.searchParams.delete('cita');window.history.replaceState(null,'',url.pathname+url.search+url.hash);setQuery('');setDistrict('');setShowBookingModal(false);setView('client');}}/></div></div>;
+  if(view === 'my-bookings') return <div data-meryo-theme={catalogCategory==='belleza'?'beauty':'barberia'} className="min-h-screen bg-neutral-950 p-6 text-white"><div className="mx-auto max-w-5xl space-y-5"><h1 className="text-3xl font-black">Mis citas <span className="text-amber-400">MERYO</span></h1><button onClick={()=>{const url=new URL(window.location.href);url.searchParams.delete('cita');window.history.replaceState(null,'',url.pathname+url.search+url.hash);setView('client');}} className="rounded-xl border border-white/20 px-4 py-2">Volver</button><Reservations key={`${identity.profile?.id}-${identity.profile?.rol}`} api={api} profile={identity.profile} identityLoading={identity.loading} onLogin={()=>openLogin('my-bookings')} onSearch={()=>{const url=new URL(window.location.href);url.searchParams.delete('cita');window.history.replaceState(null,'',url.pathname+url.search+url.hash);setQuery('');setDistrict('');setShowBookingModal(false);setView('client');}}/></div></div>;
   if (view === "landing") {
     return <LandingPage setView={setView} onExplore={openCatalogCategory} profile={identity.profile} identityLoading={identity.loading} adminAccess={adminAccess} onSignIn={()=>openLogin('client')} onAccount={()=>setView('account')} onProfessionalAccess={()=>{if(adminAccess)setView('admin');else if(identity.profile?.rol==='barbero')setView('shop-manage');else if(identity.profile?.rol==='cliente')setView('shop-register');else setView('barber-login');}}/>;
   }
@@ -685,7 +691,7 @@ const finalPrice = basePrice;
         <p className="mb-6 text-neutral-400">Aceptación manual en 15 minutos. El estado y los vencimientos los determina el servidor.</p>
         {notificaciones.length>0&&<div className="mb-5 rounded-2xl border border-white/10 bg-neutral-900 p-5"><h2 className="font-bold">Notificaciones</h2>{notificaciones.slice(0,3).map(n=><p key={n.id} className="mt-2 text-sm text-neutral-300">{n.titulo}</p>)}</div>}
         <button onClick={()=>setView('shop-manage')} className="mb-6 rounded-xl bg-amber-400 px-4 py-2 font-bold text-black">Perfil, servicios y horarios</button>
-        <Reservations key={`${identity.profile?.id}-${identity.profile?.rol}`} api={api} profile={identity.profile} businessCategory={catalogCategory} onLogin={()=>setView('barber-login')} onSearch={()=>setView('client')}/>
+        <Reservations key={`${identity.profile?.id}-${identity.profile?.rol}`} api={api} profile={identity.profile} onLogin={()=>setView('barber-login')} onSearch={()=>setView('client')}/>
         <div className="mt-10 flex flex-wrap gap-3">
           <button onClick={() => setView("client")} className={`rounded-xl bg-amber-400 px-4 py-2 font-bold text-black ${pointerClass}`}>Volver</button>
           <button onClick={handleLogout} className={`rounded-xl border border-white/10 px-4 py-2 font-bold ${pointerClass}`}>Cerrar sesión</button>
@@ -824,9 +830,9 @@ if (view === "admin" && adminAccess) return <AdminShops api={api} profile={ident
         {supabase.authUnavailable&&<p role="status" className="mx-auto max-w-7xl px-6 pt-5 text-amber-300">Puedes consultar perfiles, servicios y calendario. Registro, acceso y operaciones privadas requieren Supabase Auth de pruebas; no hay sesiones ficticias.</p>}
         {identity.error&&<p role="alert" className="px-6 text-red-300">{identity.error}</p>}
         {accessMessage&&<p role="status" className="px-6 text-amber-300">{accessMessage}</p>}
-        {catalogError&&<p role="alert" className="px-6 text-red-300">{catalogError}</p>}
+        {catalogMatchesCategory&&catalogError&&<p role="alert" className="px-6 text-red-300">{catalogError}</p>}
         <section className="mx-auto max-w-7xl px-3 pt-4 pb-10 md:px-6 md:py-16">
-          <ClientHero heroIndex={heroIndex} setHeroIndex={setHeroIndex} setView={setView} shops={shops} catalogCategory={catalogCategory} />
+          <ClientHero heroIndex={heroIndex} setHeroIndex={setHeroIndex} setView={setView} catalogCategory={catalogCategory} />
 
           <div className="mb-10 flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
             <div>
@@ -835,7 +841,7 @@ if (view === "admin" && adminAccess) return <AdminShops api={api} profile={ident
               <p className="mt-2 text-neutral-400">Solicita una cita. La confirmación requiere aceptación y verificación del adelanto por el servidor.</p>
             </div>
             <div className="rounded-2xl border border-white/10 bg-neutral-900 px-4 py-3 text-sm text-neutral-300">
-              {catalogCountLabel(catalogCategory,ranking.length)}
+              {catalogLoading||!catalogMatchesCategory?'Cargando…':catalogCountLabel(catalogCategory,ranking.length)}
             </div>
           </div>
 
@@ -843,19 +849,19 @@ if (view === "admin" && adminAccess) return <AdminShops api={api} profile={ident
           <button onClick={() => setShowMap(value => !value)} aria-expanded={showMap} className="mb-4 rounded-xl border border-white/10 px-4 py-2 text-sm">{showMap ? "Ocultar mapa" : "Ver mapa"}</button>
           {showMap && <div className="mb-10 rounded-3xl border border-white/10 bg-neutral-900 p-6">
             <Suspense fallback={<p role="status">Cargando mapa…</p>}>
-              <CatalogMap markers={markers} location={location} onSelect={id => { const shop = shops.find(item => item.id === id); if (shop) openProfileModal(shop); }} />
+              <CatalogMap markers={markers} location={location} onSelect={id => { const shop = catalogRows.find(item => item.id === id); if (shop) openProfileModal(shop); }} />
             </Suspense>
             {markers.length === 0 && <p className="mt-3 text-sm text-neutral-400">No hay ubicaciones verificables para estos resultados.</p>}
           </div>}
-          {shops.length > 0 && ranking.length === 0 && <p role="status" className="mb-6 text-neutral-400">No encontramos {catalogCategory==='belleza'?'peluquerías ni salones':'barberías'} con esos filtros.</p>}
-          <CatalogStatus loading={catalogLoading} error={catalogError} empty={shops.length===0} businessLabel={catalogCategory==='belleza'?'peluquerías y salones':'barberías'}/>
+          {catalogRows.length > 0 && ranking.length === 0 && <p role="status" className="mb-6 text-neutral-400">No encontramos {catalogCategory==='belleza'?'peluquerías ni salones':'barberías'} con esos filtros.</p>}
+          <CatalogStatus loading={catalogLoading||!catalogMatchesCategory} error={catalogMatchesCategory?catalogError:''} empty={catalogRows.length===0} businessLabel={catalogCategory==='belleza'?'peluquerías y salones':'barberías'}/>
 
           <CatalogShopGrid shops={ranking} category={catalogCategory} onView={openProfileModal} onReserve={openBookingModal}/>
         </section>
 
         <section className="mx-auto max-w-7xl px-6 pb-4">
           <div className="rounded-3xl border border-white/10 bg-neutral-900 p-6">
-            <Reservations key={`${identity.profile?.id}-${identity.profile?.rol}`} api={api} profile={identity.profile} businessCategory={catalogCategory} onLogin={()=>setView('client-login')} onSearch={()=>{setQuery('');setDistrict('');setShowBookingModal(false);setView('client');}}/>
+            <Reservations key={`${identity.profile?.id}-${identity.profile?.rol}`} api={api} profile={identity.profile} onLogin={()=>setView('client-login')} onSearch={()=>{setQuery('');setDistrict('');setShowBookingModal(false);setView('client');}}/>
           </div>
         </section>
 

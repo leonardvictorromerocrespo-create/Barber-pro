@@ -42,7 +42,9 @@ test('existing screens render without a fictitious identity or a payment confirm
  assert.match(beautyCatalog,/TU BELLEZA, TU ESTILO/);
  assert.match(beautyCatalog,/Buscar salón/);
  assert.match(beautyCatalog,/Ordenar peluquerías y salones/);
- assert.match(beautyCatalog,/0 salones encontrados/);
+ assert.match(beautyCatalog,/Cargando peluquerías y salones…/);
+ assert.match(beautyCatalog,/Cargando…/);
+ assert.doesNotMatch(beautyCatalog,/Próximamente encontrarás peluquerías y salones aquí/);
  assert.match(beautyCatalog,/el profesional del salón acepte/i);
  assert.doesNotMatch(beautyCatalog,/Barberías cerca de ti|Ordenar barberías|aria-label="Categoría de negocio"/);
  assert.equal(countLabel('belleza',1),'1 salón encontrado');assert.equal(countLabel('belleza',3),'3 salones encontrados');
