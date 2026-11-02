@@ -1,0 +1,204 @@
+/* Beauty client theme. Every override is scoped to a beauty navigation context. */
+[data-meryo-theme="beauty"] {
+  color-scheme: light;
+  --meryo-carbon: #faf7f4;
+  --meryo-surface: #fffefc;
+  --meryo-surface-raised: #fffefc;
+  --meryo-surface-soft: #eedde2;
+  --meryo-gold: #955568;
+  --meryo-gold-light: #955568;
+  --meryo-gold-border: #c5ad86;
+  --meryo-text: #352832;
+  --meryo-text-muted: #655761;
+  --meryo-border: #c5ad86;
+  background-color: #faf7f4;
+  color: #352832;
+}
+
+[data-meryo-theme="beauty"] .bg-neutral-950,
+[data-meryo-theme="beauty"] [class~="bg-neutral-950/90"],
+[data-meryo-theme="beauty"] [class~="bg-neutral-950/95"] {
+  background-color: #faf7f4 !important;
+}
+
+[data-meryo-theme="beauty"] .bg-neutral-900,
+[data-meryo-theme="beauty"] .bg-neutral-800 {
+  background-color: #fffefc !important;
+}
+
+[data-meryo-theme="beauty"] .bg-neutral-700,
+[data-meryo-theme="beauty"] .bg-black,
+[data-meryo-theme="beauty"] [class~="bg-black/20"],
+[data-meryo-theme="beauty"] [class~="bg-black/30"],
+[data-meryo-theme="beauty"] [class~="bg-black/35"],
+[data-meryo-theme="beauty"] [class~="bg-black/40"],
+[data-meryo-theme="beauty"] [class~="bg-white/10"],
+[data-meryo-theme="beauty"] [class~="bg-white/15"],
+[data-meryo-theme="beauty"] [class~="bg-white/20"],
+[data-meryo-theme="beauty"] [class~="bg-white/40"] {
+  background-color: #eedde2 !important;
+}
+
+/* Keep modal scrims dark while lightening the dialog surfaces. */
+[data-meryo-theme="beauty"] [class~="bg-black/70"],
+[data-meryo-theme="beauty"] [class~="bg-black/80"] {
+  background-color: rgb(18 13 17 / 72%) !important;
+}
+
+[data-meryo-theme="beauty"] .text-white,
+[data-meryo-theme="beauty"] .text-neutral-100,
+[data-meryo-theme="beauty"] .text-neutral-200,
+[data-meryo-theme="beauty"] .text-neutral-300 {
+  color: #352832 !important;
+}
+
+[data-meryo-theme="beauty"] .text-neutral-400,
+[data-meryo-theme="beauty"] .text-neutral-500 {
+  color: #655761 !important;
+}
+
+[data-meryo-theme="beauty"] [class~="text-black"],
+[data-meryo-theme="beauty"] [class~="text-black/80"] {
+  color: #352832 !important;
+}
+
+[data-meryo-theme="beauty"] [class*="text-amber-"] {
+  color: #704452 !important;
+}
+
+[data-meryo-theme="beauty"] .text-emerald-300 {
+  color: #704452 !important;
+}
+
+[data-meryo-theme="beauty"] [class*="bg-amber-400/"] {
+  background-color: #eedde2 !important;
+}
+
+[data-meryo-theme="beauty"] [class~="bg-amber-400"] {
+  background-color: #955568 !important;
+  color: #fffefc !important;
+}
+
+[data-meryo-theme="beauty"] [class~="text-black/80"] {
+  color: rgb(255 254 252 / 86%) !important;
+}
+
+[data-meryo-theme="beauty"] [class*="border-white/"],
+[data-meryo-theme="beauty"] [class*="border-amber-"] {
+  border-color: #c5ad86 !important;
+}
+
+[data-meryo-theme="beauty"] [class~="border-dashed"] {
+  border-color: rgb(197 173 134 / 70%) !important;
+}
+
+[data-meryo-theme="beauty"] .meryo-site-header {
+  border-color: #c5ad86 !important;
+  color: #352832 !important;
+}
+
+[data-meryo-theme="beauty"] .meryo-site-header button {
+  border-color: #c5ad86 !important;
+  color: #352832 !important;
+}
+
+[data-meryo-theme="beauty"] .meryo-site-header button:hover {
+  background-color: #eedde2 !important;
+}
+
+[data-meryo-theme="beauty"] .meryo-catalog-filters {
+  background-color: #fffefc !important;
+}
+
+[data-meryo-theme="beauty"] .meryo-shop-card__services,
+[data-meryo-theme="beauty"] .meryo-shop-card:nth-child(3n + 1) .meryo-shop-card__services,
+[data-meryo-theme="beauty"] .meryo-shop-card:nth-child(3n + 2) .meryo-shop-card__services {
+  background-color: #eedde2 !important;
+}
+
+[data-meryo-theme="beauty"] input,
+[data-meryo-theme="beauty"] select,
+[data-meryo-theme="beauty"] textarea {
+  border-color: #c5ad86 !important;
+  background-color: #fffefc !important;
+  color: #352832 !important;
+  color-scheme: light;
+}
+
+[data-meryo-theme="beauty"] select option {
+  background-color: #fffefc;
+  color: #352832;
+}
+
+[data-meryo-theme="beauty"] input::placeholder,
+[data-meryo-theme="beauty"] textarea::placeholder {
+  color: #655761;
+  opacity: 1;
+}
+
+[data-meryo-theme="beauty"] :where(button, a, input, select, textarea, [tabindex]):focus-visible {
+  outline: 3px solid #955568 !important;
+  outline-offset: 2px;
+}
+
+[data-meryo-theme="beauty"] button:disabled {
+  cursor: not-allowed;
+  opacity: 1 !important;
+}
+
+[data-meryo-theme="beauty"] :is(input, select, textarea):disabled {
+  background-color: #eedde2 !important;
+  color: #655761 !important;
+  cursor: not-allowed;
+  opacity: 1 !important;
+}
+
+[data-meryo-theme="beauty"] [class~="bg-amber-400"]:disabled {
+  border: 1px solid #c5ad86;
+  background-color: #eedde2 !important;
+  color: #352832 !important;
+}
+
+[data-meryo-theme="beauty"] [class~="hover:bg-black/60"]:hover {
+  background-color: #eedde2 !important;
+  color: #352832 !important;
+}
+
+[data-meryo-theme="beauty"] [class~="bg-emerald-500/10"] {
+  background-color: #eedde2 !important;
+}
+
+[data-meryo-theme="beauty"] [class~="border-emerald-500/30"],
+[data-meryo-theme="beauty"] [class~="border-emerald-500/40"] {
+  border-color: #c5ad86 !important;
+}
+
+[data-meryo-theme="beauty"] .meryo-beauty-hero {
+  border-color: #c5ad86;
+  background-color: #352832;
+}
+
+[data-meryo-theme="beauty"] .meryo-beauty-hero-overlay {
+  background: linear-gradient(90deg, rgb(35 24 31 / 78%) 0%, rgb(35 24 31 / 50%) 52%, rgb(35 24 31 / 14%) 100%);
+}
+
+[data-meryo-theme="beauty"] .meryo-beauty-hero h1,
+[data-meryo-theme="beauty"] .meryo-beauty-hero p {
+  color: #fffefc !important;
+}
+
+[data-meryo-theme="beauty"] .meryo-beauty-hero .text-amber-400 {
+  color: #eedde2 !important;
+}
+
+[data-meryo-theme="beauty"] .meryo-beauty-hero button:not([aria-label^="Ver imagen"]) {
+  border-color: #eedde2 !important;
+  background-color: rgb(255 254 252 / 94%) !important;
+  color: #352832 !important;
+}
+
+@media (max-width: 640px) {
+  [data-meryo-theme="beauty"] .meryo-beauty-hero-overlay {
+    background: linear-gradient(0deg, rgb(35 24 31 / 82%) 0%, rgb(35 24 31 / 55%) 72%, rgb(35 24 31 / 28%) 100%);
+  }
+}

@@ -4,7 +4,7 @@ import {clearPickupCart,savePickupCart} from '../../lib/pickup-cart';
 const money=value=>`S/ ${Number(value||0).toFixed(2)}`;
 function newKey(){return crypto.randomUUID();}
 
-export default function StoreModal({api,shop,profile,initialCart,onLogin,onClose,onOpenOrders}){
+export default function StoreModal({api,shop,profile,initialCart,onLogin,onClose,onOpenOrders,category='barberia'}){
  const [products,setProducts]=useState([]),[loading,setLoading]=useState(true),[error,setError]=useState(''),[busy,setBusy]=useState(false),[success,setSuccess]=useState(''),[createdId,setCreatedId]=useState(null);
  const [cart,setCart]=useState(()=>new Map((initialCart?.items??[]).map(item=>[String(item.productId),item.quantity])));
  const requestKey=useRef(newKey());
@@ -16,14 +16,14 @@ export default function StoreModal({api,shop,profile,initialCart,onLogin,onClose
  function quantity(id,next){const product=products.find(p=>String(p.id)===String(id));if(!product)return;setCart(current=>{const copy=new Map(current);const value=Math.max(0,Math.min(99,Number(next)||0));if(value===0)copy.delete(String(id));else copy.set(String(id),value);return copy;});requestKey.current=newKey();setSuccess('');}
  async function submit(){
   if(busy||!selected.length)return;
-  if(!profile){try{savePickupCart(sessionStorage,{shop:shop.id,category:shop.businessTypes?.includes('belleza')&&!shop.businessTypes?.includes('barberia')?'belleza':'barberia',items:selected.map(p=>({productId:p.id,quantity:p.cantidad}))});onClose();onLogin('store');}catch(e){setError(e.message);}return;}
+  if(!profile){try{savePickupCart(sessionStorage,{shop:shop.id,category,items:selected.map(p=>({productId:p.id,quantity:p.cantidad}))});onClose();onLogin('store');}catch(e){setError(e.message);}return;}
   if(profile.rol!=='cliente'){setError('Para solicitar productos, inicia sesión con una cuenta de cliente.');return;}
   setBusy(true);setError('');setSuccess('');
   try{const orderId=await api.requestPickup({shop:shop.id,items:selected.map(p=>({productId:p.id,quantity:p.cantidad})),requestKey:requestKey.current});setCreatedId(orderId);clearPickupCart(sessionStorage);setCart(new Map());setSuccess('Solicitud enviada y pendiente de disponibilidad. No garantiza unidades hasta que la barbería la acepte. Pagas al recoger en la barbería.');}
   catch(e){setError(e.message);}
   finally{setBusy(false);}
  }
- return <div className="fixed inset-0 z-[70] flex items-center justify-center bg-black/80 p-3 sm:p-6" role="presentation" onMouseDown={e=>{if(e.target===e.currentTarget)onClose();}}>
+ return <div data-meryo-theme={category==='belleza'?'beauty':'barberia'} className="fixed inset-0 z-[70] flex items-center justify-center bg-black/80 p-3 sm:p-6" role="presentation" onMouseDown={e=>{if(e.target===e.currentTarget)onClose();}}>
   <section role="dialog" aria-modal="true" aria-labelledby="meryo-store-title" className="max-h-[94vh] w-full max-w-5xl overflow-y-auto rounded-3xl border border-amber-400/20 bg-neutral-950 p-4 text-white shadow-2xl sm:p-6">
    <header className="flex items-start justify-between gap-4"><div><p className="text-sm text-amber-300">Tienda · recojo en local</p><h2 id="meryo-store-title" className="mt-1 text-2xl font-black">{shop.name}</h2><p className="mt-2 text-sm text-amber-200">Pagas al recoger en la barbería</p></div><button onClick={onClose} className="rounded-xl border border-white/20 px-4 py-2">Cerrar</button></header>
    <p className="mt-4 rounded-xl border border-white/10 bg-neutral-900 p-3 text-sm text-neutral-300">Las solicitudes quedan pendientes de disponibilidad. La barbería confirma las unidades antes del recojo; hasta entonces no se reservan productos.</p>

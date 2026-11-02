@@ -53,13 +53,13 @@ function ClientHero({ heroIndex, setHeroIndex, setView, catalogCategory='barberi
   const safeIndex=heroIndex%heroImages.length;
   return (
     <>
-      <div className="mb-10 overflow-hidden rounded-3xl border border-white/10 bg-black">
+      <div className={`meryo-beauty-hero mb-10 overflow-hidden rounded-3xl border border-white/10 bg-black`}>
         <div className="relative h-72 w-full">
           <div
             className="absolute inset-0 bg-cover bg-center transition-all duration-1000"
             style={{ backgroundImage: `url(${heroImages[safeIndex]})` }}
           />
-          <div className="absolute inset-0 bg-black/60" />
+          <div className={`absolute inset-0 ${isBeauty?'meryo-beauty-hero-overlay':'bg-black/60'}`} />
           <div className="absolute bottom-4 right-4 z-20 flex gap-2">
             {heroImages.map((_, index) => (
               <button
@@ -116,7 +116,7 @@ export function ProfileModal({ selectedShop, onClose, onReserve,onStore, catalog
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4">
-      <div className="max-h-[92vh] w-full min-w-0 max-w-6xl overflow-auto rounded-[2rem] border border-white/10 bg-neutral-950 p-4 text-white shadow-2xl sm:p-6" style={{backgroundImage:`linear-gradient(rgba(10,10,10,.94),rgba(10,10,10,.96)),url("${(catalogCategory==='belleza'?BEAUTY_HERO_IMAGES:BARBER_HERO_IMAGES)[0]}")`,backgroundSize:'cover',backgroundPosition:'center'}}>
+      <div data-meryo-theme={catalogCategory==='belleza'?'beauty':'barberia'} className="max-h-[92vh] w-full min-w-0 max-w-6xl overflow-auto rounded-[2rem] border border-white/10 bg-neutral-950 p-4 text-white shadow-2xl sm:p-6" style={{backgroundImage:`linear-gradient(${catalogCategory==='belleza'?'rgba(250,247,244,.90),rgba(250,247,244,.94)':'rgba(10,10,10,.94),rgba(10,10,10,.96)'}),url("${(catalogCategory==='belleza'?BEAUTY_HERO_IMAGES:BARBER_HERO_IMAGES)[0]}")`,backgroundSize:'cover',backgroundPosition:'center'}}>
         <div className="mb-6 flex flex-col items-start justify-between gap-4 sm:flex-row">
           <div className="min-w-0">
             <h3 className="text-3xl font-black">{selectedShop.name}</h3>
@@ -180,6 +180,7 @@ export function ProfileModal({ selectedShop, onClose, onReserve,onStore, catalog
 }
 
 export function BookingModal({
+  catalogCategory='barberia',
   selectedShop,
   selectedService,
   setSelectedService,
@@ -207,7 +208,7 @@ export function BookingModal({
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4">
       
-      <div className="max-h-[92vh] w-full max-w-5xl overflow-auto rounded-[2rem] border border-white/10 bg-neutral-950 p-6 text-white shadow-2xl">
+      <div data-meryo-theme={catalogCategory==='belleza'?'beauty':'barberia'} className="max-h-[92vh] w-full max-w-5xl overflow-auto rounded-[2rem] border border-white/10 bg-neutral-950 p-6 text-white shadow-2xl">
         <div className="mb-6 flex items-start justify-between gap-4">
           <div>
             <p className="text-sm uppercase tracking-[0.2em] text-amber-300">Reserva tu cita</p>
@@ -422,7 +423,7 @@ function MeryoScreens({identity}) {
   const [showAffiliateForm, setShowAffiliateForm] = useState(false);
   const [showBookingModal, setShowBookingModal] = useState(false);
   const [showProfileModal, setShowProfileModal] = useState(false);
-  const [showStoreModal,setShowStoreModal]=useState(false),[storeShop,setStoreShop]=useState(null),[restoredPickupCart,setRestoredPickupCart]=useState(null);
+  const [showStoreModal,setShowStoreModal]=useState(false),[storeShop,setStoreShop]=useState(null),[storeCategory,setStoreCategory]=useState(catalogCategory),[restoredPickupCart,setRestoredPickupCart]=useState(null);
   const [requestSaved, setRequestSaved] = useState(false);
   const [barberLogin, setBarberLogin] = useState({ email: "", password: "" });
   const [notificaciones, setNotificaciones] = useState([]);
@@ -528,7 +529,7 @@ async function cargarNotificaciones() {
   };
 
   const closeProfileModal = () => setShowProfileModal(false);
-  const openStoreModal = shop => {setStoreShop(shop);setShowProfileModal(false);setRestoredPickupCart(null);setShowStoreModal(true);};
+  const openStoreModal = shop => {setStoreShop(shop);setStoreCategory(catalogCategory);setShowProfileModal(false);setRestoredPickupCart(null);setShowStoreModal(true);};
 
   const openBookingModal = (shop) => {
     const service=(shop.services??[]).find(item=>item.bookable);
@@ -568,7 +569,7 @@ async function cargarNotificaciones() {
     const pickupDraft=readPickupCart(sessionStorage);
     if(pickupDraft){
       if(profile.rol!=='cliente'){clearPickupCart(sessionStorage);resumed.current=profile.id;setAccessMessage('La selección de tienda se guardó, pero esta cuenta no tiene rol de cliente. Usa una cuenta de cliente para solicitar productos.');return;}
-      let active=true;api.catalog(pickupDraft.category).then(catalog=>{if(!active)return;const shop=catalog.find(item=>String(item.id)===pickupDraft.shop);if(!shop)throw Error('El negocio ya no está visible. Vuelve al catálogo para elegir otro.');setStoreShop(shop);setRestoredPickupCart(pickupDraft);setShowStoreModal(true);setView('client');setAccessMessage('Recuperamos tu selección de tienda. Revisa productos y cantidades antes de enviarla.');clearPickupCart(sessionStorage);resumed.current=profile.id;}).catch(error=>{if(active){setAccessMessage(error.message);clearPickupCart(sessionStorage);resumed.current=profile.id;}});return()=>{active=false;};
+      let active=true;api.catalog(pickupDraft.category).then(catalog=>{if(!active)return;const shop=catalog.find(item=>String(item.id)===pickupDraft.shop);if(!shop)throw Error('El negocio ya no está visible. Vuelve al catálogo para elegir otro.');const category=pickupDraft.category==='belleza'?'belleza':'barberia';const url=new URL(window.location.href);url.searchParams.set('catalogo',category);window.history.replaceState(null,'',url.pathname+url.search+url.hash);setCatalogCategory(category);setStoreCategory(category);setStoreShop(shop);setRestoredPickupCart(pickupDraft);setShowStoreModal(true);setView('client');setAccessMessage('Recuperamos tu selección de tienda. Revisa productos y cantidades antes de enviarla.');clearPickupCart(sessionStorage);resumed.current=profile.id;}).catch(error=>{if(active){setAccessMessage(error.message);clearPickupCart(sessionStorage);resumed.current=profile.id;}});return()=>{active=false;};
     }
     if(['barber','barber-login','shop-register','shop-manage'].includes(view)){resumed.current=profile.id;return;}
     const draft=readDraft(sessionStorage);if(!draft||profile.rol!=='cliente')return;
@@ -638,8 +639,8 @@ const finalPrice = basePrice;
   const registration=<ShopRegistration profile={identity.profile} loading={identity.loading} form={affiliateForm} setForm={setAffiliateForm} busy={affiliateBusy} error={affiliateError||accessMessage||identity.error} onSubmit={handleAffiliateSubmit} onGoogle={()=>handleGoogle('shop-register')} onLogin={()=>openLogin('shop-register')} onManage={()=>setView('shop-manage')}/>;
   if(view==='shop-register')return <main className="min-h-screen bg-neutral-950 p-6 text-white"><div className="mx-auto max-w-2xl space-y-5 rounded-3xl border border-white/10 bg-neutral-900 p-6"><h1 className="text-3xl font-black">Registro de negocios <span className="text-amber-400">MERYO</span></h1><button onClick={()=>setView('client')} className="rounded-xl border border-white/20 px-4 py-2">Volver al catálogo</button>{registration}</div></main>;
   if(view === 'shop-manage') return <ShopManagement key={identity.profile?.id||'anonymous'} api={api} profile={identity.profile} onLogin={()=>openLogin(pickupOrderIdFromSearch(window.location.search)?'shop-order':'barber')} onBack={async()=>{await cargarBarberiasActivas();setView('client');}} onRegister={()=>setView('shop-register')}/>;
-  if(view==='my-orders') return <Suspense fallback={<p className="min-h-screen bg-neutral-950 p-8 text-white">Cargando pedidos…</p>}><MyPickupOrders api={api} profile={identity.profile} identityLoading={identity.loading} onLogin={destination=>openLogin(destination)} onBack={()=>{const url=new URL(window.location.href);url.searchParams.delete('pedido');window.history.replaceState(null,'',url.pathname+url.search+url.hash);setView('client');}}/></Suspense>;
-  if(view === 'my-bookings') return <div className="min-h-screen bg-neutral-950 p-6 text-white"><div className="mx-auto max-w-5xl space-y-5"><h1 className="text-3xl font-black">Mis citas <span className="text-amber-400">MERYO</span></h1><button onClick={()=>{const url=new URL(window.location.href);url.searchParams.delete('cita');window.history.replaceState(null,'',url.pathname+url.search+url.hash);setView('client');}} className="rounded-xl border border-white/20 px-4 py-2">Volver</button><Reservations key={`${identity.profile?.id}-${identity.profile?.rol}`} api={api} profile={identity.profile} businessCategory={catalogCategory} identityLoading={identity.loading} onLogin={()=>openLogin('my-bookings')} onSearch={()=>{const url=new URL(window.location.href);url.searchParams.delete('cita');window.history.replaceState(null,'',url.pathname+url.search+url.hash);setQuery('');setDistrict('');setShowBookingModal(false);setView('client');}}/></div></div>;
+  if(view==='my-orders') return <div data-meryo-theme={catalogCategory==='belleza'?'beauty':'barberia'}><Suspense fallback={<p className="min-h-screen bg-neutral-950 p-8 text-white">Cargando pedidos…</p>}><MyPickupOrders api={api} profile={identity.profile} identityLoading={identity.loading} onLogin={destination=>openLogin(destination)} onBack={()=>{const url=new URL(window.location.href);url.searchParams.delete('pedido');window.history.replaceState(null,'',url.pathname+url.search+url.hash);setView('client');}}/></Suspense></div>;
+  if(view === 'my-bookings') return <div data-meryo-theme={catalogCategory==='belleza'?'beauty':'barberia'} className="min-h-screen bg-neutral-950 p-6 text-white"><div className="mx-auto max-w-5xl space-y-5"><h1 className="text-3xl font-black">Mis citas <span className="text-amber-400">MERYO</span></h1><button onClick={()=>{const url=new URL(window.location.href);url.searchParams.delete('cita');window.history.replaceState(null,'',url.pathname+url.search+url.hash);setView('client');}} className="rounded-xl border border-white/20 px-4 py-2">Volver</button><Reservations key={`${identity.profile?.id}-${identity.profile?.rol}`} api={api} profile={identity.profile} businessCategory={catalogCategory} identityLoading={identity.loading} onLogin={()=>openLogin('my-bookings')} onSearch={()=>{const url=new URL(window.location.href);url.searchParams.delete('cita');window.history.replaceState(null,'',url.pathname+url.search+url.hash);setQuery('');setDistrict('');setShowBookingModal(false);setView('client');}}/></div></div>;
   if (view === "landing") {
     return <LandingPage setView={setView} onExplore={openCatalogCategory}/>;
   }
@@ -801,7 +802,7 @@ if (view === "client-login") {
 }
 if (view === "admin" && adminAccess) return <AdminShops api={api} profile={identity.profile} onSecurity={()=>setAdminSecurityOpen(true)} onLogout={handleLogout} onBack={()=>setView('client')} onChanged={cargarBarberiasActivas}/>;
   return (
-    <div className="min-h-screen bg-neutral-950 text-white">
+    <div data-meryo-theme={catalogCategory==='belleza'?'beauty':'barberia'} className="min-h-screen bg-neutral-950 text-white">
       <header className="meryo-site-header sticky top-0 z-30 border-b border-white/10 bg-neutral-950/95 backdrop-blur">
         <div className="mx-auto flex max-w-7xl flex-col items-stretch gap-2 px-3 py-2 md:flex-row md:items-center md:justify-between md:px-6 md:py-4">
           <span className="whitespace-nowrap text-2xl font-black md:text-3xl">MER<span className="text-amber-400">YO</span></span>
@@ -895,9 +896,10 @@ if (view === "admin" && adminAccess) return <AdminShops api={api} profile={ident
         }}
       />
 
-      {showStoreModal&&storeShop&&<Suspense fallback={null}><StoreModal key={`${storeShop.id}-${Boolean(restoredPickupCart)}`} api={api} shop={storeShop} profile={identity.profile} initialCart={restoredPickupCart} onLogin={destination=>openLogin(destination)} onClose={()=>{setShowStoreModal(false);setRestoredPickupCart(null);}} onOpenOrders={orderId=>{setShowStoreModal(false);const url=new URL(window.location.href);url.searchParams.set('pedido',orderId);window.history.replaceState(null,'',url.pathname+url.search+'#my-orders');setView('my-orders');}}/></Suspense>}
+      {showStoreModal&&storeShop&&<Suspense fallback={null}><StoreModal key={`${storeShop.id}-${Boolean(restoredPickupCart)}`} api={api} shop={storeShop} profile={identity.profile} category={storeCategory} initialCart={restoredPickupCart} onLogin={destination=>openLogin(destination)} onClose={()=>{setShowStoreModal(false);setRestoredPickupCart(null);}} onOpenOrders={orderId=>{setShowStoreModal(false);const url=new URL(window.location.href);url.searchParams.set('pedido',orderId);window.history.replaceState(null,'',url.pathname+url.search+'#my-orders');setView('my-orders');}}/></Suspense>}
 
       <BookingModal
+        catalogCategory={catalogCategory}
         selectedShop={showBookingModal ? selectedShop : null}
         selectedService={selectedService}
         selectedBarber={selectedBarber} setSelectedBarber={setSelectedBarber}
