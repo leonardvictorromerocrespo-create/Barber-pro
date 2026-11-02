@@ -1,12 +1,12 @@
 const pointerClass="cursor-pointer";
-const businessLabel=shop=>shop.businessTypes?.includes('belleza')&&shop.businessTypes?.includes('barberia')?'Barbería y salón':shop.businessTypes?.includes('belleza')?'Salón de belleza':'Barbería';
+const businessLabel=(shop,category)=>category==='belleza'?'Salón de belleza':shop.businessTypes?.includes('belleza')?'Barbería y salón':'Barbería';
 
-export default function CatalogShopGrid({shops,onView,onReserve}) {
+export default function CatalogShopGrid({shops,category='barberia',onView,onReserve}) {
   return <div className="grid grid-cols-2 gap-3 sm:gap-5 lg:grid-cols-3 xl:grid-cols-4">
     {shops.map(shop=>{
       const bookable=(shop.services??[]).some(service=>service.bookable);
       const serviceText=(shop.services??[]).map(service=>service.bookable?`${service.name} (S/ ${service.price})`:service.requiresEvaluation?`${service.name} (requiere evaluación)`:service.name).join(" • ");
-      const label=businessLabel(shop);
+      const label=businessLabel(shop,category);
       return <article key={shop.id} className="meryo-shop-card min-w-0 overflow-hidden rounded-2xl border border-white/10 bg-neutral-900">
         {shop.image?<img src={shop.image} className="h-20 w-full object-cover sm:h-36 lg:h-48" alt={shop.name}/>:<div className="flex h-20 items-center justify-center bg-neutral-950 text-xl font-black text-amber-400 sm:h-36 sm:text-3xl" aria-label="Sin portada publicada">MERYO</div>}
         <div className="min-w-0 p-2 sm:p-4">
