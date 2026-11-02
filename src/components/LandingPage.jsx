@@ -18,7 +18,7 @@ function BrandLogo({className = '', onError}) {
   return <img src={logoSource} alt="MERYO" className={className} onError={() => {setFailed(true);onError?.();}} />;
 }
 
-export default function LandingPage({setView, onExplore}) {
+export default function LandingPage({setView, onExplore, profile=null, identityLoading=false, adminAccess=false, onSignIn, onAccount, onProfessionalAccess}) {
   const [intro, setIntro] = useState(false);
   const introDecision = useRef(null);
   const brandRef = useRef(null);
@@ -44,6 +44,10 @@ export default function LandingPage({setView, onExplore}) {
   const skipIntro = () => setIntro(false);
 
   const explore = category => onExplore ? onExplore(category) : setView('client');
+  const accountLabel=profile?'Mi cuenta':'Ingresar';
+  const professionalLabel=adminAccess?'Administración':profile?.rol==='barbero'?'Mi negocio':'Soy profesional';
+  const enterAccount=()=>{if(identityLoading)return;if(profile)onAccount?.();else onSignIn?.();};
+  const enterProfessional=()=>{if(identityLoading)return;onProfessionalAccess?.();};
 
   return (
     <div className="meryo-cover" data-intro={intro ? 'playing' : 'done'}>
@@ -52,9 +56,8 @@ export default function LandingPage({setView, onExplore}) {
           <BrandLogo className="meryo-cover__brand-image" onError={skipIntro}/>
         </button>
         <nav className="meryo-cover__nav" aria-label="Navegación de portada">
-          <button type="button" onClick={() => explore('barberia')}>Explorar barberías</button>
-          <button type="button" onClick={() => explore('belleza')}>Explorar salones</button>
-          <button type="button" onClick={() => setView('barber-login')}>Soy profesional</button>
+          <button type="button" onClick={enterAccount} disabled={identityLoading}>{accountLabel}</button>
+          <button type="button" onClick={enterProfessional} disabled={identityLoading}>{professionalLabel}</button>
         </nav>
       </header>
 
