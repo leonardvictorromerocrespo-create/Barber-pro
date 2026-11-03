@@ -27,7 +27,7 @@ import beautySalonManicure from './assets/beauty-carousel/salon-manicure.webp';
 import beautySalonColor from './assets/beauty-carousel/salon-color.webp';
 import {catalogCountLabel} from './lib/catalog-copy';
 import {createCatalogLoader} from './lib/catalog-loader';
-import {isPublicShopPath,publicShopCanonical,publicShopIdFromPath,publicShopUrl} from './lib/public-shop-url.js';
+import {isPublicShopIndexable,isPublicShopPath,publicShopCanonical,publicShopIdFromPath,publicShopUrl} from './lib/public-shop-url.js';
 const api = createMeryoApi(supabase);
 import CatalogFilters from "./components/CatalogFilters";
 import CatalogStatus from './components/CatalogStatus';
@@ -465,7 +465,7 @@ function MeryoScreens({identity}) {
       const title=`${shop.name} | ${category} en MERYO`;
       const description=String(shop.about||`Conoce ${shop.name} y consulta sus servicios disponibles en MERYO.`).replace(/\s+/g,' ').trim().slice(0,180);
       const canonical=publicShopCanonical({...shop,name:shop.name},window.location.origin);
-      document.title=title;upsertMeta('meta[name="description"]','content',description);upsertMeta('meta[name="robots"]','content','index,follow,max-image-preview:large');
+      document.title=title;upsertMeta('meta[name="description"]','content',description);upsertMeta('meta[name="robots"]','content',isPublicShopIndexable(shop)?'index,follow,max-image-preview:large':'noindex,follow');
       upsertMeta('meta[property="og:title"]','content',title);upsertMeta('meta[property="og:description"]','content',description);upsertMeta('meta[property="og:url"]','content',canonical);
       let link=document.head.querySelector('link[rel="canonical"]');if(!link){link=document.createElement('link');link.rel='canonical';document.head.appendChild(link);}link.href=canonical;
       return;

@@ -4,6 +4,7 @@ import { readFileSync } from 'node:fs';
 import { createServer } from 'node:http';
 import {
   businessStructuredData,
+  businessIsIndexable,
   catalogIsPublic,
   publicBusinessDescription,
   renderPublicShopHtml,
@@ -16,6 +17,7 @@ import { publicShopIdFromPath, publicShopUrl } from '../src/lib/public-shop-url.
 const origin='https://barber-pro-phi-taupe.vercel.app';
 const barber={id:42,nombre:'Barbería Áurea',tipos_negocio:['barberia'],verificada:true,estado:'activa',descripcion:'Cortes y cuidado en Ate.',direccion:'Av. Central 120',distrito:'Ate Vitarte',lat:-12.05,lng:-76.92,imagen_url:'https://cdn.example.test/aurea.jpg',servicios:[{id:2,nombre:'Corte',precio:35,duracion_min:45,activo:true}]};
 const beauty={...barber,id:77,nombre:'Salón Serena',tipos_negocio:['belleza'],distrito:'Miraflores'};
+const testShop={...barber,id:11,nombre:'Barberiashoppi'};
 
 function responseRecorder(){
   return {headers:{},statusCode:200,setHeader(key,value){this.headers[key.toLowerCase()]=value;},end(body){this.body=body;}};
@@ -47,11 +49,14 @@ test('public profiles create stable category-aware links and use escaped real fi
   assert.equal(publicShopIdFromPath('/negocio/77/salon-serena'),'77');
   assert.equal(publicShopIdFromPath('/negocio/no-es-id/salon-serena'),null);
   assert.equal(catalogIsPublic(barber),true);
+  assert.equal(businessIsIndexable(testShop),false);
+  assert.equal(businessIsIndexable(barber),true);
   assert.equal(catalogIsPublic({...barber,estado:'pendiente'}),false);
   assert.equal(catalogIsPublic({...barber,demo:true}),false);
   assert.match(sitemapXml([barber,beauty,barber],origin),/<loc>https:\/\/barber-pro-phi-taupe\.vercel\.app\/negocio\/42\/barberia-aurea<\/loc>/);
   assert.match(sitemapXml([barber,beauty],origin),/<loc>https:\/\/barber-pro-phi-taupe\.vercel\.app\/negocio\/77\/salon-serena\?catalogo=belleza<\/loc>/);
-  assert.equal((sitemapXml([barber,beauty,barber],origin).match(/<url>/g)||[]).length,2);
+  assert.equal((sitemapXml([barber,beauty,barber,testShop],origin).match(/<url>/g)||[]).length,2);
+  assert.doesNotMatch(sitemapXml([barber,beauty,testShop],origin),/barberiashoppi|\/negocio\/11\//);
   const structured=businessStructuredData(barber,'https://example.test/profile',origin);
   assert.equal(structured['@type'],'LocalBusiness');
   assert.equal(structured.aggregateRating,undefined);
@@ -129,6 +134,17 @@ test('unknown or non-public profiles return noindex 404 without old business con
   assert.equal(response.statusCode,404);
   assert.ok(response.headers['x-robots-tag'].includes('noindex'));
   assert.doesNotMatch(response.body,/Barbería Áurea/);
+}));
+
+test('confirmed test business remains publicly available but is noindex and absent from sitemap',async()=>withCatalogFetch({barberia:[testShop],belleza:[]},async()=>{
+  const response=responseRecorder();
+  await publicShopHandler({method:'GET',query:{id:'11',slug:'barberiashoppi'}},response);
+  assert.equal(response.statusCode,200);
+  assert.match(response.body,/<title>Barberiashoppi \| Barbería en MERYO<\/title>/);
+  assert.match(response.body,/<meta name="robots" content="noindex, follow">/);
+  assert.equal(response.headers['x-robots-tag'],'noindex, follow');
+  assert.match(response.body,/<h1>Barberiashoppi<\/h1>/);
+  assert.doesNotMatch(sitemapXml([testShop],origin),/barberiashoppi|\/negocio\/11\//);
 }));
 
 test('sitemap is generated from active public catalogs and excludes duplicates and pending records',async()=>withCatalogFetch({barberia:[barber],belleza:[beauty,barber,{...beauty,id:88,nombre:'Pendiente',estado:'pendiente'}]},async()=>{

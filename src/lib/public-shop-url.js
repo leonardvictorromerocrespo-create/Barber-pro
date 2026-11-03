@@ -1,4 +1,9 @@
 const PUBLIC_ORIGIN = 'https://barber-pro-phi-taupe.vercel.app';
+const NON_INDEXABLE_PUBLIC_SHOP_IDS = new Set(['11']);
+
+export function isPublicShopIndexable(shop) {
+  return Boolean(shop && !NON_INDEXABLE_PUBLIC_SHOP_IDS.has(String(shop.id)));
+}
 
 export function publicShopSlug(name) {
   return String(name || 'negocio')

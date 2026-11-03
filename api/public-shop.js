@@ -1,5 +1,6 @@
 import {
   businessSlug,
+  businessIsIndexable,
   catalogIsPublic,
   publicSiteOrigin,
   readPublicCatalog,
@@ -61,7 +62,7 @@ export default async function publicShop(req, res) {
 
     const template = templateHtml();
     const html = renderPublicShopHtml({ shop, category, catalog, template, origin });
-    return sendHtml(req, res, 200, html, { 'X-Robots-Tag': 'index, follow' });
+    return sendHtml(req, res, 200, html, { 'X-Robots-Tag': businessIsIndexable(shop) ? 'index, follow' : 'noindex, follow' });
   } catch {
     return sendHtml(req, res, 503, errorHtml('MERYO no está disponible temporalmente', 'No pudimos cargar este perfil. Inténtalo de nuevo en unos minutos.'), { 'Retry-After': '30', 'X-Robots-Tag': 'noindex, follow' });
   }

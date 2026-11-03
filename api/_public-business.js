@@ -1,6 +1,6 @@
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
-import { publicShopCanonical, publicShopPath, publicShopSlug, publicShopUrl } from '../src/lib/public-shop-url.js';
+import { isPublicShopIndexable, publicShopCanonical, publicShopPath, publicShopSlug, publicShopUrl } from '../src/lib/public-shop-url.js';
 
 const SITE_ORIGIN = 'https://barber-pro-phi-taupe.vercel.app';
 
@@ -14,6 +14,10 @@ export function catalogIsPublic(row) {
   return Boolean(row && row.demo !== true && row.publicable !== false && row.privado !== true
     && row.verificada === true && row.estado === 'activa' && Array.isArray(row.tipos_negocio)
     && row.tipos_negocio.some(type => type === 'barberia' || type === 'belleza'));
+}
+
+export function businessIsIndexable(row) {
+  return isPublicShopIndexable(row);
 }
 
 export function publicBusinessDescription(shop) {
@@ -133,7 +137,7 @@ export function renderPublicShopHtml({ shop, category, catalog, template, origin
   const json = JSON.stringify(businessStructuredData(shop, canonical, origin))
     .replace(/</g, '\\u003c').replace(/>/g, '\\u003e').replace(/&/g, '\\u0026');
   const head = `<meta name="description" content="${escapeHtml(description)}">
-    <meta name="robots" content="index, follow, max-image-preview:large">
+    <meta name="robots" content="${businessIsIndexable(shop) ? 'index, follow, max-image-preview:large' : 'noindex, follow'}">
     <link rel="canonical" href="${escapeHtml(canonical)}">
     <meta property="og:type" content="website"><meta property="og:site_name" content="MERYO">
     <meta property="og:title" content="${escapeHtml(title)}"><meta property="og:description" content="${escapeHtml(description)}">
@@ -168,7 +172,7 @@ export function shopPath(shop) {
 export function sitemapXml(rows, origin = SITE_ORIGIN) {
   const shops = new Map();
   for (const row of rows) {
-    if (!catalogIsPublic(row) || !/^\d+$/.test(String(row.id ?? '')) || !String(row.nombre ?? '').trim()) continue;
+    if (!catalogIsPublic(row) || !businessIsIndexable(row) || !/^\d+$/.test(String(row.id ?? '')) || !String(row.nombre ?? '').trim()) continue;
     shops.set(String(row.id), row);
   }
   const urls = [...shops.values()].map(row => `<url><loc>${escapeHtml(canonicalShopUrl(row, origin))}</loc></url>`).join('');
