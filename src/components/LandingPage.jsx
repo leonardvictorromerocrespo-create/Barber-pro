@@ -2,20 +2,14 @@ import {useEffect, useLayoutEffect, useRef, useState} from 'react';
 import barberPhoto from '../assets/meryo-entry-barber-reference.png';
 import beautyPhoto from '../assets/meryo-entry-beauty-reference.png';
 import {consumeLandingIntro} from '../lib/landing-intro';
+import MeryoLogo from './MeryoLogo';
 import './LandingPage.css';
 
-const logoSource = '/meryo-logo.png';
 const introDuration = 2700;
 
 function reducedMotionEnabled() {
   try { return window.matchMedia('(prefers-reduced-motion: reduce)').matches; }
   catch { return false; }
-}
-
-function BrandLogo({className = '', onError}) {
-  const [failed, setFailed] = useState(false);
-  if (failed) return <span className={`meryo-cover__wordmark ${className}`}>Meryo</span>;
-  return <img src={logoSource} alt="MERYO" className={className} onError={() => {setFailed(true);onError?.();}} />;
 }
 
 export default function LandingPage({setView, onExplore, profile=null, identityLoading=false, adminAccess=false, onSignIn, onAccount, onProfessionalAccess}) {
@@ -53,7 +47,7 @@ export default function LandingPage({setView, onExplore, profile=null, identityL
     <div className="meryo-cover" data-intro={intro ? 'playing' : 'done'}>
       <header className="meryo-cover__header">
         <button ref={brandRef} className="meryo-cover__brand" aria-label="MERYO, inicio" onClick={() => setView('landing')}>
-          <BrandLogo className="meryo-cover__brand-image" onError={skipIntro}/>
+          <MeryoLogo className="meryo-cover__brand-image" onError={skipIntro}/>
         </button>
         <nav className="meryo-cover__nav" aria-label="Navegación de portada">
           <button type="button" onClick={enterAccount} disabled={identityLoading}>{accountLabel}</button>
@@ -97,7 +91,7 @@ export default function LandingPage({setView, onExplore, profile=null, identityL
       {intro && (
         <div className="meryo-cover__intro" aria-label="Presentación de MERYO">
           <div ref={introLogoRef} className="meryo-cover__intro-logo">
-            <BrandLogo className="meryo-cover__intro-image" onError={skipIntro}/>
+            <MeryoLogo className="meryo-cover__intro-image" onError={skipIntro}/>
             <span className="meryo-cover__intro-light" aria-hidden="true" />
           </div>
           <button type="button" className="meryo-cover__skip" onClick={skipIntro}>Saltar</button>

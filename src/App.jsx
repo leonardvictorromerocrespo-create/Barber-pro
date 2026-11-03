@@ -8,6 +8,7 @@ import { endSession, signInWithProfile } from "./lib/operations";
 import { supabase, googleAuthEnabled, emailSignupEnabled } from "./lib/supabase";
 import { lazy, Suspense, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { createMeryoApi } from './lib/meryo-api';
+import MeryoLogo from './components/MeryoLogo';
 import { useIdentity } from './lib/useIdentity';
 import Reservations from './components/Reservations';
 import AdminMfa from './components/AdminMfa';
@@ -884,7 +885,7 @@ if (view === "admin" && adminAccess) return <AdminShops api={api} profile={ident
     <div data-meryo-theme={catalogCategory==='belleza'?'beauty':'barberia'} className="min-h-screen bg-neutral-950 text-white">
       <header className="meryo-site-header sticky top-0 z-30 border-b border-white/10 bg-neutral-950/95 backdrop-blur">
         <div className="mx-auto flex max-w-7xl flex-col items-stretch gap-2 px-3 py-2 md:flex-row md:items-center md:justify-between md:px-6 md:py-4">
-          <span className="whitespace-nowrap text-2xl font-black md:text-3xl">MER<span className="text-amber-400">YO</span></span>
+          <MeryoLogo className="h-7 w-auto shrink-0 md:h-9" />
           <div className="grid w-full min-w-0 grid-cols-3 gap-1.5 md:flex md:w-auto md:flex-wrap md:gap-3">
             <button onClick={() => setView("landing")} className={`min-h-11 w-full rounded-xl border border-white/20 px-2 py-2 text-xs leading-tight md:min-h-0 md:w-auto md:px-4 md:py-2 md:text-sm ${pointerClass}`}>Inicio</button>
             <button onClick={() => setView(adminAccess?'admin':"barber")} className={`min-h-11 w-full rounded-xl border border-white/20 px-2 py-2 text-xs leading-tight md:min-h-0 md:w-auto md:px-4 md:py-2 md:text-sm ${pointerClass}`}>{adminAccess?'Panel Administrador':'Panel Profesional'}</button>

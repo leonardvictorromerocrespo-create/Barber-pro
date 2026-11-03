@@ -48,14 +48,6 @@
   transition: opacity .25s ease;
 }
 
-.meryo-cover__wordmark {
-  color: #f5f1e8;
-  font-size: 1.8rem;
-  font-weight: 800;
-  letter-spacing: -.045em;
-  line-height: 1;
-}
-
 .meryo-cover__nav {
   display: flex;
   align-items: center;
