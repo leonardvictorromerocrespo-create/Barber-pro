@@ -6,7 +6,7 @@ import {
   renderPublicShopHtml,
   shopUrl,
   templateHtml,
-} from '../server/public-business.js';
+} from './_public-business.js';
 
 function sendHtml(req, res, status, html, headers = {}) {
   res.statusCode = status;

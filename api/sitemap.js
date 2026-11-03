@@ -1,4 +1,4 @@
-import { publicSiteOrigin, readPublicCatalog, sitemapXml } from '../server/public-business.js';
+import { publicSiteOrigin, readPublicCatalog, sitemapXml } from './_public-business.js';
 
 export default async function sitemap(req, res) {
   if (req.method !== 'GET' && req.method !== 'HEAD') {

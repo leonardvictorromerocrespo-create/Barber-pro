@@ -8,7 +8,7 @@ import {
   publicBusinessDescription,
   renderPublicShopHtml,
   sitemapXml,
-} from '../server/public-business.js';
+} from '../api/_public-business.js';
 import publicShopHandler from '../api/public-shop.js';
 import sitemapHandler from '../api/sitemap.js';
 import { publicShopIdFromPath, publicShopUrl } from '../src/lib/public-shop-url.js';
