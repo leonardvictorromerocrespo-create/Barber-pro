@@ -6,8 +6,14 @@
   "git": { "deploymentEnabled": false },
   "functions": {
     "api/push/worker.js": { "maxDuration": 60 },
-    "api/push/ack.js": { "maxDuration": 15 }
+    "api/push/ack.js": { "maxDuration": 15 },
+    "api/public-shop.js": { "maxDuration": 15, "includeFiles": "dist/index.html" }
   },
+  "rewrites": [
+    { "source": "/negocio/:id/:slug", "destination": "/api/public-shop" },
+    { "source": "/negocio/:id", "destination": "/api/public-shop" },
+    { "source": "/sitemap.xml", "destination": "/api/sitemap" }
+  ],
   "headers": [
     { "source": "/(.*)", "headers": [
       { "key": "X-Content-Type-Options", "value": "nosniff" },

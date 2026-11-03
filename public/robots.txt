@@ -1,0 +1,10 @@
+User-agent: *
+Allow: /negocio/
+Disallow: /api/
+Disallow: /*?admin_view=
+Disallow: /*?access=
+Disallow: /*?cita=
+Disallow: /*?pedido=
+Disallow: /*?auth_callback=
+
+Sitemap: https://barber-pro-phi-taupe.vercel.app/sitemap.xml

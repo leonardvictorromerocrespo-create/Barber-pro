@@ -27,6 +27,7 @@ import beautySalonManicure from './assets/beauty-carousel/salon-manicure.webp';
 import beautySalonColor from './assets/beauty-carousel/salon-color.webp';
 import {catalogCountLabel} from './lib/catalog-copy';
 import {createCatalogLoader} from './lib/catalog-loader';
+import {isPublicShopPath,publicShopCanonical,publicShopIdFromPath,publicShopUrl} from './lib/public-shop-url.js';
 const api = createMeryoApi(supabase);
 import CatalogFilters from "./components/CatalogFilters";
 import CatalogStatus from './components/CatalogStatus';
@@ -37,6 +38,13 @@ const StoreModal=lazy(()=>import('./components/store/StoreModal'));
 const MyPickupOrders=lazy(()=>import('./components/store/MyPickupOrders'));
 
 const pointerClass = "cursor-pointer";
+const ALLOWED_VIEWS=['landing','client','client-auth','client-register','client-login','barber','barber-login','admin','account','account-security','shop-manage','shop-register','my-bookings','my-orders','team-invite','notifications'];
+
+function upsertMeta(selector,attribute,value){
+  let node=document.head.querySelector(selector);
+  if(!node){node=document.createElement('meta');document.head.appendChild(node);}
+  node.setAttribute(attribute,value);
+}
 
 const AVAILABLE_DATES = listaDias(3);
 const BARBER_HERO_IMAGES = [
@@ -105,6 +113,7 @@ function ProfileSectionTitle({children}) {
 }
 
 export function ProfileModal({ selectedShop, onClose, onReserve,onStore, catalogCategory='barberia' }) {
+  const [shareFeedback,setShareFeedback]=useState('');
   if (!selectedShop) return null;
   const photos = selectedShop.assets?.filter(a => a.kind === 'foto' && a.url) ?? [];
   const videos = selectedShop.assets?.filter(a => a.kind === 'video' && a.url) ?? [];
@@ -114,6 +123,15 @@ export function ProfileModal({ selectedShop, onClose, onReserve,onStore, catalog
   const hasVideo = Boolean(videos.length || selectedShop.contentError);
   const hasBookableService=services.some(service=>service.bookable);
   const profileLabel=selectedShop.businessTypes?.includes('belleza')?'salón':'barbería';
+  const profileUrl=publicShopUrl(selectedShop,catalogCategory,typeof window==='undefined'?undefined:window.location.origin);
+  const shareProfile=async()=>{
+    setShareFeedback('');
+    try {
+      if(navigator.share){await navigator.share({title:selectedShop.name,text:`Mira el perfil de ${selectedShop.name} en MERYO`,url:profileUrl});setShareFeedback('Perfil compartido.');return;}
+      if(navigator.clipboard?.writeText){await navigator.clipboard.writeText(profileUrl);setShareFeedback('Enlace del perfil copiado.');return;}
+      setShareFeedback('Copia este enlace:');
+    } catch(error) {if(error?.name!=='AbortError')setShareFeedback('No se pudo compartir. Puedes copiar el enlace del perfil.');}
+  };
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4">
@@ -123,10 +141,12 @@ export function ProfileModal({ selectedShop, onClose, onReserve,onStore, catalog
             <h3 className="text-3xl font-black">{selectedShop.name}</h3>
             {selectedShop.about && <p className="mt-2 max-w-3xl text-sm leading-relaxed text-neutral-300 sm:text-base">{selectedShop.about}</p>}
           </div>
-          <button onClick={onClose} className={`self-end rounded-xl border border-white/10 px-4 py-2 text-sm sm:self-auto ${pointerClass}`}>
-            Cerrar
-          </button>
+          <div className="flex shrink-0 items-center gap-2 self-end sm:self-auto">
+            <button onClick={shareProfile} className={`rounded-xl border border-amber-400/50 px-3 py-2 text-sm text-amber-200 ${pointerClass}`}>Compartir perfil</button>
+            <button onClick={onClose} className={`rounded-xl border border-white/10 px-4 py-2 text-sm ${pointerClass}`}>Cerrar</button>
+          </div>
         </div>
+        {shareFeedback&&<p aria-live="polite" className="-mt-3 mb-4 text-sm text-neutral-300">{shareFeedback}{shareFeedback.startsWith('Copia')&&<> <a className="break-all text-amber-300 underline" href={profileUrl}>{profileUrl}</a></>}</p>}
 
         <div className="grid min-w-0 gap-4 md:grid-cols-2 md:items-start">
         {selectedShop.image && <section className="min-w-0 rounded-2xl border border-white/10 bg-black/35 p-3 sm:p-4">
@@ -381,12 +401,11 @@ function MeryoScreens({identity}) {
   const [order, setOrder] = useState("name");
   const [catalogCategory,setCatalogCategory]=useState(()=>new URLSearchParams(typeof window==='undefined'?'':window.location.search).get('catalogo')==='belleza'?'belleza':'barberia');
   const [loginDestination,setLoginDestination]=useState('client');
-  const allowedViews=['landing','client','client-auth','client-register','client-login','barber','barber-login','admin','account','account-security','shop-manage','shop-register','my-bookings','my-orders','team-invite','notifications'];
-  const [view, setView] = useState(()=>{const raw=typeof window==='undefined'?'':window.location.hash.slice(1);const hash=raw.startsWith('team-invite/')?'team-invite':raw;const search=typeof window==='undefined'?'':window.location.search,access=new URLSearchParams(search).get('access');return bookingDestination(search,access==='barber'?'barber-login':access==='shop-register'?'shop-register':allowedViews.includes(hash)?hash:'landing');});
+  const [view, setView] = useState(()=>{const raw=typeof window==='undefined'?'':window.location.hash.slice(1);const hash=raw.startsWith('team-invite/')?'team-invite':raw;const search=typeof window==='undefined'?'':window.location.search,access=new URLSearchParams(search).get('access');const fallback=isPublicShopPath(typeof window==='undefined'?'':window.location.pathname)?'client':ALLOWED_VIEWS.includes(hash)?hash:'landing';return bookingDestination(search,access==='barber'?'barber-login':access==='shop-register'?'shop-register':fallback);});
+  const [locationPath,setLocationPath]=useState(()=>typeof window==='undefined'?'':window.location.pathname);
   const initialView = useRef(view);
   useEffect(()=>{if(initialView.current!=='landing')markLandingIntroSeen();},[]);
-  useEffect(()=>{window.history.replaceState(null,'',`${window.location.pathname}${window.location.search}#${view}`);},[view]);
-  useEffect(()=>{const navigate=()=>{const raw=window.location.hash.slice(1),next=raw.startsWith('team-invite/')?'team-invite':raw;if(allowedViews.includes(next))setView(next);};window.addEventListener('hashchange',navigate);return()=>window.removeEventListener('hashchange',navigate);},[]);
+  useEffect(()=>{const url=new URL(window.location.href);if(view==='landing'&&isPublicShopPath(url.pathname))url.pathname='/';url.hash=view;window.history.replaceState(window.history.state,'',url.href);setLocationPath(url.pathname);},[view]);
   const adminAccess = identity.profile?.rol === 'admin' && identity.profile?.activo === true;
   const [adminAal2,setAdminAal2]=useState(false);
   const [adminSecurityOpen,setAdminSecurityOpen]=useState(false);
@@ -428,6 +447,32 @@ function MeryoScreens({identity}) {
   const [showAffiliateForm, setShowAffiliateForm] = useState(false);
   const [showBookingModal, setShowBookingModal] = useState(false);
   const [showProfileModal, setShowProfileModal] = useState(false);
+  const [profileUnavailable,setProfileUnavailable]=useState(false);
+  const profileRouteId=publicShopIdFromPath(locationPath);
+  useEffect(()=>{
+    if(!profileRouteId){setProfileUnavailable(false);return;}
+    if(!catalogMatchesCategory||catalogLoading)return;
+    const shop=catalogRows.find(row=>String(row.id)===profileRouteId);
+    if(shop){setSelectedShop(shop);setShowProfileModal(true);setProfileUnavailable(false);}
+    else{setSelectedShop(null);setShowProfileModal(false);setProfileUnavailable(true);}
+  },[profileRouteId,catalogMatchesCategory,catalogLoading,catalogRows]);
+  useEffect(()=>{
+    if(profileRouteId&&!showProfileModal&&!profileUnavailable)return;
+    const shop=showProfileModal?selectedShop:null;
+    if(profileUnavailable){document.title='Negocio no disponible | MERYO';upsertMeta('meta[name="robots"]','content','noindex,follow');document.head.querySelector('link[rel="canonical"]')?.remove();return;}
+    if(shop){
+      const category=catalogCategory==='belleza'?'Peluquería y salón':'Barbería';
+      const title=`${shop.name} | ${category} en MERYO`;
+      const description=String(shop.about||`Conoce ${shop.name} y consulta sus servicios disponibles en MERYO.`).replace(/\s+/g,' ').trim().slice(0,180);
+      const canonical=publicShopCanonical({...shop,name:shop.name},window.location.origin);
+      document.title=title;upsertMeta('meta[name="description"]','content',description);upsertMeta('meta[name="robots"]','content','index,follow,max-image-preview:large');
+      upsertMeta('meta[property="og:title"]','content',title);upsertMeta('meta[property="og:description"]','content',description);upsertMeta('meta[property="og:url"]','content',canonical);
+      let link=document.head.querySelector('link[rel="canonical"]');if(!link){link=document.createElement('link');link.rel='canonical';document.head.appendChild(link);}link.href=canonical;
+      return;
+    }
+    document.title='MERYO | Barberías y salones';upsertMeta('meta[name="description"]','content','Descubre barberías y salones, conoce sus servicios y solicita tu cita en MERYO.');upsertMeta('meta[name="robots"]','content','index,follow');upsertMeta('meta[property="og:title"]','content','MERYO | Barberías y salones');upsertMeta('meta[property="og:url"]','content','https://barber-pro-phi-taupe.vercel.app/');
+    let link=document.head.querySelector('link[rel="canonical"]');if(!link){link=document.createElement('link');link.rel='canonical';document.head.appendChild(link);}link.href='https://barber-pro-phi-taupe.vercel.app/';
+  },[profileRouteId,showProfileModal,selectedShop,catalogCategory,profileUnavailable]);
   const [showStoreModal,setShowStoreModal]=useState(false),[storeShop,setStoreShop]=useState(null),[storeCategory,setStoreCategory]=useState(catalogCategory),[restoredPickupCart,setRestoredPickupCart]=useState(null);
   const [requestSaved, setRequestSaved] = useState(false);
   const [barberLogin, setBarberLogin] = useState({ email: "", password: "" });
@@ -443,6 +488,21 @@ function MeryoScreens({identity}) {
     catalogLoader.current.reset(next);
     setCatalogCategory(next);
   },[]);
+
+  useEffect(()=>{
+    const syncNavigation=()=>{
+      const url=new URL(window.location.href),nextCategory=url.searchParams.get('catalogo')==='belleza'?'belleza':'barberia';
+      const nextId=publicShopIdFromPath(url.pathname),previousId=publicShopIdFromPath(locationPath);
+      if(nextCategory!==catalogCategory){setShowProfileModal(false);setSelectedShop(null);setProfileUnavailable(false);cambiarCategoriaCatalogo(nextCategory);}
+      if(nextId!==previousId||!nextId){setShowProfileModal(false);setSelectedShop(null);setProfileUnavailable(false);}
+      setLocationPath(url.pathname);
+      const raw=url.hash.slice(1),hash=raw.startsWith('team-invite/')?'team-invite':raw;
+      setView(ALLOWED_VIEWS.includes(hash)?hash:(nextId?'client':'landing'));
+    };
+    window.addEventListener('popstate',syncNavigation);
+    window.addEventListener('hashchange',syncNavigation);
+    return()=>{window.removeEventListener('popstate',syncNavigation);window.removeEventListener('hashchange',syncNavigation);};
+  },[catalogCategory,cambiarCategoriaCatalogo,locationPath]);
 
   useEffect(() => {
     let active=true;
@@ -514,8 +574,8 @@ async function cargarNotificaciones() {
 
   const openCatalogCategory = category => {
     const next=category==='belleza'?'belleza':'barberia';
-    const url=new URL(window.location.href);url.searchParams.set('catalogo',next);
-    window.history.replaceState(null,'',url.pathname+url.search+url.hash);
+    const url=new URL(window.location.href);url.pathname='/';url.search='';url.searchParams.set('catalogo',next);url.hash='client';
+    window.history.replaceState({},'',url.href);setLocationPath('/');
     cambiarCategoriaCatalogo(next);setQuery('');setDistrict('');setView('client');
   };
 
@@ -530,11 +590,24 @@ async function cargarNotificaciones() {
   };
 
   const openProfileModal = (shop) => {
+    const currentId=publicShopIdFromPath(window.location.pathname);
+    if(currentId!==String(shop.id)){
+      const destination=new URL(publicShopUrl(shop,catalogCategory,window.location.origin));destination.hash='client';
+      const previous=`${window.location.pathname}${window.location.search}${window.location.hash}`;
+      window.history.pushState({...window.history.state,meryoProfileModal:true,meryoCatalogPath:previous},'',destination.href);
+      setLocationPath(destination.pathname);
+    }
     setSelectedShop(shop);
     setShowProfileModal(true);
+    setProfileUnavailable(false);
   };
 
-  const closeProfileModal = () => setShowProfileModal(false);
+  const closeProfileModal = () => {
+    setShowProfileModal(false);setSelectedShop(null);setProfileUnavailable(false);
+    if(window.history.state?.meryoProfileModal){window.history.back();return;}
+    const url=new URL(window.location.href);url.pathname='/';url.search='';url.searchParams.set('catalogo',catalogCategory);url.hash='client';
+    window.history.replaceState({},'',url.href);setLocationPath('/');setView('client');
+  };
   const openStoreModal = shop => {setStoreShop(shop);setStoreCategory(catalogCategory);setShowProfileModal(false);setRestoredPickupCart(null);setShowStoreModal(true);};
 
   const openBookingModal = (shop) => {
@@ -831,6 +904,7 @@ if (view === "admin" && adminAccess) return <AdminShops api={api} profile={ident
         {identity.error&&<p role="alert" className="px-6 text-red-300">{identity.error}</p>}
         {accessMessage&&<p role="status" className="px-6 text-amber-300">{accessMessage}</p>}
         {catalogMatchesCategory&&catalogError&&<p role="alert" className="px-6 text-red-300">{catalogError}</p>}
+        {profileUnavailable&&<div role="alert" className="mx-auto my-5 max-w-4xl rounded-2xl border border-white/15 bg-neutral-900 p-5"><h1 className="text-xl font-bold">Este negocio ya no está disponible</h1><p className="mt-2 text-neutral-300">No mostramos perfiles que ya no están publicados.</p><button onClick={closeProfileModal} className="mt-4 rounded-xl border border-amber-400/50 px-4 py-2 text-amber-200">Volver al catálogo</button></div>}
         <section className="mx-auto max-w-7xl px-3 pt-4 pb-10 md:px-6 md:py-16">
           <ClientHero heroIndex={heroIndex} setHeroIndex={setHeroIndex} setView={setView} catalogCategory={catalogCategory} />
 
