@@ -1,0 +1,97 @@
+.meryo-notification-offer {
+  position: fixed;
+  z-index: 55;
+  left: max(.75rem, env(safe-area-inset-left));
+  width: min(24rem, calc(100vw - 1.5rem));
+  max-height: calc(100dvh - 1.5rem);
+  overflow: auto;
+  border: 1px solid rgba(212, 175, 55, .38);
+  border-radius: 1rem;
+  background: #171613;
+  color: #f5f1e8;
+  padding: 1rem;
+  box-shadow: 0 18px 50px rgba(0, 0, 0, .42);
+  animation: meryo-notification-offer-in .28s ease-out both;
+}
+
+.meryo-notification-offer h2 {
+  margin: 0;
+  color: #e8c766;
+  font-size: 1rem;
+  font-weight: 750;
+}
+
+.meryo-notification-offer p {
+  margin: .45rem 0 0;
+  color: #f5f1e8;
+  font-size: .9rem;
+  line-height: 1.45;
+}
+
+.meryo-notification-offer__actions {
+  display: flex;
+  gap: .65rem;
+  margin-top: 1rem;
+}
+
+.meryo-notification-offer__actions button {
+  min-width: 6.5rem;
+  min-height: 2.75rem;
+  border-radius: .7rem;
+  padding: .55rem 1rem;
+  font: inherit;
+  font-size: .9rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.meryo-notification-offer__actions button:first-child {
+  border: 1px solid #d4af37;
+  background: #d4af37;
+  color: #15130d;
+}
+
+.meryo-notification-offer__actions button:last-child {
+  border: 1px solid rgba(245, 241, 232, .35);
+  background: #201e19;
+  color: #f5f1e8;
+}
+
+.meryo-notification-offer__actions button:disabled { cursor: wait; opacity: .55; }
+.meryo-notification-offer__actions button:focus-visible,
+.meryo-owner-booking-notice a:focus-visible,
+.meryo-owner-booking-notice button:focus-visible {
+  outline: 3px solid #e8c766;
+  outline-offset: 3px;
+}
+
+.meryo-owner-booking-notice {
+  position: fixed;
+  z-index: 54;
+  bottom: max(1rem, env(safe-area-inset-bottom));
+  left: max(.75rem, env(safe-area-inset-left));
+  width: min(27rem, calc(100vw - 1.5rem));
+  border: 1px solid rgba(212, 175, 55, .44);
+  border-radius: 1rem;
+  background: #171613;
+  color: #f5f1e8;
+  padding: .9rem 1rem;
+  box-shadow: 0 18px 50px rgba(0, 0, 0, .48);
+  animation: meryo-notification-offer-in .28s ease-out both;
+}
+
+.meryo-owner-booking-notice__heading { display: flex; align-items: center; justify-content: space-between; gap: 1rem; }
+.meryo-owner-booking-notice__heading strong { color: #e8c766; }
+.meryo-owner-booking-notice__heading button { min-width: 2.25rem; min-height: 2.25rem; border: 1px solid rgba(245, 241, 232, .25); border-radius: .65rem; background: transparent; color: #f5f1e8; font-size: 1.2rem; }
+.meryo-owner-booking-notice p { margin: .55rem 0; color: #d5d0c7; font-size: .88rem; line-height: 1.45; }
+.meryo-owner-booking-notice a { display: inline-flex; min-height: 2.5rem; align-items: center; color: #e8c766; font-size: .9rem; font-weight: 700; text-decoration: underline; text-underline-offset: .2rem; }
+
+@keyframes meryo-notification-offer-in {
+  from { opacity: 0; transform: translate(-.45rem, -.35rem); }
+  to { opacity: 1; transform: translate(0, 0); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .meryo-notification-offer,
+  .meryo-owner-booking-notice { animation: none; }
+}

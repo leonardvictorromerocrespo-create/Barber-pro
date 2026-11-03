@@ -22,6 +22,10 @@ test('push native contract: actual Auth roles and bookings; mocked transport is 
   let booking;
   await t.test('new request reaches assigned barber and remains visible to owner, never a foreign user',async()=>{
    booking=await request();await drain();assert.ok(sent.some(s=>s.endpoint===subStaff.endpoint&&s.data.event==='reserva_solicitada'&&s.data.bookingId===booking));
+   const ownerIdentity=await owner.auth.getUser();assert.ifError(ownerIdentity.error);
+   const ownerNotice=await owner.from('notificaciones').select('id,titulo,mensaje,tipo,reserva_id').eq('user_id',ownerIdentity.data.user.id).eq('reserva_id',booking).eq('tipo','reserva_solicitada');
+   assert.ifError(ownerNotice.error);assert.equal(ownerNotice.data.length,1,'the real shop owner must receive the in-app notice');
+   assert.ok(sent.some(s=>s.endpoint===subOwner.endpoint&&s.data.event==='reserva_solicitada'&&s.data.bookingId===booking),'the owner subscription must receive the same request event');
    const ownerState=await owner.rpc('meryo_reservas_estado');assert.ifError(ownerState.error);assert.ok(ownerState.data.reservas.some(r=>r.id===booking));assert.ok(!sent.some(s=>s.endpoint===subStranger.endpoint));
   });
   await t.test('acceptance, bounded retry, per-endpoint deduplication and invalid endpoint cleanup',async()=>{

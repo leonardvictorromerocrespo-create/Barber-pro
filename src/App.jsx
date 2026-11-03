@@ -477,8 +477,6 @@ function MeryoScreens({identity}) {
   const [showStoreModal,setShowStoreModal]=useState(false),[storeShop,setStoreShop]=useState(null),[storeCategory,setStoreCategory]=useState(catalogCategory),[restoredPickupCart,setRestoredPickupCart]=useState(null);
   const [requestSaved, setRequestSaved] = useState(false);
   const [barberLogin, setBarberLogin] = useState({ email: "", password: "" });
-  const [notificaciones, setNotificaciones] = useState([]);
-  const [ultimaNoti, setUltimaNoti] = useState(null);
   const [customRequest, setCustomRequest] = useState("");
   const [customerInfo, setCustomerInfo] = useState({ name: "", phone: "" });
   const [heroIndex, setHeroIndex] = useState(0);
@@ -516,24 +514,6 @@ function MeryoScreens({identity}) {
   },[showBookingModal,selectedShop,selectedService,selectedDate,selectedBarber]);
 
 useEffect(() => { cargarBarberiasActivas(); }, [cargarBarberiasActivas]);
-useEffect(() => {
-  if (notificaciones.length > 0) {
-    const nueva = notificaciones[0];
-
-    if (!ultimaNoti || ultimaNoti.id !== nueva.id) {
-      setUltimaNoti(nueva);
-
-      const audio = new Audio("https://actions.google.com/sounds/v1/alarms/beep_short.ogg");
-      audio.play().catch(() => {});
-    }
-  }
-}, [notificaciones, ultimaNoti]);
-useEffect(() => {
-  if (view === "barber") {
-    const reader=visiblePolling(cargarNotificaciones);
-    return () => reader.stop();
-  }
-}, [view]);
   useEffect(() => {
     const timer = setInterval(() => {
       setHeroIndex((prev) => (prev + 1) % BARBER_HERO_IMAGES.length);
@@ -549,23 +529,6 @@ useEffect(() => {
 
   const markers = useMemo(() => catalogMarkers(ranking), [ranking]);
 
-async function cargarNotificaciones() {
-  const { data: userData } = await supabase.auth.getUser();
-  const user = userData.user;
-
-  if (!user) return;
-
-  const { data, error } = await supabase
-    .from("notificaciones")
-    .select("*")
-    .eq("user_id", user.id)
-    .order("created_at", { ascending: false });
-
-  if (!error) {
-    setNotificaciones(data);
-
-  }
-}
   const handleAffiliateSubmit = async () => {
     if(affiliateBusy)return;setAffiliateBusy(true);setAffiliateError('');
     try {if(affiliateForm.locationConfirmed!==true||!coordinates(affiliateForm))throw Error('Selecciona o confirma la ubicación del local en el mapa.');await api.registerShop(affiliateForm);const profile=await identity.refresh();if(!profile||profile.rol!=='barbero')throw Error('La solicitud se guardó, pero no se pudo actualizar tu sesión. Vuelve a iniciar sesión para consultar su estado.');setShowAffiliateForm(false);setView('shop-manage');}
@@ -674,7 +637,7 @@ async function cargarNotificaciones() {
   const handleLogout = async () => {
     try {
       await disableBookingPush(api).catch(()=>{});
-      await endSession(supabase, () => {setNotificaciones([]);setUltimaNoti(null);setCustomerInfo({name:'',phone:''});setBarberLogin({email:'',password:''});clearDraft(sessionStorage);resumed.current='';setView('landing');});
+      await endSession(supabase, () => {setCustomerInfo({name:'',phone:''});setBarberLogin({email:'',password:''});clearDraft(sessionStorage);resumed.current='';setView('landing');});
       await identity.refresh();
     } catch (error) { alert("No se pudo cerrar sesión: " + error.message); }
   };
@@ -763,7 +726,6 @@ const finalPrice = basePrice;
       <div className="min-h-screen bg-neutral-950 p-8 text-white">
         <h1 className="mb-2 text-3xl font-black">Panel Profesional <span className="text-amber-400">MERYO</span></h1>
         <p className="mb-6 text-neutral-400">Aceptación manual en 15 minutos. El estado y los vencimientos los determina el servidor.</p>
-        {notificaciones.length>0&&<div className="mb-5 rounded-2xl border border-white/10 bg-neutral-900 p-5"><h2 className="font-bold">Notificaciones</h2>{notificaciones.slice(0,3).map(n=><p key={n.id} className="mt-2 text-sm text-neutral-300">{n.titulo}</p>)}</div>}
         <button onClick={()=>setView('shop-manage')} className="mb-6 rounded-xl bg-amber-400 px-4 py-2 font-bold text-black">Perfil, servicios y horarios</button>
         <Reservations key={`${identity.profile?.id}-${identity.profile?.rol}`} api={api} profile={identity.profile} onLogin={()=>setView('barber-login')} onSearch={()=>setView('client')}/>
         <div className="mt-10 flex flex-wrap gap-3">
