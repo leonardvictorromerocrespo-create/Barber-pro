@@ -1,12 +1,13 @@
 import {useCallback,useEffect,useRef,useState} from 'react';
-import {enableBookingPush,disableBookingPush,pushDeviceState} from '../lib/push';
+import {enableBookingPush,pushDeviceState} from '../lib/push';
+import {pushPermissionHelp} from '../lib/push-permission-help';
 const button='rounded-xl border border-white/20 px-4 py-3 disabled:opacity-40';
 const permissions={default:'Sin decidir',granted:'Permitidas',denied:'Bloqueadas','no compatible':'No compatible'};
 const events={reserva_solicitada:'Solicitud de cita',reserva_aceptada:'Aceptación de cita',reserva_rechazada:'Solicitud rechazada',reserva_expirada:'Solicitud vencida',pedido_solicitado:'Nueva solicitud de recojo',pedido_aceptado:'Solicitud de recojo aceptada',pedido_rechazado:'Solicitud de recojo rechazada',pedido_cancelado:'Pedido cancelado',pedido_vencido:'Plazo de recojo vencido',push_diagnostico:'Comprobación propia'};
 const statuses={pending_provider:'Pendiente de envío',queued:'Pendiente de reintento',leased:'Procesando envío',accepted:'Envío aceptado por el servicio',expired:'Aviso vencido',failed:'No se pudo entregar'};
 export default function PushCenter({api,profile,loading=false,onLogin,onBack,diagnostic=false,embedded=false}){
  const [config,setConfig]=useState(null),[device,setDevice]=useState(null),[synced,setSynced]=useState(null),[notes,setNotes]=useState([]),[evidence,setEvidence]=useState(null),[notesOwner,setNotesOwner]=useState(null);
- const [configError,setConfigError]=useState(''),[error,setError]=useState(''),[message,setMessage]=useState(''),[busy,setBusy]=useState(false);
+ const [configError,setConfigError]=useState(''),[error,setError]=useState(''),[message,setMessage]=useState(''),[busy,setBusy]=useState(false),[permissionHelpOpen,setPermissionHelpOpen]=useState(false);
  const inFlight=useRef(false),acting=useRef(false),generation=useRef(0),queued=useRef(false),latestLoad=useRef(null),userId=profile?.id;
  const load=useCallback(async()=>{
   if(acting.current||document.visibilityState==='hidden')return;
@@ -25,7 +26,7 @@ export default function PushCenter({api,profile,loading=false,onLogin,onBack,dia
  },[api,userId,diagnostic]);
  useEffect(()=>{latestLoad.current=load;generation.current++;load();const timer=setInterval(load,15000);window.addEventListener('focus',load);return()=>{latestLoad.current=null;generation.current++;clearInterval(timer);window.removeEventListener('focus',load);};},[load]);
  async function act(action){acting.current=true;setBusy(true);setError('');setMessage('');try{setMessage(await action());}catch(e){setError(e.message);}finally{acting.current=false;setBusy(false);await load();}}
- const visibleNotes=notesOwner===userId?notes.filter(n=>diagnostic||n.tipo!=='push_diagnostico'):[],linked=notesOwner===userId?synced:null,adminEvidence=notesOwner===userId?evidence:null,enabled=linked===true&&device?.permission==='granted';
+ const visibleNotes=notesOwner===userId?notes.filter(n=>diagnostic||n.tipo!=='push_diagnostico'):[],linked=notesOwner===userId?synced:null,adminEvidence=notesOwner===userId?evidence:null,enabled=linked===true&&device?.permission==='granted',permissionHelp=pushPermissionHelp(globalThis.navigator?.userAgent||'');
  const Wrapper=embedded?'section':'main';
  return <Wrapper className={embedded?'space-y-5':'min-h-screen bg-neutral-950 p-6 text-white'}><div className="mx-auto max-w-3xl space-y-5">
   <h1 className="text-3xl font-black">{diagnostic?'Diagnóstico de avisos':'Notificaciones'} <span className="text-amber-400">MERYO</span></h1>
@@ -33,11 +34,10 @@ export default function PushCenter({api,profile,loading=false,onLogin,onBack,dia
   <section className="space-y-4 rounded-2xl border border-white/10 bg-neutral-900 p-6">
    <h2 className="text-xl font-bold">Avisos en este dispositivo</h2>
    <p>Permiso: {permissions[device?.permission]||'consultando'} · {linked===null?'Consultando vinculación…':linked?'Dispositivo vinculado a tu cuenta':'Dispositivo sin vincular'}</p>
-   <p className="text-sm text-neutral-400">Recibe avisos de citas y pedidos para recoger, incluso con MERYO cerrada. El sonido depende de los ajustes del celular, Chrome y No molestar.</p>
    {!profile?(loading?<p role="status">Comprobando sesión…</p>:<button className={button} onClick={onLogin}>Continuar con Google o iniciar sesión</button>):<>
-    <div className="flex flex-wrap gap-3"><button disabled={busy||enabled||!config?.push_disponible||device?.permission==='denied'} className="rounded-xl bg-amber-400 px-4 py-3 font-bold text-black disabled:opacity-40" onClick={()=>act(()=>enableBookingPush(api,config))}>{enabled?'Notificaciones activadas':'Activar notificaciones'}</button>
-    <button disabled={busy||!device?.subscribed} className={button} onClick={()=>act(async()=>{await disableBookingPush(api);return 'Avisos desactivados en este dispositivo.';})}>Desactivar en este dispositivo</button></div>
-    {device?.permission==='denied'&&<p className="text-amber-300">Tu navegador bloqueó el permiso. Abre la información del sitio → Permisos → Notificaciones y permítelas; después vuelve aquí. Revisa también que Chrome tenga permiso para notificar en los ajustes del celular.</p>}
+    {device?.permission!=='denied'&&<button disabled={busy||enabled||!config?.push_disponible} className="rounded-xl bg-amber-400 px-4 py-3 font-bold text-black disabled:opacity-40" onClick={()=>act(()=>enableBookingPush(api,config))}>{enabled?'Notificaciones activadas':'Activar notificaciones'}</button>}
+    {device?.permission==='denied'&&<p role="alert" className="text-amber-300">Notificaciones bloqueadas en {permissionHelp.browser}. <button type="button" className="underline underline-offset-2" onClick={()=>setPermissionHelpOpen(open=>!open)}>Cómo habilitarlas</button></p>}
+    {device?.permission==='denied'&&permissionHelpOpen&&<p className="text-sm text-neutral-300">{permissionHelp.steps}</p>}
     {config?.push_disponible===false&&<p className="text-amber-300">El emisor del servidor está temporalmente desactivado.</p>}
     {!config&&!configError&&<p role="status">Consultando disponibilidad de avisos…</p>}
    </>}

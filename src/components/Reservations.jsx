@@ -4,7 +4,7 @@ import {remainingSeconds,countdown} from '../lib/booking-time';
 import {bookingIdFromSearch,bookingDeadline} from '../lib/booking-link';
 import {visiblePolling} from '../lib/visible-polling';
 
-export default function Reservations({api,profile,onLogin,onSearch,memberId,identityLoading=false}){
+export default function Reservations({api,profile,onLogin,onSearch,onRetrySession,memberId,identityLoading=false,identityError=''}){
  const [focus,setFocus]=useState(()=>typeof window!=='undefined'?bookingIdFromSearch(window.location.search):null);
  const focused=useRef(false);
  const polling=useRef(null);
@@ -30,6 +30,7 @@ export default function Reservations({api,profile,onLogin,onSearch,memberId,iden
   catch(e){setError(e.message);}finally{setBusy(false);}
  }
  if(identityLoading)return <p role="status">Comprobando sesión para abrir tu cita…</p>;
+ if(identityError)return <div role="alert" className="rounded-2xl border border-white/10 bg-neutral-900 p-6"><p>No pudimos comprobar tu sesión. Reintenta antes de iniciar sesión nuevamente.</p><button type="button" className="mt-3 rounded-xl border border-white/20 px-4 py-2" onClick={onRetrySession}>Reintentar</button></div>;
  if(!profile)return <div className="rounded-2xl border border-white/10 bg-neutral-900 p-6"><p>Inicia sesión para consultar tus citas.</p>{focus&&<p className="mt-2">Volverás a esta misma cita después de iniciar sesión.</p>}<button className="mt-3 rounded-xl bg-amber-400 px-4 py-2 font-bold text-black" onClick={onLogin}>Iniciar sesión</button></div>;
  if(!['cliente','barbero'].includes(profile.rol))return <p role="alert">Esta cita requiere la cuenta de cliente o barbero que recibió el aviso. Este enlace no abre Administración.</p>;
  const elapsed=anchor?Math.max(0,now-anchor.received):0;

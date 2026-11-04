@@ -15,8 +15,9 @@ test('notification invitation and owner request notice render with accessible, c
  const {offer,ownerNotice}=await import(pathToFileURL(output).href);
  const invitation=offer(),notice=ownerNotice();
  assert.match(invitation,/Activar notificaciones/);
- assert.match(invitation,/Recibe avisos cuando llegue una nueva solicitud de cita/);
  assert.match(invitation,/>Aceptar</);assert.match(invitation,/>Rechazar</);
+ assert.equal((invitation.match(/<button\b/g)||[]).length,2);
+ assert.doesNotMatch(invitation,/<p\b|Activando|Recibe avisos/);
  assert.match(invitation,/meryo-notification-offer/);
  assert.match(notice,/Un cliente solicita un corte/);
  assert.ok(notice.includes('href="/?cita=00000000-0000-4000-8000-000000000042#my-bookings"'));
@@ -31,5 +32,10 @@ test('push invitation respects reduced motion and the dismissed choice remains a
  assert.match(component,/pushOfferDeferred\(storage\(\),id\)/);
  assert.match(component,/api\.notifications\(id\)/);
  assert.match(component,/visiblePolling/);
+ assert.match(component,/meryo-booking-request-saved/);
+ assert.match(component,/profile\?\.rol==='cliente'/);
+ const pushCenter=await fs.readFile(path.resolve('src/components/PushCenter.jsx'),'utf8');
+ assert.doesNotMatch(pushCenter,/Desactivar en este dispositivo/);
+ assert.match(pushCenter,/pushPermissionHelp/);
  assert.doesNotMatch(app,/cargarNotificaciones|setNotificaciones|setUltimaNoti/);
 });

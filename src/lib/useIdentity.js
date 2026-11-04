@@ -13,7 +13,14 @@ export function useIdentity(client) {
   },[client]);
   useEffect(()=>{
     let timer;refresh();
-    const {data:{subscription}}=client.auth.onAuthStateChange(()=>{clearTimeout(timer);generation.current++;setProfile(null);timer=setTimeout(refresh,0);});
+    const {data:{subscription}}=client.auth.onAuthStateChange((event,session)=>{
+      clearTimeout(timer);generation.current++;
+      const signedOut=event==='SIGNED_OUT'||!session;
+      setLoading(!signedOut);
+      setError('');
+      setProfile(current=>signedOut?null:current?.id===session.user?.id?current:null);
+      if(!signedOut)timer=setTimeout(refresh,0);
+    });
     return()=>{invalidate();clearTimeout(timer);subscription.unsubscribe();};
   },[client,refresh,invalidate]);
   return {profile,loading,error,refresh};

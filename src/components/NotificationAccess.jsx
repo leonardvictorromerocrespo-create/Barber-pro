@@ -2,6 +2,7 @@ import {useEffect,useRef,useState} from 'react';
 import {enableBookingPush,pushDeviceState} from '../lib/push';
 import {pushOfferDeferred,deferPushOffer,shouldOfferPush} from '../lib/push-offer';
 import {visiblePolling} from '../lib/visible-polling';
+import {createNotificationChime} from '../lib/notification-sound';
 import './NotificationAccess.css';
 
 const storage=()=>{try{return window.localStorage;}catch{return null;}};
@@ -15,12 +16,15 @@ export function NotificationBell(){return <a href="/#notifications" aria-label="
 export function NotificationOffer({busy=false,top=72,onAccept,onReject}){
  return <aside className="meryo-notification-offer" style={{top}} aria-labelledby="meryo-notification-offer-title">
   <h2 id="meryo-notification-offer-title">Activar notificaciones</h2>
-  <p>Recibe avisos cuando llegue una nueva solicitud de cita</p>
   <div className="meryo-notification-offer__actions">
-   <button type="button" disabled={busy} onClick={onAccept}>{busy?'Activando…':'Aceptar'}</button>
+   <button type="button" disabled={busy} onClick={onAccept}>Aceptar</button>
    <button type="button" disabled={busy} onClick={onReject}>Rechazar</button>
   </div>
  </aside>;
+}
+
+export function NotificationBlocked({top=72}){
+ return <aside className="meryo-notification-blocked" style={{top}} role="status">Notificaciones bloqueadas. <a href="/#notifications">Cómo habilitarlas</a></aside>;
 }
 
 export function OwnerBookingNotice({notice,onDismiss}){
@@ -33,8 +37,13 @@ export function OwnerBookingNotice({notice,onDismiss}){
 }
 
 export default function NotificationAccess({api,profile,loading}){
- const [offer,setOffer]=useState(null),[dismissed,setDismissed]=useState(null),[busy,setBusy]=useState(false),[feedback,setFeedback]=useState(null),[offerTop,setOfferTop]=useState(72),[bookingNotice,setBookingNotice]=useState(null),id=profile?.id;
+ const [offer,setOffer]=useState(null),[dismissed,setDismissed]=useState(null),[busy,setBusy]=useState(false),[feedback,setFeedback]=useState(null),[offerTop,setOfferTop]=useState(72),[bookingNotice,setBookingNotice]=useState(null),[requestOfferFor,setRequestOfferFor]=useState(null),[blockedHint,setBlockedHint]=useState(null),id=profile?.id;
  const shownNoticeIds=useRef(new Set());
+ const chime=useRef(null);
+ useEffect(()=>{
+  const instance=createNotificationChime();chime.current=instance;
+  return()=>{instance.dispose();chime.current=null;};
+ },[]);
  useEffect(()=>{
   if(!feedback||feedback.error)return;
   const feedbackId=feedback.id;
@@ -42,16 +51,30 @@ export default function NotificationAccess({api,profile,loading}){
   return()=>window.clearTimeout(timer);
  },[feedback]);
  useEffect(()=>{
-  if(!id||loading)return;let active=true;
-  const inspect=async()=>{if(pushOfferDeferred(storage(),id))return;
-   try{const device=await pushDeviceState();if(!await shouldOfferPush(api,device)){if(active)setOffer(null);return;}const config=await api.bookingConfig();if(active)setOffer(config.push_disponible?{id,config}:null);}catch{/* Keep settings accessible without interrupting the session. */}
+  const onBookingSaved=event=>{
+   if(profile?.rol==='cliente'&&event.detail?.userId===id){setRequestOfferFor(id);setBlockedHint(null);setDismissed(null);}
+  };
+  window.addEventListener('meryo-booking-request-saved',onBookingSaved);
+  return()=>window.removeEventListener('meryo-booking-request-saved',onBookingSaved);
+ },[id,profile?.rol]);
+ useEffect(()=>{
+  if(!id||loading||profile?.rol!=='cliente'||requestOfferFor!==id)return;let active=true;
+  const inspect=async()=>{
+   if(pushOfferDeferred(storage(),id)){if(active){setOffer(null);setBlockedHint(null);}return;}
+   try{
+    const device=await pushDeviceState();if(!active)return;
+    if(device.permission==='denied'){setOffer(null);setBlockedHint(id);return;}
+    if(!await shouldOfferPush(api,device)){if(active){setOffer(null);setBlockedHint(null);}return;}
+    const config=await api.bookingConfig();if(active){setBlockedHint(null);setOffer(config.push_disponible?{id,config}:null);}
+   }catch{/* Keep settings accessible without interrupting the session. */}
   };
   void inspect();window.addEventListener('meryo-push-changed',inspect);
   return()=>{active=false;window.removeEventListener('meryo-push-changed',inspect);};
- },[api,id,loading]);
+ },[api,id,loading,profile?.rol,requestOfferFor]);
  const visible=offer?.id===id&&dismissed!==id;
+ const blockedVisible=blockedHint===id;
  useEffect(()=>{
-  if(!visible)return undefined;
+  if(!visible&&!blockedVisible)return undefined;
   const updateTop=()=>{
    const anchor=document.querySelector('.meryo-site-header')||document.querySelector('.meryo-notification-access-header');
    const bottom=anchor?.getBoundingClientRect().bottom||0;
@@ -62,10 +85,10 @@ export default function NotificationAccess({api,profile,loading}){
   const observer=typeof ResizeObserver==='undefined'||!anchor?null:new ResizeObserver(updateTop);
   observer?.observe(anchor);
   return()=>{window.removeEventListener('scroll',updateTop);window.removeEventListener('resize',updateTop);observer?.disconnect();};
- },[visible]);
+ },[visible,blockedVisible]);
  useEffect(()=>{
   if(!id||loading||profile?.rol!=='barbero'){setBookingNotice(null);return undefined;}
-  let active=true,initialRead=true;
+  let active=true;const openedAt=Date.now();
   const read=async()=>{
    const rows=await api.notifications(id);if(!active)return;
    const dismissedIds=dismissedNoticeIds(id),now=Date.now();
@@ -75,20 +98,19 @@ export default function NotificationAccess({api,profile,loading}){
     return age>=-60000&&age<=15*60*1000&&!dismissedIds.has(noticeId)&&!shownNoticeIds.current.has(noticeId);
    });
    if(notice){
-    shownNoticeIds.current.add(String(notice.id));setBookingNotice(notice);
-     if(!initialRead){try{const sound=new Audio('https://actions.google.com/sounds/v1/alarms/beep_short.ogg');void sound.play().catch(()=>{/* Browser autoplay policy may keep the page silent. */});}catch{/* Audio may be unavailable in this browser. */}}
+    const noticeId=String(notice.id);shownNoticeIds.current.add(noticeId);setBookingNotice(notice);
+    if(Date.parse(notice.created_at)>=openedAt-3000)chime.current?.play(noticeId);
    }
-   initialRead=false;
   };
   const reader=visiblePolling(()=>read().catch(()=>{}));
   return()=>{active=false;reader.stop();};
  },[api,id,loading,profile?.rol]);
  if(!profile||loading)return null;
- async function activate(){if(busy)return;setBusy(true);setFeedback(null);try{await enableBookingPush(api,offer.config);setOffer(null);setFeedback({id,text:'Notificaciones activadas.',error:false});}catch(e){if(globalThis.Notification?.permission==='denied')setOffer(null);setFeedback({id,text:e.message,error:true});}finally{setBusy(false);}}
+ async function activate(){if(busy)return;setBusy(true);setFeedback(null);try{await enableBookingPush(api,offer.config);setOffer(null);setBlockedHint(null);setFeedback({id,text:'Notificaciones activadas.',error:false});}catch(e){if(globalThis.Notification?.permission==='denied'){setOffer(null);setBlockedHint(id);setFeedback(null);}else setFeedback({id,text:e.message,error:true});}finally{setBusy(false);}}
  function reject(){deferPushOffer(storage(),id);setDismissed(id);setOffer(null);setFeedback(null);}
  function dismissBookingNotice(){
   if(bookingNotice){const store=storage();if(store){const key=dismissedKey(id),ids=dismissedNoticeIds(id);ids.add(String(bookingNotice.id));try{store.setItem(key,JSON.stringify([...ids].slice(-50)));}catch{/* The notice still closes for this visit. */}}}
   setBookingNotice(null);
  }
- return <><header className="meryo-notification-access-header border-b border-white/10 bg-neutral-950 text-white"><div className="mx-auto max-w-7xl space-y-2 px-6 py-2"><nav aria-label="Mi cuenta y avisos" className="flex items-center justify-end gap-3"><a className="text-sm text-neutral-300" href="/#account">Mi cuenta</a><NotificationBell/></nav>{feedback?.id===id&&feedback.error&&<p role="alert" className="text-sm text-red-300">{feedback.text} <a className="underline" href="/#notifications">Mi cuenta → Notificaciones</a></p>}</div></header>{visible&&<NotificationOffer busy={busy} top={offerTop} onAccept={activate} onReject={reject}/>}<OwnerBookingNotice notice={bookingNotice} onDismiss={dismissBookingNotice}/>{feedback?.id===id&&!feedback.error&&<p role="status" className="pointer-events-none fixed bottom-4 left-3 right-3 z-50 mx-auto max-w-sm rounded-xl border border-amber-400/30 bg-neutral-900 px-4 py-3 text-center text-sm text-amber-300 shadow-xl">{feedback.text}</p>}</>;
+ return <><header className="meryo-notification-access-header border-b border-white/10 bg-neutral-950 text-white"><div className="mx-auto max-w-7xl space-y-2 px-6 py-2"><nav aria-label="Mi cuenta y avisos" className="flex items-center justify-end gap-3"><a className="text-sm text-neutral-300" href="/#account">Mi cuenta</a><NotificationBell/></nav>{feedback?.id===id&&feedback.error&&<p role="alert" className="text-sm text-red-300">{feedback.text} <a className="underline" href="/#notifications">Mi cuenta → Notificaciones</a></p>}</div></header>{visible&&<NotificationOffer busy={busy} top={offerTop} onAccept={activate} onReject={reject}/>}{blockedVisible&&<NotificationBlocked top={offerTop}/>}<OwnerBookingNotice notice={bookingNotice} onDismiss={dismissBookingNotice}/>{feedback?.id===id&&!feedback.error&&<p role="status" className="pointer-events-none fixed bottom-4 left-3 right-3 z-50 mx-auto max-w-sm rounded-xl border border-amber-400/30 bg-neutral-900 px-4 py-3 text-center text-sm text-amber-300 shadow-xl">{feedback.text}</p>}</>;
 }

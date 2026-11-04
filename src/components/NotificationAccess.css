@@ -21,29 +21,42 @@
   font-weight: 750;
 }
 
-.meryo-notification-offer p {
-  margin: .45rem 0 0;
-  color: #f5f1e8;
-  font-size: .9rem;
-  line-height: 1.45;
-}
-
 .meryo-notification-offer__actions {
   display: flex;
   gap: .65rem;
-  margin-top: 1rem;
+  margin-top: .65rem;
 }
 
 .meryo-notification-offer__actions button {
-  min-width: 6.5rem;
-  min-height: 2.75rem;
-  border-radius: .7rem;
-  padding: .55rem 1rem;
+  min-width: 5.25rem;
+  min-height: 2.25rem;
+  border-radius: .65rem;
+  padding: .35rem .75rem;
   font: inherit;
-  font-size: .9rem;
+  font-size: .82rem;
   font-weight: 700;
   cursor: pointer;
 }
+
+.meryo-notification-blocked {
+  position: fixed;
+  z-index: 55;
+  left: max(.75rem, env(safe-area-inset-left));
+  display: flex;
+  width: max-content;
+  max-width: calc(100vw - 1.5rem);
+  flex-wrap: wrap;
+  gap: .35rem;
+  border: 1px solid rgba(212, 175, 55, .38);
+  border-radius: .85rem;
+  background: #171613;
+  color: #f5f1e8;
+  padding: .7rem .85rem;
+  box-shadow: 0 18px 50px rgba(0, 0, 0, .42);
+  animation: meryo-notification-offer-in .28s ease-out both;
+}
+
+.meryo-notification-blocked a { color: #e8c766; font-weight: 700; text-decoration: underline; text-underline-offset: .15rem; }
 
 .meryo-notification-offer__actions button:first-child {
   border: 1px solid #d4af37;
@@ -93,5 +106,6 @@
 
 @media (prefers-reduced-motion: reduce) {
   .meryo-notification-offer,
+  .meryo-notification-blocked,
   .meryo-owner-booking-notice { animation: none; }
 }
