@@ -420,7 +420,7 @@ function MeryoScreens({identity}) {
   const [agendaLoading,setAgendaLoading] = useState(false);
   const catalogLoader=useRef(null);
   const catalogNavigation=useRef(0);
-  if(!catalogLoader.current)catalogLoader.current=createCatalogLoader(category=>api.catalog(category),setCatalogState);
+  if(!catalogLoader.current)catalogLoader.current=createCatalogLoader((category,options)=>api.catalog(category,options),setCatalogState);
   const loadedCatalogCategory=catalogState.category,shops=catalogState.rows,catalogLoading=catalogState.loading,catalogError=catalogState.error;
   const catalogMatchesCategory=loadedCatalogCategory===catalogCategory;
   const catalogRows=useMemo(()=>catalogMatchesCategory?shops:[],[catalogMatchesCategory,shops]);
@@ -866,7 +866,6 @@ if (view === "admin" && adminAccess) return <AdminShops api={api} profile={ident
         {supabase.authUnavailable&&<p role="status" className="mx-auto max-w-7xl px-6 pt-5 text-amber-300">Puedes consultar perfiles, servicios y calendario. Registro, acceso y operaciones privadas requieren Supabase Auth de pruebas; no hay sesiones ficticias.</p>}
         {identity.error&&<p role="alert" className="px-6 text-red-300">{identity.error}</p>}
         {accessMessage&&<p role="status" className="px-6 text-amber-300">{accessMessage}</p>}
-        {catalogMatchesCategory&&catalogError&&<p role="alert" className="px-6 text-red-300">{catalogError}</p>}
         {profileUnavailable&&<div role="alert" className="mx-auto my-5 max-w-4xl rounded-2xl border border-white/15 bg-neutral-900 p-5"><h1 className="text-xl font-bold">Este negocio ya no está disponible</h1><p className="mt-2 text-neutral-300">No mostramos perfiles que ya no están publicados.</p><button onClick={closeProfileModal} className="mt-4 rounded-xl border border-amber-400/50 px-4 py-2 text-amber-200">Volver al catálogo</button></div>}
         <section className="mx-auto max-w-7xl px-3 pt-4 pb-10 md:px-6 md:py-16">
           <ClientHero heroIndex={heroIndex} setHeroIndex={setHeroIndex} setView={setView} catalogCategory={catalogCategory} />
@@ -878,7 +877,7 @@ if (view === "admin" && adminAccess) return <AdminShops api={api} profile={ident
               <p className="mt-2 text-neutral-400">Solicita una cita. La confirmación requiere aceptación y verificación del adelanto por el servidor.</p>
             </div>
             <div className="rounded-2xl border border-white/10 bg-neutral-900 px-4 py-3 text-sm text-neutral-300">
-              {catalogLoading||!catalogMatchesCategory?'Cargando…':catalogCountLabel(catalogCategory,ranking.length)}
+              {catalogLoading||!catalogMatchesCategory?'Cargando…':catalogError?'Catálogo no disponible':catalogCountLabel(catalogCategory,ranking.length)}
             </div>
           </div>
 
@@ -891,7 +890,7 @@ if (view === "admin" && adminAccess) return <AdminShops api={api} profile={ident
             {markers.length === 0 && <p className="mt-3 text-sm text-neutral-400">No hay ubicaciones verificables para estos resultados.</p>}
           </div>}
           {catalogRows.length > 0 && ranking.length === 0 && <p role="status" className="mb-6 text-neutral-400">No encontramos {catalogCategory==='belleza'?'peluquerías ni salones':'barberías'} con esos filtros.</p>}
-          <CatalogStatus loading={catalogLoading||!catalogMatchesCategory} error={catalogMatchesCategory?catalogError:''} empty={catalogRows.length===0} businessLabel={catalogCategory==='belleza'?'peluquerías y salones':'barberías'}/>
+          <CatalogStatus loading={catalogLoading||!catalogMatchesCategory} error={catalogMatchesCategory?catalogError:''} empty={catalogRows.length===0} businessLabel={catalogCategory==='belleza'?'peluquerías y salones':'barberías'} onRetry={cargarBarberiasActivas}/>
 
           <CatalogShopGrid shops={ranking} category={catalogCategory} onView={openProfileModal} onReserve={openBookingModal}/>
         </section>

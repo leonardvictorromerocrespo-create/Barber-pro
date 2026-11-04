@@ -39,7 +39,44 @@ test('an explicit navigation reset invalidates pending work before the next effe
  const old=loader.load('barberia');
  loader.reset('belleza');
  assert.deepEqual(state,{category:'belleza',rows:[],loading:true,error:''});
- pending.resolve([{name:'Barbershoppi'}]);
  assert.equal(await old,false);
+  pending.resolve([{name:'Barbershoppi'}]);
+  await Promise.resolve();
  assert.deepEqual(state,{category:'belleza',rows:[],loading:true,error:''});
+});
+
+test('a stalled catalog request times out with an error and can recover through retry',async()=>{
+ const slow=deferred();let state,firstSignal,calls=0;
+ const loader=createCatalogLoader((category,{signal})=>{
+  calls++;
+  if(calls===1){firstSignal=signal;return slow.promise;}
+  return Promise.resolve([{name:category==='barberia'?'Barbería vigente':'Salón vigente'}]);
+ },next=>{state=next;},{timeoutMs:15});
+ const first=loader.load('barberia');
+ assert.deepEqual(state,{category:'barberia',rows:[],loading:true,error:''});
+ assert.equal(await first,false);
+ assert.equal(firstSignal.aborted,true);
+ assert.equal(state.loading,false);
+ assert.match(state.error,/tardó demasiado/i);
+ assert.deepEqual(state.rows,[]);
+ assert.equal(await loader.load('barberia'),true);
+ assert.equal(state.error,'');
+ assert.deepEqual(state.rows,[{name:'Barbería vigente'}]);
+ slow.resolve([{name:'respuesta tardía'}]);
+ await Promise.resolve();
+ assert.deepEqual(state.rows,[{name:'Barbería vigente'}]);
+});
+
+test('a rejected catalog request is an error, not an empty catalog, and retry succeeds',async()=>{
+ let state,calls=0;
+ const loader=createCatalogLoader(()=>{
+  calls++;
+  return calls===1?Promise.reject(new Error('Sin conexión')):Promise.resolve([{name:'Barbería'}]);
+ },next=>{state=next;},{timeoutMs:100});
+ assert.equal(await loader.load('barberia'),false);
+ assert.equal(state.loading,false);
+ assert.equal(state.error,'Sin conexión');
+ assert.deepEqual(state.rows,[]);
+ assert.equal(await loader.load('barberia'),true);
+ assert.deepEqual(state.rows,[{name:'Barbería'}]);
 });

@@ -38,12 +38,16 @@ export function createMeryoApi(client) {
   async function requireRole(roles){const p=await verifiedProfile(client);if(!p||!roles.includes(p.rol))throw new Error(client.authUnavailable?'Falta conectar Supabase Auth de pruebas. No se creará una sesión ficticia.':'Inicia sesión con el rol correspondiente');return p;}
   return {
     profile:()=>verifiedProfile(client),
-    catalog:async(category='barberia')=> Promise.all((await readResult(client.rpc('meryo_catalogo_categoria',{p_categoria:category}))).map(async row=>{
-      const shop=mapShop(row);
-      try{shop.assets=await signContent(client,row.assets??[]);const cover=shop.assets.find(a=>a.kind==='portada'&&a.url);if(cover)shop.image=cover.url;}
-      catch(error){shop.assets=[];shop.contentError=error.message;}
-      return shop;
-    })),
+    catalog:async(category='barberia',{signal}={})=>{
+      const request=client.rpc('meryo_catalogo_categoria',{p_categoria:category});
+      if(signal)request.abortSignal(signal);
+      return Promise.all((await readResult(request)).map(async row=>{
+        const shop=mapShop(row);
+        try{shop.assets=await signContent(client,row.assets??[]);const cover=shop.assets.find(a=>a.kind==='portada'&&a.url);if(cover)shop.image=cover.url;}
+        catch(error){shop.assets=[];shop.contentError=error.message;}
+        return shop;
+      }));
+    },
     slots:async(shop,service,date,barber)=>(await readResult(barber?client.rpc('meryo_horarios_barbero',{p_shop:shop,p_service:service,p_date:date,p_member:barber}):client.rpc('horarios_disponibles',{p_barberia_id:shop,p_servicio_id:service,p_fecha:date}))).map(s=>({id:s.hora_inicio,time:s.hora_inicio,label:new Date(s.hora_inicio).toLocaleTimeString('es-PE',{timeZone:'America/Lima',hour:'2-digit',minute:'2-digit',hour12:false}),occupied:false})),
     request:async({shop,service,barber,start,name,phone,note})=>{
       await requireRole(['cliente']);
