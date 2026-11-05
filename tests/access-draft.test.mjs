@@ -7,6 +7,13 @@ test('only reservation fields survive authentication; TTL and logout clear PII',
  assert.equal(readDraft(storage,2000).service,'2');assert.equal(readDraft(storage,2000).category,'belleza');assert.ok(![...map.values()][0].includes('never'));assert.equal(readDraft(storage,1000+31*60000),null);
  saveDraft(storage,{shop:1,service:2,date:'2026-10-28'},1000);clearDraft(storage);assert.equal(map.size,0);
 });
+test('a promotion draft preserves only its campaign and quoted ordinary price',()=>{
+ const map=new Map(),storage={setItem:(k,v)=>map.set(k,v),getItem:k=>map.get(k),removeItem:k=>map.delete(k)};
+ const campaignId='c115d9d9-7aeb-4e19-ae61-29a3cab3ed73';
+ saveDraft(storage,{shop:4,service:8,barber:'20000000-0000-4000-8000-000000000001',date:'2026-10-28',campaignId,regularPrice:40,token:'secret'},2000);
+ const restored=readDraft(storage,2001);assert.equal(restored.campaignId,campaignId);assert.equal(restored.regularPrice,40);assert.equal(restored.token,undefined);assert.ok(![...map.values()][0].includes('secret'));
+ saveDraft(storage,{shop:4,service:8,date:'2026-10-28',campaignId,regularPrice:-10},2000);assert.equal(readDraft(storage,2001).campaignId,null);
+});
 test('Google uses real Supabase OAuth with minimal scopes and a fixed callback, no roles',async()=>{
  let args;const client={auth:{signInWithOAuth:async a=>{args=a;return {error:null};}}};
  await assert.rejects(beginGoogle(client,{enabled:false,origin:'http://127.0.0.1:5178'}),/pendiente/);assert.equal(args,undefined);

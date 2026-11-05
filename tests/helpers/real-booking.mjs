@@ -10,7 +10,7 @@ export async function bookingAccounts({customerFile='cliente-reservas.json'}={})
  const make=()=>createClient('http://127.0.0.1:5178/__supabase',anonKey,{auth:{persistSession:false,autoRefreshToken:false}});
  const owner=make(),customer=make();
  const ownerCredentials=JSON.parse(await fs.readFile(path.join(nativeRoot,'propietario-pruebas.json'),'utf8'));
- if(!['cliente-reservas.json','cliente-flujo-tests.json','cliente-concurrencia.json'].includes(customerFile))throw Error('Unknown local test account');
+ if(!['cliente-reservas.json','cliente-flujo-tests.json','cliente-concurrencia.json','cliente-campania-50.json'].includes(customerFile))throw Error('Unknown local test account');
  let credentials;const file=path.join(nativeRoot,customerFile);
  try{credentials=JSON.parse(await fs.readFile(file,'utf8'));}
  catch(e){

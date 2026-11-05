@@ -12,7 +12,7 @@ function reducedMotionEnabled() {
   catch { return false; }
 }
 
-export default function LandingPage({setView, onExplore, profile=null, identityLoading=false, adminAccess=false, onSignIn, onAccount, onProfessionalAccess}) {
+export default function LandingPage({setView, onExplore, onPromotions, profile=null, identityLoading=false, adminAccess=false, onSignIn, onAccount, onProfessionalAccess}) {
   const [intro, setIntro] = useState(false);
   const introDecision = useRef(null);
   const brandRef = useRef(null);
@@ -67,6 +67,7 @@ export default function LandingPage({setView, onExplore, profile=null, identityL
                 <h2>Barberías</h2>
                 <p>Encuentra al profesional para tu próximo corte.</p>
                 <button type="button" onClick={() => explore('barberia')}>Explorar barberías</button>
+                <button type="button" className="meryo-cover__promotions-link" onClick={onPromotions}>Ver promociones</button>
               </div>
             </article>
             <article className="meryo-cover__entry meryo-cover__entry--beauty">
