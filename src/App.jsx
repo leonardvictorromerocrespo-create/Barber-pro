@@ -311,7 +311,7 @@ export function BookingModal({
                 </div>
               </div>
               {agendaLoading&&<p>Cargando horarios del servidor…</p>}{agendaError&&<p role="alert" className="text-red-300">{agendaError}</p>}{!agendaLoading&&!agendaError&&!activeSlots.length&&<p>Sin horarios disponibles para este servicio y fecha.</p>}
-              <div className="meryo-time-grid mt-4 grid grid-cols-3 gap-2 min-[420px]:grid-cols-4">
+              <div className="meryo-time-grid mt-4 grid grid-cols-3 gap-2 min-[390px]:grid-cols-4">
                 {activeSlots.map((slot) => (
                   <button
                     key={`${selectedDate}-${slot.time}`}
