@@ -1,4 +1,5 @@
 import MeryoLogo from './MeryoLogo';
+import './CutPromotions.css';
 
 function dateLabel(value) {
   if (!value) return '';
@@ -6,7 +7,7 @@ function dateLabel(value) {
   return new Intl.DateTimeFormat('es-PE', { timeZone: 'America/Lima', day: 'numeric', month: 'short' }).format(date);
 }
 
-export function CutPromotions({ offers, loading, error, notice='', onRetry, onBack, onOpenOffer, onNavigate, heroImage, BottomNav }) {
+export function CutPromotions({ offers, loading, error, notice='', onRetry, onBack, onOpenOffer, onNavigate, heroImage, bannerImage='/cut-promotions-banner.png', BottomNav }) {
   const hasLiveOffers=!loading&&!error&&offers.length>0;
   return <div data-meryo-theme="barberia" className="min-h-screen bg-neutral-950 pb-24 text-white md:pb-8">
     <header className="sticky top-0 z-20 border-b border-white/10 bg-neutral-950/95 px-4 py-3 backdrop-blur sm:px-6">
@@ -16,8 +17,8 @@ export function CutPromotions({ offers, loading, error, notice='', onRetry, onBa
       </div>
     </header>
     <main className="mx-auto max-w-7xl px-4 py-5 sm:px-6 sm:py-8">
-      <section className="relative isolate flex min-h-60 items-center overflow-hidden rounded-3xl border border-amber-400/20 bg-neutral-900 px-6 py-8 sm:min-h-80 sm:px-10" style={{ backgroundImage: `linear-gradient(90deg,rgba(10,10,10,.97) 0%,rgba(10,10,10,.84) 44%,rgba(10,10,10,.18) 100%),url("${heroImage}")`, backgroundSize: 'cover', backgroundPosition: 'center 38%' }}>
-        <div className="max-w-2xl">
+      <section className="meryo-promotions-banner relative isolate flex min-h-60 items-center overflow-hidden rounded-3xl border border-amber-400/20 bg-neutral-900 px-6 py-8 sm:min-h-80 sm:px-10" style={{ '--meryo-promotion-banner': `url("${bannerImage}")` }}>
+        <div className="meryo-promotions-banner__copy">
           <p className="text-xs font-bold uppercase tracking-[.28em] text-amber-300">MERYO · promociones</p>
           <h1 className="mt-3 text-4xl font-black leading-tight text-white sm:text-6xl" style={{ textShadow: '0 0 18px rgba(232,199,102,.32)' }}>{hasLiveOffers?'Cortes al 50 %':'Promociones de barbería'}</h1>
           <p className="mt-3 text-base font-semibold text-amber-200 sm:text-xl">{hasLiveOffers?'En barberías y horarios participantes':'Consulta las ofertas disponibles'}</p>

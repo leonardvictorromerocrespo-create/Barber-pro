@@ -1,0 +1,24 @@
+.meryo-promotions-banner {
+  background-image:
+    linear-gradient(90deg, rgba(10, 10, 10, .96) 0%, rgba(10, 10, 10, .84) 40%, rgba(10, 10, 10, .34) 68%, rgba(10, 10, 10, .08) 100%),
+    var(--meryo-promotion-banner);
+  background-position: center, center 40%;
+  background-size: cover, cover;
+}
+
+.meryo-promotions-banner__copy {
+  max-width: 42rem;
+}
+
+@media (max-width: 639px) {
+  .meryo-promotions-banner {
+    background-image:
+      linear-gradient(90deg, rgba(10, 10, 10, .96) 0%, rgba(10, 10, 10, .91) 43%, rgba(10, 10, 10, .5) 68%, rgba(10, 10, 10, .12) 100%),
+      var(--meryo-promotion-banner);
+    background-position: center, 72% center;
+  }
+
+  .meryo-promotions-banner__copy {
+    max-width: 68%;
+  }
+}

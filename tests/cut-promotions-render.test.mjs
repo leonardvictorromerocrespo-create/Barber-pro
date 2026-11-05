@@ -10,7 +10,7 @@ test('Cortes al 50 % renders real server offer fields and explicit empty/loading
   await fs.mkdir(path.dirname(output), { recursive: true });
   await build({
     stdin: { contents: `import React from 'react';import {renderToStaticMarkup} from 'react-dom/server';import {CutPromotions} from './src/components/CutPromotions.jsx';import LandingPage from './src/components/LandingPage.jsx';import {BookingModal} from './src/App.jsx';
-      export const page=(offers,loading=false,error='')=>renderToStaticMarkup(React.createElement(CutPromotions,{offers,loading,error,onRetry(){},onBack(){},onOpenOffer(){},onNavigate(){},heroImage:'/existing-barber-hero.jpg'}));
+      export const page=(offers,loading=false,error='')=>renderToStaticMarkup(React.createElement(CutPromotions,{offers,loading,error,onRetry(){},onBack(){},onOpenOffer(){},onNavigate(){},heroImage:'/existing-barber-hero.jpg',bannerImage:'/promotion-only.png'}));
       export const cover=()=>renderToStaticMarkup(React.createElement(LandingPage,{setView(){},onExplore(){},onPromotions(){},onSignIn(){},onAccount(){},onProfessionalAccess(){}}));
       export const booking=()=>renderToStaticMarkup(React.createElement(BookingModal,{catalogCategory:'barberia',selectedShop:{id:1,name:'Barbería real',services:[{id:5,name:'Corte clásico',price:40,duration:'45 min',bookable:true}],equipo:[{id:'member',nombre:'Profesional',servicios:[5]}]},selectedService:{id:5,name:'Corte clásico',price:40,duration:'45 min',bookable:true},selectedBarber:'member',selectedDate:'2026-11-08',selectedTime:'',customerInfo:{name:'',phone:''},customRequest:'',activeSlots:[],finalPrice:20,promotion:{campaignId:'campaign',regularPrice:40,promoPrice:20},promotionError:'',onRegularPrice(){},onBackToOffers(){},requestSaved:false,savingReservation:false,reservationsEnabled:false,agendaLoading:false,agendaError:''}));`, resolveDir: process.cwd(), loader: 'jsx' },
     outfile: output, bundle: true, platform: 'node', format: 'esm', jsx: 'automatic',
@@ -22,6 +22,8 @@ test('Cortes al 50 % renders real server offer fields and explicit empty/loading
   const markup = page([offer]);
   assert.match(cover(), />Ver promociones<\/button>/);
   assert.match(markup, /Cortes al 50 %/);
+  assert.match(markup, /promotion-only\.png/);
+  assert.match(markup, /src="\/existing-barber-hero\.jpg"/);
   assert.match(markup, /Barbería real/);
   assert.match(markup, /S\/ 40\.00/);
   assert.match(markup, /S\/ 20\.00/);
