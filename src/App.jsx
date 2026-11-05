@@ -407,6 +407,7 @@ function MeryoScreens({identity}) {
   const resumed=useRef('');
   useEffect(()=>{let active=true;setAdminAal2(false);if(adminAccess)supabase.auth.mfa.getAuthenticatorAssuranceLevel().then(({data,error})=>{if(active)setAdminAal2(!error&&data?.currentLevel==='aal2');});return()=>{active=false;};},[identity.profile,adminAccess]);
   const barberLoggedIn = identity.profile?.rol === 'barbero';
+  const [catalogLoadRevision,setCatalogLoadRevision]=useState(0);
   const [catalogState,setCatalogState]=useState({category:null,rows:[],loading:true,error:''});
   const [cutOffers,setCutOffers]=useState([]),[cutOffersLoading,setCutOffersLoading]=useState(false),[cutOffersError,setCutOffersError]=useState(''),[cutOffersNotice,setCutOffersNotice]=useState(''),[promotionError,setPromotionError]=useState('');
   const [activeSlots,setActiveSlots] = useState([]);
@@ -481,6 +482,8 @@ function MeryoScreens({identity}) {
     catalogNavigation.current+=1;
     catalogLoader.current.reset(next);
     setCatalogCategory(next);
+    // A navigation can select the same category after invalidating its load.
+    setCatalogLoadRevision(revision=>revision+1);
   },[]);
 
   useEffect(()=>{
@@ -510,7 +513,7 @@ function MeryoScreens({identity}) {
     return()=>{active=false;reader.stop();};
   },[showBookingModal,selectedShop,selectedService,selectedDate,selectedBarber,selectedPromotion]);
 
-useEffect(() => { cargarBarberiasActivas(); }, [cargarBarberiasActivas]);
+useEffect(() => { cargarBarberiasActivas(); }, [cargarBarberiasActivas,catalogLoadRevision]);
   useEffect(() => {
     const timer = setInterval(() => {
       setHeroIndex((prev) => (prev + 1) % BARBER_HERO_IMAGES.length);
