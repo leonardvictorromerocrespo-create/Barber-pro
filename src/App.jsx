@@ -41,6 +41,16 @@ const MyPickupOrders=lazy(()=>import('./components/store/MyPickupOrders'));
 const pointerClass = "cursor-pointer";
 const ALLOWED_VIEWS=['landing','client','client-auth','client-register','client-login','barber','barber-login','admin','account','account-security','shop-manage','shop-register','my-bookings','my-orders','team-invite','notifications'];
 
+export function MobileBottomNav({active,onNavigate}) {
+  const items=[
+    {id:'landing',label:'Inicio',path:'M3 10.5 12 3l9 7.5v9a1.5 1.5 0 0 1-1.5 1.5h-15A1.5 1.5 0 0 1 3 19.5z M9 21v-8h6v8'},
+    {id:'explore',label:'Explorar',path:'m20.5 20.5-4.4-4.4 M18 10.5a7.5 7.5 0 1 1-15 0 7.5 7.5 0 0 1 15 0z'},
+    {id:'my-bookings',label:'Mis citas',path:'M5 4.5h14A2 2 0 0 1 21 6.5v13a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-13a2 2 0 0 1 2-2z M7 2.5v4 M17 2.5v4 M3 9h18 M7.5 13h3 M7.5 17h3'},
+    {id:'account',label:'Cuenta',path:'M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8z M4 21a8 8 0 0 1 16 0'},
+  ];
+  return <nav className="meryo-mobile-bottom-nav md:hidden" aria-label="Navegación principal">{items.map(item=><button key={item.id} type="button" aria-current={active===item.id?'page':undefined} className={active===item.id?'is-active':''} onClick={()=>onNavigate(item.id)}><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d={item.path}/></svg><span>{item.label}</span></button>)}</nav>;
+}
+
 function upsertMeta(selector,attribute,value){
   let node=document.head.querySelector(selector);
   if(!node){node=document.createElement('meta');document.head.appendChild(node);}
@@ -301,13 +311,15 @@ export function BookingModal({
                 </div>
               </div>
               {agendaLoading&&<p>Cargando horarios del servidor…</p>}{agendaError&&<p role="alert" className="text-red-300">{agendaError}</p>}{!agendaLoading&&!agendaError&&!activeSlots.length&&<p>Sin horarios disponibles para este servicio y fecha.</p>}
-              <div className="mt-4 grid gap-3 sm:grid-cols-3 md:grid-cols-4">
+              <div className="meryo-time-grid mt-4 grid grid-cols-3 gap-2 min-[420px]:grid-cols-4">
                 {activeSlots.map((slot) => (
                   <button
                     key={`${selectedDate}-${slot.time}`}
                     disabled={slot.occupied}
                     onClick={() => setSelectedTime(slot.time)}
-                    className={`rounded-2xl border px-4 py-3 text-sm font-semibold transition ${
+                    aria-pressed={selectedTime===slot.time}
+                    aria-label={`${slot.label}${slot.occupied?' · no disponible':selectedTime===slot.time?' · seleccionado':' · disponible'}`}
+                    className={`meryo-time-slot min-h-11 min-w-0 whitespace-nowrap rounded-xl border px-2 py-3 text-sm font-semibold transition ${
                       slot.occupied
                         ? "cursor-not-allowed border-red-500/40 bg-red-500 text-white opacity-80"
                         : `${pointerClass} ${selectedTime === slot.time ? "border-amber-400 bg-amber-400 text-black" : "border-white/10 bg-black/20 text-white hover:border-amber-400/50"}`
@@ -406,10 +418,16 @@ function MeryoScreens({identity}) {
   const [catalogCategory,setCatalogCategory]=useState(()=>new URLSearchParams(typeof window==='undefined'?'':window.location.search).get('catalogo')==='belleza'?'belleza':'barberia');
   const [loginDestination,setLoginDestination]=useState('client');
   const [view, setView] = useState(()=>{const raw=typeof window==='undefined'?'':window.location.hash.slice(1);const hash=raw.startsWith('team-invite/')?'team-invite':raw;const search=typeof window==='undefined'?'':window.location.search,access=new URLSearchParams(search).get('access');const fallback=isPublicShopPath(typeof window==='undefined'?'':window.location.pathname)?'client':ALLOWED_VIEWS.includes(hash)?hash:'landing';return bookingDestination(search,access==='barber'?'barber-login':access==='shop-register'?'shop-register':fallback);});
+  const [mobileExploreRequested,setMobileExploreRequested]=useState(false);
   const [locationPath,setLocationPath]=useState(()=>typeof window==='undefined'?'':window.location.pathname);
   const initialView = useRef(view);
   useEffect(()=>{if(initialView.current!=='landing')markLandingIntroSeen();},[]);
   useEffect(()=>{const url=new URL(window.location.href);if(view==='landing'&&isPublicShopPath(url.pathname))url.pathname='/';url.hash=view;window.history.replaceState(window.history.state,'',url.href);setLocationPath(url.pathname);},[view]);
+  useEffect(()=>{
+    if(view!=='client'||!mobileExploreRequested)return;
+    const frame=requestAnimationFrame(()=>{document.getElementById('catalogo')?.scrollIntoView({behavior:'smooth',block:'start'});setMobileExploreRequested(false);});
+    return()=>cancelAnimationFrame(frame);
+  },[view,mobileExploreRequested]);
   const adminAccess = identity.profile?.rol === 'admin' && identity.profile?.activo === true;
   const [adminAal2,setAdminAal2]=useState(false);
   const [adminSecurityOpen,setAdminSecurityOpen]=useState(false);
@@ -681,15 +699,19 @@ useEffect(() => { cargarBarberiasActivas(); }, [cargarBarberiasActivas]);
 
 
 const finalPrice = basePrice;
+  const navigateMobile=destination=>{
+    if(destination==='explore'){setMobileExploreRequested(true);setView('client');return;}
+    setMobileExploreRequested(false);setView(destination);
+  };
   if(view === 'notifications')return <PushCenter api={api} profile={identity.profile} loading={identity.loading} onLogin={()=>openLogin('notifications')} onBack={()=>setView('client')}/>;
   if(view === 'team-invite')return <TeamInvite api={api} profile={identity.profile} onGoogle={handleGoogle} onEmail={()=>openLogin('team-invite')} onAccepted={async()=>{await identity.refresh();setView('barber');}} onBack={()=>setView('client')}/>;
-  if(view==='account')return <main className="min-h-screen bg-neutral-950 p-6 text-white"><div className="mx-auto max-w-3xl space-y-5"><h1 className="text-3xl font-black">Mi cuenta <span className="text-amber-400">MERYO</span></h1><button onClick={()=>setView('client')} className="rounded-xl border border-white/20 px-4 py-2">Volver</button>{identity.loading?<p>Comprobando sesión…</p>:identity.profile?<section className="space-y-4 rounded-2xl border border-white/10 bg-neutral-900 p-6"><p>{identity.profile.nombre||'Tu cuenta'}</p><button onClick={()=>setView('notifications')} className="block rounded-xl border border-white/20 px-4 py-3">Notificaciones</button><button onClick={()=>setView('my-orders')} className="block rounded-xl border border-white/20 px-4 py-3">Mis pedidos de tienda</button><button onClick={()=>setView('account-security')} className="block rounded-xl border border-white/20 px-4 py-3">Seguridad y recuperación</button></section>:<button onClick={()=>openLogin('account')} className="rounded-xl bg-amber-400 px-4 py-3 font-bold text-black">Iniciar sesión</button>}</div></main>;
+  if(view==='account')return <main data-meryo-theme={catalogCategory==='belleza'?'beauty':'barberia'} className="min-h-screen bg-neutral-950 p-4 pb-24 text-white sm:p-6 sm:pb-24 md:pb-6"><div className="mx-auto max-w-3xl space-y-5"><h1 className="text-3xl font-black">Mi cuenta <span className="text-amber-400">MERYO</span></h1><button onClick={()=>setView('client')} className="rounded-xl border border-white/20 px-4 py-2">Volver</button>{identity.loading?<p role="status">Restaurando tu sesión…</p>:identity.error?<div role="alert" className="space-y-3"><p>No pudimos comprobar tu sesión.</p><button type="button" onClick={()=>void identity.refresh()} className="rounded-xl border border-white/20 px-4 py-3">Reintentar</button></div>:identity.profile?<section className="space-y-4 rounded-2xl border border-white/10 bg-neutral-900 p-6"><p>{identity.profile.nombre||'Tu cuenta'}</p>{identity.profile.rol==='barbero'&&<button onClick={()=>setView('shop-manage')} className="block w-full rounded-xl border border-white/20 px-4 py-3 text-left">Mi negocio</button>}{identity.profile.rol==='cliente'&&<button onClick={()=>setView('shop-register')} className="block w-full rounded-xl border border-white/20 px-4 py-3 text-left">Registrar un negocio</button>}{adminAccess&&<button onClick={()=>setView('admin')} className="block w-full rounded-xl border border-white/20 px-4 py-3 text-left">Administración</button>}<button onClick={()=>setView('notifications')} className="block w-full rounded-xl border border-white/20 px-4 py-3 text-left">Notificaciones</button><button onClick={()=>setView('my-orders')} className="block w-full rounded-xl border border-white/20 px-4 py-3 text-left">Mis pedidos de tienda</button><button onClick={()=>setView('account-security')} className="block w-full rounded-xl border border-white/10 px-4 py-3 text-left">Seguridad y recuperación</button><button onClick={handleLogout} className="block w-full rounded-xl border border-white/10 px-4 py-3 text-left">Cerrar sesión</button></section>:<button onClick={()=>openLogin('account')} className="rounded-xl bg-amber-400 px-4 py-3 font-bold text-black">Iniciar sesión</button>}</div><MobileBottomNav active="account" onNavigate={navigateMobile}/></main>;
   if(view === 'account-security')return identity.profile?<AdminMfa client={supabase} onVerified={async()=>{await identity.refresh();setAccessMessage('Authenticator verificado por Supabase. Tu rol no cambia. Registra un segundo factor en otro dispositivo para recuperación.');setView('client');}} onBack={()=>setView('client')}/>:<div className="min-h-screen bg-neutral-950 p-8 text-white"><button onClick={()=>setView('client-login')}>Iniciar sesión para proteger mi cuenta</button></div>;
   const registration=<ShopRegistration profile={identity.profile} loading={identity.loading} form={affiliateForm} setForm={setAffiliateForm} busy={affiliateBusy} error={affiliateError||accessMessage||identity.error} onSubmit={handleAffiliateSubmit} onGoogle={()=>handleGoogle('shop-register')} onLogin={()=>openLogin('shop-register')} onManage={()=>setView('shop-manage')}/>;
   if(view==='shop-register')return <main className="min-h-screen bg-neutral-950 p-6 text-white"><div className="mx-auto max-w-2xl space-y-5 rounded-3xl border border-white/10 bg-neutral-900 p-6"><h1 className="text-3xl font-black">Registro de negocios <span className="text-amber-400">MERYO</span></h1><button onClick={()=>setView('client')} className="rounded-xl border border-white/20 px-4 py-2">Volver al catálogo</button>{registration}</div></main>;
   if(view === 'shop-manage') return <ShopManagement key={identity.profile?.id||'anonymous'} api={api} profile={identity.profile} onLogin={()=>openLogin(pickupOrderIdFromSearch(window.location.search)?'shop-order':'barber')} onBack={async()=>{await cargarBarberiasActivas();setView('client');}} onRegister={()=>setView('shop-register')}/>;
   if(view==='my-orders') return <div data-meryo-theme={catalogCategory==='belleza'?'beauty':'barberia'}><Suspense fallback={<p className="min-h-screen bg-neutral-950 p-8 text-white">Cargando pedidos…</p>}><MyPickupOrders api={api} profile={identity.profile} identityLoading={identity.loading} onLogin={destination=>openLogin(destination)} onBack={()=>{const url=new URL(window.location.href);url.searchParams.delete('pedido');window.history.replaceState(null,'',url.pathname+url.search+url.hash);setView('client');}}/></Suspense></div>;
-  if(view === 'my-bookings') return <div data-meryo-theme={catalogCategory==='belleza'?'beauty':'barberia'} className="min-h-screen bg-neutral-950 p-6 text-white"><div className="mx-auto max-w-5xl space-y-5"><h1 className="text-3xl font-black">Mis citas <span className="text-amber-400">MERYO</span></h1><button onClick={()=>{const url=new URL(window.location.href);url.searchParams.delete('cita');window.history.replaceState(null,'',url.pathname+url.search+url.hash);setView('client');}} className="rounded-xl border border-white/20 px-4 py-2">Volver</button><Reservations key={`${identity.profile?.id}-${identity.profile?.rol}`} api={api} profile={identity.profile} identityLoading={identity.loading} identityError={identity.error} onRetrySession={()=>void identity.refresh()} onLogin={()=>openLogin('my-bookings')} onSearch={()=>{const url=new URL(window.location.href);url.searchParams.delete('cita');window.history.replaceState(null,'',url.pathname+url.search+url.hash);setQuery('');setDistrict('');setShowBookingModal(false);setView('client');}}/></div></div>;
+  if(view === 'my-bookings') return <div data-meryo-theme={catalogCategory==='belleza'?'beauty':'barberia'} className="min-h-screen bg-neutral-950 p-4 pb-24 text-white sm:p-6 sm:pb-24 md:pb-6"><div className="mx-auto max-w-5xl space-y-5"><header className="meryo-bookings-page-header"><MeryoLogo variant={catalogCategory==='belleza'?'light':'dark'} className="h-7 w-auto shrink-0"/><button onClick={()=>{const url=new URL(window.location.href);url.searchParams.delete('cita');window.history.replaceState(null,'',url.pathname+url.search+url.hash);setView('client');}} className="hidden rounded-xl border border-white/20 px-4 py-2 sm:inline-flex">Volver al catálogo</button></header><Reservations key={`${identity.profile?.id}-${identity.profile?.rol}`} api={api} profile={identity.profile} identityLoading={identity.loading} identityError={identity.error} onRetrySession={()=>void identity.refresh()} onLogin={()=>openLogin('my-bookings')} onSearch={()=>{const url=new URL(window.location.href);url.searchParams.delete('cita');window.history.replaceState(null,'',url.pathname+url.search+url.hash);setQuery('');setDistrict('');setShowBookingModal(false);setView('client');}}/></div><MobileBottomNav active="my-bookings" onNavigate={navigateMobile}/></div>;
   if (view === "landing") {
     return <LandingPage setView={setView} onExplore={openCatalogCategory} profile={identity.profile} identityLoading={identity.loading} adminAccess={adminAccess} onSignIn={()=>openLogin('client')} onAccount={()=>setView('account')} onProfessionalAccess={()=>{if(adminAccess)setView('admin');else if(identity.profile?.rol==='barbero')setView('shop-manage');else if(identity.profile?.rol==='cliente')setView('shop-register');else setView('barber-login');}}/>;
   }
@@ -853,11 +875,11 @@ if (view === "client-login") {
 }
 if (view === "admin" && adminAccess) return <AdminShops api={api} profile={identity.profile} onSecurity={()=>setAdminSecurityOpen(true)} onLogout={handleLogout} onBack={()=>setView('client')} onChanged={cargarBarberiasActivas}/>;
   return (
-    <div data-meryo-theme={catalogCategory==='belleza'?'beauty':'barberia'} className="min-h-screen bg-neutral-950 text-white">
+    <div data-meryo-theme={catalogCategory==='belleza'?'beauty':'barberia'} className="min-h-screen bg-neutral-950 pb-24 text-white md:pb-0">
       <header className="meryo-site-header sticky top-0 z-30 border-b border-white/10 bg-neutral-950/95 backdrop-blur">
         <div className="mx-auto flex max-w-7xl flex-col items-stretch gap-2 px-3 py-2 md:flex-row md:items-center md:justify-between md:px-6 md:py-4">
-          <MeryoLogo className="h-7 w-auto shrink-0 md:h-9" />
-          <div className="grid w-full min-w-0 grid-cols-3 gap-1.5 md:flex md:w-auto md:flex-wrap md:gap-3">
+          <MeryoLogo variant={catalogCategory==='belleza'?'light':'dark'} className="h-7 w-auto shrink-0 md:h-9" />
+          <div className="hidden w-full min-w-0 grid-cols-3 gap-1.5 md:flex md:w-auto md:flex-wrap md:gap-3">
             <button onClick={() => setView("landing")} className={`min-h-11 w-full rounded-xl border border-white/20 px-2 py-2 text-xs leading-tight md:min-h-0 md:w-auto md:px-4 md:py-2 md:text-sm ${pointerClass}`}>Inicio</button>
             <button disabled={identity.loading} onClick={() => setView(adminAccess?'admin':"barber")} className={`min-h-11 w-full rounded-xl border border-white/20 px-2 py-2 text-xs leading-tight disabled:opacity-50 md:min-h-0 md:w-auto md:px-4 md:py-2 md:text-sm ${pointerClass}`}>{identity.loading?'Restaurando sesión…':adminAccess?'Panel Administrador':'Panel Profesional'}</button>
             <button onClick={()=>setView('my-bookings')} className="min-h-11 w-full rounded-xl border border-white/20 px-2 py-2 text-xs leading-tight md:min-h-0 md:w-auto md:px-4 md:py-2 md:text-sm">Mis citas</button>
@@ -876,7 +898,7 @@ if (view === "admin" && adminAccess) return <AdminShops api={api} profile={ident
         {identity.error&&<p role="alert" className="px-6 text-red-300">{identity.error}</p>}
         {accessMessage&&<p role="status" className="px-6 text-amber-300">{accessMessage}</p>}
         {profileUnavailable&&<div role="alert" className="mx-auto my-5 max-w-4xl rounded-2xl border border-white/15 bg-neutral-900 p-5"><h1 className="text-xl font-bold">Este negocio ya no está disponible</h1><p className="mt-2 text-neutral-300">No mostramos perfiles que ya no están publicados.</p><button onClick={closeProfileModal} className="mt-4 rounded-xl border border-amber-400/50 px-4 py-2 text-amber-200">Volver al catálogo</button></div>}
-        <section className="mx-auto max-w-7xl px-3 pt-4 pb-10 md:px-6 md:py-16">
+        <section id="catalogo" className="meryo-catalog-section mx-auto max-w-7xl px-3 pt-4 pb-10 md:px-6 md:py-16">
           <ClientHero heroIndex={heroIndex} setHeroIndex={setHeroIndex} setView={setView} catalogCategory={catalogCategory} />
 
           <div className="mb-10 flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
@@ -902,12 +924,6 @@ if (view === "admin" && adminAccess) return <AdminShops api={api} profile={ident
           <CatalogStatus loading={catalogLoading||!catalogMatchesCategory} error={catalogMatchesCategory?catalogError:''} empty={catalogRows.length===0} businessLabel={catalogCategory==='belleza'?'peluquerías y salones':'barberías'} onRetry={cargarBarberiasActivas}/>
 
           <CatalogShopGrid shops={ranking} category={catalogCategory} onView={openProfileModal} onReserve={openBookingModal}/>
-        </section>
-
-        <section className="mx-auto max-w-7xl px-6 pb-4">
-          <div className="rounded-3xl border border-white/10 bg-neutral-900 p-6">
-            <Reservations key={`${identity.profile?.id}-${identity.profile?.rol}`} api={api} profile={identity.profile} identityLoading={identity.loading} identityError={identity.error} onRetrySession={()=>void identity.refresh()} onLogin={()=>setView('client-login')} onSearch={()=>{setQuery('');setDistrict('');setShowBookingModal(false);setView('client');}}/>
-          </div>
         </section>
 
         <section className="border-y border-white/10 bg-neutral-900 py-16">
@@ -972,6 +988,8 @@ if (view === "admin" && adminAccess) return <AdminShops api={api} profile={ident
         reservationsEnabled={reservationsEnabled}
         agendaLoading={agendaLoading} agendaError={agendaError} accessMessage={accessMessage} onLogin={requireBookingLogin} identityLoading={identity.loading} identityError={identity.error} onRetrySession={()=>void identity.refresh()}
       />
+
+      <MobileBottomNav active="explore" onNavigate={navigateMobile}/>
 
       <footer className="border-t border-white/10 py-6 text-center text-neutral-500">© 2026 MERYO <a href="/privacidad.html" className="ml-4 hover:text-amber-400">Privacidad</a><a href="/condiciones.html" className="ml-4 hover:text-amber-400">Condiciones</a></footer>
     </div>
