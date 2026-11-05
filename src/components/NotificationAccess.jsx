@@ -15,9 +15,9 @@ export function NotificationBell(){return <a href="/#notifications" aria-label="
 
 export function NotificationOffer({busy=false,top=72,onAccept,onReject}){
  return <aside className="meryo-notification-offer" style={{top}} aria-labelledby="meryo-notification-offer-title">
-  <h2 id="meryo-notification-offer-title">Activar notificaciones</h2>
+  <h2 id="meryo-notification-offer-title">Activa avisos sobre tu cita</h2>
   <div className="meryo-notification-offer__actions">
-   <button type="button" disabled={busy} onClick={onAccept}>Aceptar</button>
+   <button type="button" disabled={busy} onClick={onAccept}>Permitir</button>
    <button type="button" disabled={busy} onClick={onReject}>Rechazar</button>
   </div>
  </aside>;

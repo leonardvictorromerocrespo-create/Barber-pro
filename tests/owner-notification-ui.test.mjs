@@ -14,11 +14,14 @@ test('notification invitation and owner request notice render with accessible, c
  });
  const {offer,ownerNotice}=await import(pathToFileURL(output).href);
  const invitation=offer(),notice=ownerNotice();
- assert.match(invitation,/Activar notificaciones/);
- assert.match(invitation,/>Aceptar</);assert.match(invitation,/>Rechazar</);
+ assert.match(invitation,/Activa avisos sobre tu cita/);
+ assert.match(invitation,/>Permitir</);assert.match(invitation,/>Rechazar</);
  assert.equal((invitation.match(/<button\b/g)||[]).length,2);
  assert.doesNotMatch(invitation,/<p\b|Activando|Recibe avisos/);
  assert.match(invitation,/meryo-notification-offer/);
+ const offerCss=await fs.readFile(path.resolve('src/components/NotificationAccess.css'),'utf8');
+ assert.match(offerCss,/background: #303034/);
+ assert.match(offerCss,/min-height: 2\.75rem/);
  assert.match(notice,/Un cliente solicita un corte/);
  assert.ok(notice.includes('href="/?cita=00000000-0000-4000-8000-000000000042#my-bookings"'));
 });
@@ -38,4 +41,24 @@ test('push invitation respects reduced motion and the dismissed choice remains a
  assert.doesNotMatch(pushCenter,/Desactivar en este dispositivo/);
  assert.match(pushCenter,/pushPermissionHelp/);
  assert.doesNotMatch(app,/cargarNotificaciones|setNotificaciones|setUltimaNoti/);
+});
+
+test('saved request stays visible in Mis citas and rejecting the push offer only defers that offer',async()=>{
+ const app=await fs.readFile(path.resolve('src/App.jsx'),'utf8');
+ const component=await fs.readFile(path.resolve('src/components/NotificationAccess.jsx'),'utf8');
+ const submit=app.slice(app.indexOf('const submitReservation'),app.indexOf('const handleLogout'));
+ assert.match(submit,/await api\.request\(/);
+ assert.match(submit,/setRequestSaved\(true\)/);
+ assert.match(submit,/setView\("my-bookings"\)/);
+ assert.match(app,/requestSaved&&identity\.profile\?\.rol==='cliente'&&<section[\s\S]*?Solicitud enviada/);
+ const reject=component.match(/function reject\(\)\{([^}]+)\}/)?.[1];
+ assert.ok(reject);
+ assert.match(reject,/deferPushOffer\(storage\(\),id\)/);
+ assert.doesNotMatch(reject,/api\.|responder|cancelar|reserva/i);
+
+ const {deferPushOffer,pushOfferDeferred}=await import('../src/lib/push-offer.js');
+ const values=new Map(),store={getItem:key=>values.get(key)??null,setItem:(key,value)=>values.set(key,String(value))};
+ deferPushOffer(store,'cliente-a');
+ assert.equal(pushOfferDeferred(store,'cliente-a'),true);
+ assert.equal(pushOfferDeferred(store,'cliente-b'),false);
 });
