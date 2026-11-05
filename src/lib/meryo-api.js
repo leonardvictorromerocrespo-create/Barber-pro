@@ -1,5 +1,5 @@
 import { savedOperation } from './operations.js';
-import {signContent,uploadContent,uploadProductPhoto} from './shop-content.js';
+import {PROFILE_PHOTO_TITLE,signContent,uploadContent,uploadProductPhoto} from './shop-content.js';
 
 export async function readResult(operation) {
   const {data,error}=await operation;
@@ -43,7 +43,7 @@ export function createMeryoApi(client) {
       if(signal)request.abortSignal(signal);
       return Promise.all((await readResult(request)).map(async row=>{
         const shop=mapShop(row);
-        try{shop.assets=await signContent(client,row.assets??[]);const cover=shop.assets.find(a=>a.kind==='portada'&&a.url);if(cover)shop.image=cover.url;}
+        try{shop.assets=await signContent(client,row.assets??[]);const cover=shop.assets.find(a=>a.kind==='portada'&&a.url);const profile=shop.assets.filter(a=>a.kind==='foto'&&a.title===PROFILE_PHOTO_TITLE&&a.url).at(-1);shop.coverImage=cover?.url||shop.image;shop.profileImage=profile?.url||null;shop.assets=shop.assets.filter(a=>a.title!==PROFILE_PHOTO_TITLE);if(cover)shop.image=cover.url;}
         catch(error){shop.assets=[];shop.contentError=error.message;}
         return shop;
       }));
@@ -97,7 +97,7 @@ export function createMeryoApi(client) {
     shopHistory:async(id)=>readResult(client.rpc('meryo_historial_barberia',{p_id:id})),
     shopAssets:async(id)=>{const rows=await readResult(client.from('meryo_shop_assets').select('*').eq('barberia_id',id).eq('active',true).order('created_at'));return signContent(client,rows);},
     contentConfig:()=>readResult(client.rpc('meryo_contenido_config')),
-    uploadAsset:async(shop,file,kind,title)=>{await requireRole(['barbero']);return uploadContent(client,shop,file,kind,title);},
+    uploadAsset:async(shop,file,kind,title)=>{const p=await requireRole(['barbero']);if(String(p.barberia_id)!==String(shop))throw new Error('Solo puedes subir contenido para tu propio negocio');return uploadContent(client,shop,file,kind,title);},
     shopProducts:async(shop)=>{
       const rows=await readResult(client.from('meryo_products').select('id,barberia_id,nombre,descripcion,precio,stock_disponible,foto_path,publicado,archivado_en,created_at,updated_at').eq('barberia_id',shop).eq('publicado',true).is('archivado_en',null).order('nombre'));
       return signContent(client,rows.filter(row=>row.foto_path).map(row=>({...row,object_path:row.foto_path}))).then(signed=>{

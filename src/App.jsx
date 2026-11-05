@@ -8,6 +8,7 @@ import { endSession, signInWithProfile } from "./lib/operations";
 import { supabase, googleAuthEnabled, emailSignupEnabled } from "./lib/supabase";
 import { lazy, Suspense, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { createMeryoApi } from './lib/meryo-api';
+import { PROFILE_PHOTO_TITLE } from './lib/shop-content';
 import MeryoLogo from './components/MeryoLogo';
 import { useIdentity } from './lib/useIdentity';
 import Reservations from './components/Reservations';
@@ -127,7 +128,7 @@ function ProfileSectionTitle({children}) {
 export function ProfileModal({ selectedShop, onClose, onReserve,onStore, catalogCategory='barberia' }) {
   const [shareFeedback,setShareFeedback]=useState('');
   if (!selectedShop) return null;
-  const photos = selectedShop.assets?.filter(a => a.kind === 'foto' && a.url) ?? [];
+  const photos = selectedShop.assets?.filter(a => a.kind === 'foto' && a.url && a.title !== PROFILE_PHOTO_TITLE) ?? [];
   const videos = selectedShop.assets?.filter(a => a.kind === 'video' && a.url) ?? [];
   const services = selectedShop.services ?? [];
   const team = selectedShop.equipo ?? [];
@@ -135,6 +136,8 @@ export function ProfileModal({ selectedShop, onClose, onReserve,onStore, catalog
   const hasVideo = Boolean(videos.length || selectedShop.contentError);
   const hasBookableService=services.some(service=>service.bookable);
   const profileLabel=selectedShop.businessTypes?.includes('belleza')?'salón':'barbería';
+  const cover=selectedShop.coverImage||selectedShop.image||'';
+  const initials=selectedShop.name.trim().split(/\s+/).slice(0,2).map(part=>Array.from(part)[0]||'').join('').toLocaleUpperCase('es');
   const profileUrl=publicShopUrl(selectedShop,catalogCategory,typeof window==='undefined'?undefined:window.location.origin);
   const shareProfile=async()=>{
     setShareFeedback('');
@@ -146,66 +149,29 @@ export function ProfileModal({ selectedShop, onClose, onReserve,onStore, catalog
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4">
-      <div data-meryo-theme={catalogCategory==='belleza'?'beauty':'barberia'} className="max-h-[92vh] w-full min-w-0 max-w-6xl overflow-auto rounded-[2rem] border border-white/10 bg-neutral-950 p-4 text-white shadow-2xl sm:p-6" style={{backgroundImage:`linear-gradient(${catalogCategory==='belleza'?'rgba(250,247,244,.90),rgba(250,247,244,.94)':'rgba(10,10,10,.94),rgba(10,10,10,.96)'}),url("${(catalogCategory==='belleza'?BEAUTY_HERO_IMAGES:BARBER_HERO_IMAGES)[0]}")`,backgroundSize:'cover',backgroundPosition:'center'}}>
-        <div className="mb-6 flex flex-col items-start justify-between gap-4 sm:flex-row">
-          <div className="min-w-0">
-            <h3 className="text-3xl font-black">{selectedShop.name}</h3>
-            {selectedShop.about && <p className="mt-2 max-w-3xl text-sm leading-relaxed text-neutral-300 sm:text-base">{selectedShop.about}</p>}
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-2 sm:p-4">
+      <div data-meryo-theme={catalogCategory==='belleza'?'beauty':'barberia'} className="max-h-[92vh] min-w-0 overflow-auto rounded-2xl border border-white/10 bg-neutral-950 p-2 text-white shadow-2xl sm:rounded-[2rem] sm:p-5" style={{width:'calc(100vw - 1rem)',maxWidth:'72rem',boxSizing:'border-box',overflowX:'hidden',overflowY:'auto',backgroundImage:`linear-gradient(${catalogCategory==='belleza'?'rgba(250,247,244,.90),rgba(250,247,244,.94)':'rgba(10,10,10,.92),rgba(10,10,10,.95)'}),url("${(catalogCategory==='belleza'?BEAUTY_HERO_IMAGES:BARBER_HERO_IMAGES)[0]}")`,backgroundSize:'cover',backgroundPosition:'center'}}>
+        <header className="relative min-w-0">
+          {cover?<img src={cover} alt={`Portada de ${selectedShop.name}`} className="h-28 w-full rounded-xl object-cover object-center sm:h-56 sm:rounded-2xl"/>:<div className="flex h-28 items-center justify-center rounded-xl border border-white/10 bg-black/30 sm:h-56 sm:rounded-2xl"><MeryoLogo className="h-8 w-auto object-contain sm:h-12"/></div>}
+          <div className="absolute inset-x-0 top-0 flex items-center justify-between gap-2 p-2 sm:p-3"><MeryoLogo className="h-5 w-auto object-contain drop-shadow sm:h-7"/><button onClick={onClose} className={`min-h-11 rounded-lg border border-white/30 bg-black/70 px-3 py-1.5 text-xs font-semibold text-white ${pointerClass}`}>Cerrar</button></div>
+          <div className="flex min-w-0 items-center gap-2 px-1 pb-2 pt-2 sm:gap-4 sm:px-3 sm:pb-4 sm:pt-3">
+            <div className="-mt-8 flex h-14 w-14 shrink-0 items-center justify-center overflow-hidden rounded-full border-2 border-amber-300 bg-neutral-900 text-lg font-bold text-amber-200 sm:-mt-12 sm:h-24 sm:w-24 sm:text-3xl">{selectedShop.profileImage?<img src={selectedShop.profileImage} alt={`Foto de ${selectedShop.name}`} className="h-full w-full object-cover"/>:initials}</div>
+            <div className="min-w-0 flex-1"><h3 className="break-words text-lg font-black leading-tight sm:text-3xl">{selectedShop.name}</h3>{selectedShop.about&&<p className="mt-1 line-clamp-3 text-xs leading-snug text-neutral-300 sm:mt-2 sm:text-base sm:leading-relaxed">{selectedShop.about}</p>}</div>
           </div>
-          <div className="flex shrink-0 items-center gap-2 self-end sm:self-auto">
-            <button onClick={shareProfile} className={`rounded-xl border border-amber-400/50 px-3 py-2 text-sm text-amber-200 ${pointerClass}`}>Compartir perfil</button>
-            <button onClick={onClose} className={`rounded-xl border border-white/10 px-4 py-2 text-sm ${pointerClass}`}>Cerrar</button>
+        </header>
+        <div className="grid min-w-0 grid-cols-2 items-start gap-2 sm:gap-4" style={{width:'100%',maxWidth:'100%',gridTemplateColumns:'minmax(0,1fr) minmax(0,1fr)'}}>
+          <div className="min-w-0 space-y-2 sm:space-y-4">
+            <section className="min-w-0 rounded-xl border border-white/10 bg-black/40 p-2 sm:rounded-2xl sm:p-4"><div className="grid gap-2 sm:grid-cols-2"><button disabled={!hasBookableService} title={hasBookableService?'Reservar cita':'Aún no hay servicios con precio final y duración definidos'} onClick={onReserve} className={`min-h-11 rounded-xl bg-amber-400 px-2 py-2 text-xs font-bold leading-tight text-black disabled:cursor-not-allowed disabled:opacity-50 sm:text-base ${pointerClass}`}>Reservar cita</button><button onClick={()=>onStore(selectedShop)} className={`min-h-11 rounded-xl border border-amber-400/60 px-2 py-2 text-xs font-bold text-amber-200 sm:text-base ${pointerClass}`}>Tienda</button></div></section>
+            <section className="min-w-0 rounded-xl border border-white/10 bg-black/40 p-2 sm:rounded-2xl sm:p-4"><button onClick={shareProfile} className={`min-h-11 w-full rounded-lg border border-amber-400/50 px-2 py-2 text-xs font-semibold text-amber-200 sm:text-sm ${pointerClass}`}>Compartir perfil</button>{shareFeedback&&<p aria-live="polite" className="mt-2 break-words text-xs text-neutral-300">{shareFeedback}{shareFeedback.startsWith('Copia')&&<> <a className="break-all text-amber-300 underline" href={profileUrl}>{profileUrl}</a></>}</p>}</section>
+            {team.length>0&&<section className="min-w-0 rounded-xl border border-white/10 bg-black/40 p-2 sm:rounded-2xl sm:p-4"><ProfileSectionTitle>Equipo</ProfileSectionTitle><div className="mt-2 space-y-2">{team.map((p,i)=><p key={i} className="break-words text-xs text-neutral-300 sm:text-sm">{p.nombre}{p.propietario?' · propietario':''}</p>)}</div></section>}
+            {services.length>0&&<section className="min-w-0 rounded-xl border border-white/10 bg-black/40 p-2 sm:rounded-2xl sm:p-4"><ProfileSectionTitle>Servicios</ProfileSectionTitle><div className="mt-2 space-y-2">{services.map(service=><div key={service.id} className="min-w-0 rounded-lg border border-white/10 bg-black/30 p-2 text-xs sm:rounded-xl sm:p-3 sm:text-sm"><p className="break-words font-semibold text-white">{service.name}</p><p className="mt-1 text-[10px] text-neutral-400 sm:text-xs">{service.duration||'Duración por definir'}</p>{service.bookable?<p className="mt-1 text-amber-400">S/ {service.price}</p>:<p className="mt-1 text-[10px] leading-snug text-amber-300 sm:text-xs">Requiere evaluación · precio final y duración por confirmar</p>}</div>)}</div></section>}
           </div>
-        </div>
-        {shareFeedback&&<p aria-live="polite" className="-mt-3 mb-4 text-sm text-neutral-300">{shareFeedback}{shareFeedback.startsWith('Copia')&&<> <a className="break-all text-amber-300 underline" href={profileUrl}>{profileUrl}</a></>}</p>}
-
-        <div className="grid min-w-0 gap-4 md:grid-cols-2 md:items-start">
-        {selectedShop.image && <section className="min-w-0 rounded-2xl border border-white/10 bg-black/35 p-3 sm:p-4">
-          <ProfileSectionTitle>Presentación</ProfileSectionTitle>
-          <img src={selectedShop.image} alt={`Presentación de ${selectedShop.name}`} className="mt-3 max-h-64 w-full rounded-xl object-cover sm:max-h-80"/>
-        </section>}
-
-        <PublicShopLocation key={selectedShop.id} shop={selectedShop} mapHeight="h-40 sm:h-44" className="mt-0"/>
-
-        {hasVideo && <section className="min-w-0 rounded-2xl border border-white/10 bg-black/35 p-3 sm:p-4">
-          <ProfileSectionTitle>Video</ProfileSectionTitle>
-          {videos.map(a=><video key={a.id} src={a.url} controls preload="metadata" aria-label="Video de presentación" className="mt-3 max-h-80 w-full rounded-2xl"/>)}
-          {selectedShop.contentError && <p role="alert" className="mt-3 text-sm text-amber-300">{selectedShop.contentError}</p>}
-        </section>}
-
-        {photos.length > 0 && <section className="min-w-0 rounded-2xl border border-white/10 bg-black/35 p-3 sm:p-4">
-          <ProfileSectionTitle>Portafolio</ProfileSectionTitle>
-          <div className="mt-3 grid grid-cols-2 gap-3 sm:grid-cols-3">{photos.map(a=><figure key={a.id}><img src={a.url} alt={a.title||`Trabajo publicado por el ${profileLabel}`} className="h-36 w-full rounded-xl object-cover sm:h-48"/>{a.title&&<figcaption className="mt-1 text-xs text-neutral-300">{a.title}</figcaption>}</figure>)}</div>
-        </section>}
-        </div>
-
-        <div className="mt-4 grid gap-4 md:grid-cols-3 md:items-start">
-        {team.length > 0 && <section className="min-w-0 rounded-2xl border border-white/10 bg-black/35 p-3 sm:p-4"><ProfileSectionTitle>Equipo</ProfileSectionTitle>{team.map((p,i)=><p key={i} className="mt-2 text-sm text-neutral-300">{p.nombre}{p.propietario?' · propietario':''}</p>)}</section>}
-
-        {services.length > 0 && <section className="min-w-0 rounded-2xl border border-white/10 bg-black/35 p-3 sm:p-4">
-          <ProfileSectionTitle>Servicios</ProfileSectionTitle>
-          <div className="mt-3 grid gap-2 sm:grid-cols-2">
-            {services.map((service) => (
-              <div key={service.id} className="rounded-xl border border-white/10 bg-black/30 p-3 text-sm">
-                <p className="font-semibold text-white">{service.name}</p>
-                <p className="mt-1 text-neutral-400">{service.duration||'Duración por definir'}</p>
-                {service.bookable?<p className="mt-2 text-amber-400">S/ {service.price}</p>:<p className="mt-2 text-amber-300">Requiere evaluación · precio final y duración por confirmar</p>}
-              </div>
-            ))}
+          <div className="min-w-0 space-y-2 sm:space-y-4">
+            <PublicShopLocation key={selectedShop.id} shop={selectedShop} mapHeight="h-24 sm:h-44" className="mt-0"/>
+            {hasVideo&&<section className="min-w-0 rounded-xl border border-white/10 bg-black/40 p-2 sm:rounded-2xl sm:p-4"><ProfileSectionTitle>Video</ProfileSectionTitle>{videos.map(a=><video key={a.id} src={a.url} controls preload="metadata" aria-label="Video de presentación" className="mt-2 max-h-80 w-full rounded-lg"/>)}{selectedShop.contentError&&<p role="alert" className="mt-2 text-xs text-amber-300 sm:text-sm">{selectedShop.contentError}</p>}</section>}
+            {photos.length>0&&<section className="min-w-0 rounded-xl border border-white/10 bg-black/40 p-2 sm:rounded-2xl sm:p-4"><ProfileSectionTitle>Portafolio</ProfileSectionTitle><div className="mt-2 grid grid-cols-1 gap-2 sm:grid-cols-2">{photos.map(a=><figure key={a.id} className="min-w-0"><img src={a.url} alt={a.title||`Trabajo publicado por el ${profileLabel}`} className="h-24 w-full rounded-lg object-cover sm:h-48 sm:rounded-xl"/>{a.title&&<figcaption className="mt-1 break-words text-[10px] text-neutral-300 sm:text-xs">{a.title}</figcaption>}</figure>)}</div></section>}
+            {(selectedShop.reviews>0||reviews.length>0)&&<section className="min-w-0 rounded-xl border border-white/10 bg-black/40 p-2 sm:rounded-2xl sm:p-4"><ProfileSectionTitle>Reseñas</ProfileSectionTitle>{selectedShop.reviews>0&&<p className="mt-2 text-xs text-neutral-300 sm:text-sm">⭐ {selectedShop.rating} basado en {selectedShop.reviews} reseñas</p>}{reviews.map(r=><article key={r.id} className="mt-2 border-t border-white/10 pt-2"><p className="text-xs">{r.autor} · {r.calificacion}/5</p><p className="mt-1 break-words text-xs text-neutral-300">{r.comentario}</p></article>)}</section>}
           </div>
-        </section>}
-
-        {(selectedShop.reviews > 0 || reviews.length > 0) && <section className="min-w-0 rounded-2xl border border-white/10 bg-black/35 p-3 sm:p-4">
-          <ProfileSectionTitle>Reseñas</ProfileSectionTitle>
-          {selectedShop.reviews > 0 && <p className="mt-3 text-neutral-300">⭐ {selectedShop.rating} basado en {selectedShop.reviews} reseñas</p>}
-          {reviews.map(r=><article key={r.id} className="mt-4 border-t border-white/10 pt-3"><p className="text-sm">{r.autor} · {r.calificacion}/5</p><p className="mt-1 text-neutral-300">{r.comentario}</p></article>)}
-        </section>}
-        </div>
-
-        <div className="mt-8 flex justify-end">
-          <div className="flex flex-wrap gap-3"><button onClick={()=>onStore(selectedShop)} className={`rounded-2xl border border-amber-400/60 px-6 py-3 font-bold text-amber-200 ${pointerClass}`}>Tienda</button>
-          <button disabled={!hasBookableService} title={hasBookableService?'Reservar cita':'Aún no hay servicios con precio final y duración definidos'} onClick={onReserve} className={`rounded-2xl bg-amber-400 px-6 py-3 font-bold text-black disabled:cursor-not-allowed disabled:opacity-50 ${pointerClass}`}>Reservar cita</button></div>
         </div>
       </div>
     </div>

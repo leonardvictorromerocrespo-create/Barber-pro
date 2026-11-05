@@ -1,4 +1,6 @@
 export const CONTENT_BUCKET='meryo-shop-content';
+export const PROFILE_PHOTO_TITLE='[meryo-profile-photo]';
+export function contentKindForForm(kind){return kind==='perfil'?'foto':kind;}
 const formats={'image/jpeg':'jpg','image/png':'png','image/webp':'webp','video/mp4':'mp4','video/webm':'webm'};
 const productFormats={'image/jpeg':'jpg','image/png':'png','image/webp':'webp'};
 export function validateContent(file,kind){
