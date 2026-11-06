@@ -5,8 +5,14 @@ function promotion(draft){
  const regularPrice=campaignId&&Number.isFinite(Number(draft.regularPrice))&&Number(draft.regularPrice)>0?Number(draft.regularPrice):null;
  return {campaignId:regularPrice?campaignId:null,regularPrice};
 }
+function salonPromotion(draft){
+ const salonPromotionId=uuid(draft.salonPromotionId)?draft.salonPromotionId:null;
+ const salonRegularPrice=Number.isFinite(Number(draft.salonRegularPrice))&&Number(draft.salonRegularPrice)>0?Number(draft.salonRegularPrice):null;
+ const salonPromoPrice=Number.isFinite(Number(draft.salonPromoPrice))&&Number(draft.salonPromoPrice)>0?Number(draft.salonPromoPrice):null;
+ return {salonPromotionId:salonPromotionId&&salonRegularPrice&&salonPromoPrice?salonPromotionId:null,salonRegularPrice,salonPromoPrice:salonPromotionId?salonPromoPrice:null};
+}
 export function saveDraft(storage,draft,now=Date.now()){
- const clean={shop:String(draft.shop),service:String(draft.service),barber:uuid(draft.barber)?draft.barber:'',category:draft.category==='belleza'?'belleza':'barberia',date:String(draft.date),time:String(draft.time||''),name:String(draft.name||'').slice(0,80),phone:String(draft.phone||'').slice(0,20),note:String(draft.note||'').slice(0,300),...promotion(draft),savedAt:now};
+ const clean={shop:String(draft.shop),service:String(draft.service),barber:uuid(draft.barber)?draft.barber:'',category:draft.category==='belleza'?'belleza':'barberia',date:String(draft.date),time:String(draft.time||''),name:String(draft.name||'').slice(0,80),phone:String(draft.phone||'').slice(0,20),note:String(draft.note||'').slice(0,300),...promotion(draft),...salonPromotion(draft),savedAt:now};
  if(!/^\d+$/.test(clean.shop)||!/^\d+$/.test(clean.service)||!/^\d{4}-\d{2}-\d{2}$/.test(clean.date))throw Error('Reserva incompleta');
  storage.setItem(KEY,JSON.stringify(clean));return clean;
 }
@@ -14,7 +20,7 @@ export function readDraft(storage,now=Date.now()){
  try{
   const d=JSON.parse(storage.getItem(KEY));
   if(!d||!Number.isFinite(d.savedAt)||now-d.savedAt>TTL||d.savedAt>now||!/^\d+$/.test(d.shop)||!/^\d+$/.test(d.service)||!/^\d{4}-\d{2}-\d{2}$/.test(d.date))return clearDraft(storage);
-  return {shop:String(d.shop),service:String(d.service),barber:uuid(d.barber)?d.barber:'',category:d.category==='belleza'?'belleza':'barberia',date:d.date,time:String(d.time||''),name:String(d.name||'').slice(0,80),phone:String(d.phone||'').slice(0,20),note:String(d.note||'').slice(0,300),...promotion(d),savedAt:d.savedAt};
+  return {shop:String(d.shop),service:String(d.service),barber:uuid(d.barber)?d.barber:'',category:d.category==='belleza'?'belleza':'barberia',date:d.date,time:String(d.time||''),name:String(d.name||'').slice(0,80),phone:String(d.phone||'').slice(0,20),note:String(d.note||'').slice(0,300),...promotion(d),...salonPromotion(d),savedAt:d.savedAt};
  }catch{return clearDraft(storage);}
 }
 export function clearDraft(storage){storage.removeItem(KEY);return null;}

@@ -23,9 +23,13 @@ export function mapShop(item) {
   const services=(item.servicios??[]).filter(s=>s.activo).map(s=>{
     const price=s.precio==null?null:Number(s.precio),minutes=s.duracion_min==null?null:Number(s.duracion_min);
     const requiresEvaluation=s.requiere_evaluacion===true;
+    const salonOffer=s.promocion_belleza&&typeof s.promocion_belleza==='object'?s.promocion_belleza:null;
+    const beautyPromotion=salonOffer?.id&&Number.isFinite(Number(salonOffer.precio))&&Number(salonOffer.precio)>0&&price!==null&&Number(salonOffer.precio)<price?{
+      id:salonOffer.id,promoPrice:Number(salonOffer.precio),regularPrice:price,startsOn:salonOffer.desde,endsOn:salonOffer.hasta,
+    }:null;
     return {...s,name:s.nombre,price,duration:Number.isInteger(minutes)&&minutes>0?`${minutes} min`:null,
       durationMinutes:minutes,requiresEvaluation,category:s.categoria||'general',
-      bookable:!requiresEvaluation&&price!==null&&price>0&&Number.isInteger(minutes)&&minutes>0};
+      beautyPromotion,bookable:!requiresEvaluation&&price!==null&&price>0&&Number.isInteger(minutes)&&minutes>0};
   });
   return {...item,id:item.id,name:item.nombre,district:item.distrito,about:item.descripcion||'',
     businessTypes:Array.isArray(item.tipos_negocio)&&item.tipos_negocio.length?item.tipos_negocio:['barberia'],
@@ -53,13 +57,18 @@ export function createMeryoApi(client) {
     cutPromotionSlots:async(shop,service,date,barber,campaign)=>readResult(client.rpc('meryo_cortes_50_horarios',{p_shop:shop,p_service:service,p_date:date,p_member:barber,p_campaign:campaign})).then(rows=>rows.map(s=>({id:s.hora_inicio,time:s.hora_inicio,label:new Date(s.hora_inicio).toLocaleTimeString('es-PE',{timeZone:'America/Lima',hour:'2-digit',minute:'2-digit',hour12:false}),occupied:false}))),
     ownerCutCampaign:async()=>{await requireRole(['barbero']);return readResult(client.rpc('meryo_campania_cortes_propietario'));},
     saveCutCampaign:async({startsOn,endsOn,windows,active})=>{await requireRole(['barbero']);return savedOperation(()=>client.rpc('meryo_guardar_campania_cortes',{p_inicio:startsOn,p_fin:endsOn,p_horarios:windows,p_activa:active}));},
-    request:async({shop,service,barber,start,name,phone,note,campaignId=null,regularPrice=null})=>{
+    ownerBeautyPromotions:async()=>{await requireRole(['barbero']);return readResult(client.rpc('meryo_promociones_belleza_propietario'));},
+    saveBeautyPromotion:async({serviceId,promoPrice,startsOn,endsOn,active})=>{await requireRole(['barbero']);return savedOperation(()=>client.rpc('meryo_guardar_promocion_belleza',{p_service_id:Number(serviceId),p_promo_price:Number(promoPrice),p_starts_on:startsOn,p_ends_on:endsOn,p_active:active}));},
+    request:async({shop,service,barber,start,name,phone,note,campaignId=null,regularPrice=null,salonPromotionId=null,salonRegularPrice=null,salonPromoPrice=null})=>{
       await requireRole(['cliente']);
       const config=await readResult(client.rpc('meryo_reservas_config'));
       if(config.respuesta_segundos!==900||config.modelo_comercial!=='mensualidad')throw new Error('El servidor todavía no tiene el flujo de solicitudes de MERYO actualizado.');
-      if(campaignId&&!barber)throw new Error('La oferta requiere elegir un profesional con agenda habilitada.');
+      if((campaignId||salonPromotionId)&&!barber)throw new Error('La promoción requiere elegir un profesional con agenda habilitada.');
       const args={p_barberia_id:shop,p_servicio_id:service,p_inicio:start,p_nombre:name.trim(),p_telefono:phone.trim(),p_pedido:note||null,p_extra:0,...(barber?{p_barbero_id:barber}:{})};
       if(campaignId){args.p_campaign_id=campaignId;args.p_precio_habitual=regularPrice;}
+      if(salonPromotionId||salonRegularPrice!==null&&salonRegularPrice!==undefined){
+        Object.assign(args,{p_campaign_id:null,p_precio_habitual:null,p_beauty_campaign_id:salonPromotionId||null,p_beauty_regular_price:salonRegularPrice??null,p_beauty_expected_price:salonPromotionId?salonPromoPrice??null:null});
+      }
       return savedOperation(()=>client.rpc(barber?'meryo_solicitar_cita':'crear_reserva',args));
     },
     bookings:async()=>{
