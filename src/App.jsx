@@ -906,43 +906,55 @@ if (view === "client-register") {
     </form></div>;
 }
 if (view === "client-login") {
+  const signInButton = 'relative flex min-h-11 w-full cursor-pointer items-center justify-center rounded-md bg-white px-10 py-2 text-center text-[13px] font-normal leading-tight text-[#3c4043] hover:bg-slate-100 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-white';
+  const fieldStyle = 'mt-1.5 w-full rounded-xl border border-white/25 bg-[#13263b] px-4 py-3 text-base text-white placeholder:text-slate-400 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white';
   return (
-    <div className="min-h-screen flex items-center justify-center bg-black text-white p-6">
-      <div className="w-full max-w-md bg-neutral-900 p-8 rounded-2xl border border-white/10">
-        
-        <h2 className="text-2xl font-bold mb-6">Iniciar sesión</h2><button onClick={handleGoogle} className="mb-4 w-full rounded-xl border border-white/20 p-3">Continuar con Google</button>{accessMessage&&<p role="status" className="mb-4 text-amber-300">{accessMessage}</p>}
-        {supabase.authUnavailable&&<p role="status" className="mb-4 text-amber-300">Falta conectar Supabase Auth de pruebas. No se admite un acceso simulado.</p>}
-
-        <input
-          type="email"
-          placeholder="Correo"
-          className="w-full mb-3 px-4 py-3 rounded-xl bg-black border border-white/10"
-          onChange={(e) => setCustomerInfo(prev => ({ ...prev, email: e.target.value }))}
-        />
-
-        <input
-          type="password"
-          placeholder="Contraseña"
-          className="w-full mb-6 px-4 py-3 rounded-xl bg-black border border-white/10"
-          onChange={(e) => setCustomerInfo(prev => ({ ...prev, password: e.target.value }))}
-        />
-
-        <button
-          onClick={handleCustomerLogin}
-          className="w-full bg-amber-400 text-black py-3 rounded-xl font-bold"
-        >
-          Entrar
-        </button>
-
-        <button
-          onClick={() => setView("client-auth")}
-          className="w-full mt-3 text-sm text-neutral-400"
-        >
-          Volver
-        </button>
-
-      </div>
-    </div>
+    <main className="min-h-svh bg-[#0a1523] text-white sm:grid sm:place-items-center sm:p-8">
+      <section aria-labelledby="meryo-login-title" className="mx-auto flex min-h-svh w-full max-w-md flex-col overflow-hidden bg-[#1b3149] sm:min-h-0 sm:rounded-[2rem] sm:shadow-2xl">
+        <div className="relative isolate flex min-h-64 flex-1 items-center justify-center overflow-hidden bg-[#1b3149] sm:min-h-72">
+          <img src="/meryo-login-tijeras.webp" alt="" fetchPriority="high" className="absolute inset-0 -z-20 size-full object-cover object-center"/>
+          <div className="absolute inset-0 -z-10 bg-gradient-to-b from-[#13263b]/15 via-[#13263b]/35 to-[#13263b]/80"/>
+          <MeryoLogo className="h-auto w-44 drop-shadow-lg sm:w-52"/>
+        </div>
+        <div className="relative -mt-3 rounded-t-[1.75rem] bg-[#13263b] px-6 pt-7 pb-8 sm:px-9">
+          <h1 id="meryo-login-title" className="text-2xl font-semibold tracking-tight">Inicia sesión</h1>
+          <p className="mt-1 text-sm text-slate-300">Reserva tu próxima cita con MERYO.</p>
+          {accessMessage&&<p role="status" className="mt-4 text-sm text-amber-200">{accessMessage}</p>}
+          {supabase.authUnavailable&&<p role="status" className="mt-4 text-sm text-amber-200">Falta conectar Supabase Auth de pruebas. No se admite un acceso simulado.</p>}
+          <div className="mt-6 space-y-3">
+            <button type="button" onClick={handleGoogle} className={signInButton}>
+              <svg aria-hidden="true" viewBox="0 0 48 48" className="absolute left-3.5 size-[19px]">
+                <path fill="#4285F4" d="M43.6 24.5c0-1.4-.1-2.8-.4-4.1H24v7.8h11a9.4 9.4 0 0 1-4.1 6.2v5h6.6c3.9-3.6 6.1-8.8 6.1-14.9z"/>
+                <path fill="#34A853" d="M24 44c5.5 0 10.2-1.8 13.5-4.9l-6.6-5a12.3 12.3 0 0 1-18.3-6.4H5.8v5.2A20 20 0 0 0 24 44z"/>
+                <path fill="#FBBC05" d="M12.6 27.7a12 12 0 0 1 0-7.4v-5.2H5.8a20 20 0 0 0 0 17.8z"/>
+                <path fill="#EA4335" d="M24 11.9c3 0 5.7 1 7.8 3.1l5.8-5.8A19.4 19.4 0 0 0 24 4 20 20 0 0 0 5.8 15.1l6.8 5.2A12 12 0 0 1 24 11.9z"/>
+              </svg>
+              Continuar con Google
+            </button>
+            <details>
+              <summary className={signInButton + ' list-none [&::-webkit-details-marker]:hidden'}>
+                <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" className="absolute left-3.5 size-[19px]"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="m3 7 9 6 9-6"/></svg>
+                Continuar con correo
+              </summary>
+              <form className="mt-4 space-y-3" onSubmit={event=>{event.preventDefault();handleCustomerLogin();}}>
+                <label className="block text-sm">Correo
+                  <input type="email" required autoComplete="username" value={customerInfo.email??''} onChange={event=>setCustomerInfo(prev=>({...prev,email:event.target.value}))} className={fieldStyle}/>
+                </label>
+                <label className="block text-sm">Contraseña
+                  <input type="password" required autoComplete="current-password" value={customerInfo.password??''} onChange={event=>setCustomerInfo(prev=>({...prev,password:event.target.value}))} className={fieldStyle}/>
+                </label>
+                <button type="submit" className="min-h-12 w-full rounded-xl bg-amber-300 px-4 py-3 text-sm font-bold text-slate-950">Entrar</button>
+              </form>
+              {emailSignupEnabled&&<button type="button" onClick={()=>setView("client-register")} className="mt-2 min-h-11 text-sm text-slate-200 underline underline-offset-4">Registrarme con correo</button>}
+            </details>
+          </div>
+          <div className="mt-5 flex flex-wrap items-center justify-between gap-x-4 gap-y-2 text-sm">
+            <button type="button" onClick={()=>setView("client-auth")} className="min-h-11 text-slate-300 hover:text-white">Volver</button>
+          </div>
+          <p className="mt-2 text-xs text-slate-300"><a href="/condiciones.html" className="underline underline-offset-2">Condiciones</a> <span aria-hidden="true">·</span> <a href="/privacidad.html" className="underline underline-offset-2">Privacidad</a></p>
+        </div>
+      </section>
+    </main>
   );
 }
 if (view === "admin" && adminAccess) return <AdminShops api={api} profile={identity.profile} onSecurity={()=>setAdminSecurityOpen(true)} onLogout={handleLogout} onBack={()=>setView('client')} onChanged={cargarBarberiasActivas}/>;
