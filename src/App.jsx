@@ -204,86 +204,122 @@ export function BookingModal({
   identityLoading=false,identityError='',onRetrySession,promotion=null,promotionError='',onRegularPrice,onBackToOffers,
 }) {
   if (!selectedShop) return null;
-  const eligible=(selectedShop.equipo??[]).filter(m=>m.servicios?.some(id=>String(id)===String(selectedService?.id)));
+  const team=selectedShop.equipo??[];
+  const eligible=team.filter(m=>m.servicios?.some(id=>String(id)===String(selectedService?.id)));
+
+  const dateFormatter = new Intl.DateTimeFormat('es-PE', {day:'numeric', month:'short', timeZone:'UTC'});
+  const formatDate = date => date ? dateFormatter.format(new Date(date + 'T00:00:00Z')) : 'Sin elegir';
+  const professional = catalogCategory==='belleza' ? 'profesional' : 'barbero';
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-2 sm:p-4">
       
-      <div data-meryo-theme={catalogCategory==='belleza'?'beauty':'barberia'} className="max-h-[92vh] w-full max-w-5xl overflow-auto rounded-[2rem] border border-white/10 bg-neutral-950 p-6 text-white shadow-2xl">
-        <div className="mb-6 flex items-start justify-between gap-4">
-          <div>
-            <p className="text-sm uppercase tracking-[0.2em] text-amber-300">Reserva tu cita</p>
-            <h3 className="mt-2 text-3xl font-black">{selectedShop.name}</h3>{accessMessage&&<p role="status" className="mt-3 text-amber-300">{accessMessage}</p>}
-            <p className="mt-2 text-neutral-400">
-              Elige el servicio y solicita un horario. No se realiza ningún cobro en esta pantalla.
+      <div data-meryo-theme={catalogCategory==='belleza'?'beauty':'barberia'} className="max-h-[92vh] w-full max-w-5xl overflow-auto rounded-2xl border border-white/10 bg-neutral-950 p-3 text-white shadow-2xl sm:rounded-3xl sm:p-6">
+        <div className="mb-4 flex items-start justify-between gap-2 sm:gap-4">
+          <div className="min-w-0">
+            <p className="text-xs uppercase tracking-[0.2em] text-amber-300">Reserva tu cita</p>
+            <h3 className="mt-1 [overflow-wrap:anywhere] text-xl font-black sm:text-3xl">{selectedShop.name}</h3>{accessMessage&&<p role="status" className="mt-3 text-amber-300">{accessMessage}</p>}
+            <p className="mt-1 text-sm text-neutral-400">
+              Elige un servicio y un horario. No se cobra al solicitar.
             </p>
           </div>
-          <button onClick={closeBookingModal} className={`rounded-xl border border-white/10 px-4 py-2 text-sm ${pointerClass}`}>
+          <button onClick={closeBookingModal} className={`min-h-11 shrink-0 rounded-xl border border-white/10 px-3 text-sm ${pointerClass}`}>
             Cerrar
           </button>
         </div>
 
-        <div className="grid gap-6 lg:grid-cols-[1.2fr_0.8fr]">
-          <div className="space-y-6">
-            <div className="rounded-3xl border border-white/10 bg-neutral-900 p-5">
-              <h4 className="text-xl font-bold">1. {promotion?'Servicio participante y barbero':'Elige tu servicio y barbero'}</h4><label className="mt-3 block text-sm">Barbero<select aria-label="Barbero" className="mt-2 block w-full rounded-xl border border-white/10 bg-neutral-900 p-3" value={selectedBarber||''} onChange={e=>{setSelectedBarber(e.target.value);setSelectedTime('');}}><option value="">Selecciona un barbero</option>{eligible.map(m=><option key={m.id} value={m.id}>{m.nombre}</option>)}</select></label>{!eligible.length&&<p className="mt-3 text-sm text-amber-300">Este servicio todavía no tiene un integrante habilitado.</p>}
+        <div className="grid grid-cols-2 items-start gap-3 sm:gap-5">
+            <div className="min-w-0 px-1.5 py-2 sm:px-3">
+              <h4 className="flex items-baseline gap-1.5 font-[Georgia,serif] text-[15px] leading-tight text-amber-300 sm:gap-2 sm:text-xl"><span className="shrink-0 font-sans text-[10px] font-medium tabular-nums opacity-80 sm:text-xs">1.</span> <span>Servicio y {professional}</span></h4>
               {promotion&&<p className="mt-3 rounded-xl border border-amber-400/25 bg-amber-400/10 p-3 text-sm text-amber-100">Corte al 50 %: precio habitual S/ {Number(promotion.regularPrice).toFixed(2)} · oferta S/ {Number(finalPrice).toFixed(2)}. El adelanto, si el barbero acepta, se calcula sobre el precio promocional.</p>}
-              <div className="mt-4 grid gap-3 md:grid-cols-3">
+              <div className="mt-3 divide-y divide-white/10">
                 {(promotion?selectedShop.services.filter(service=>service.bookable&&String(service.id)===String(selectedService?.id)):selectedShop.services.filter(service=>service.bookable)).map((service) => (
                   <button
+                    type="button"
+                    aria-pressed={selectedService?.id === service.id}
                     key={service.id}
                     onClick={() => {setSelectedService(service);setSelectedTime("");}}
-                    className={`rounded-2xl border p-4 text-left transition ${pointerClass} ${
+                    className={`flex min-h-12 w-full min-w-0 items-center gap-1.5 rounded-lg px-1.5 py-2 text-left transition sm:gap-3 sm:px-3 ${pointerClass} ${
                       selectedService?.id === service.id
-                        ? "border-amber-400 bg-amber-400 text-black"
-                        : "border-white/10 bg-black/20 text-white"
+                        ? "bg-amber-400/10 ring-1 ring-inset ring-amber-400/45"
+                        : "hover:bg-white/5"
                     }`}
                   >
-                    <p className="font-bold">{service.name}</p>
-                    <p className={`mt-1 text-sm ${selectedService?.id === service.id ? "text-black/80" : "text-neutral-400"}`}>
-                      {service.duration}
-                    </p>
-                    {promotion&&<p className={`mt-3 text-sm line-through ${selectedService?.id===service.id?'text-black/65':'text-neutral-500'}`}>S/ {Number(service.price).toFixed(2)}</p>}
-                    <p className={`${promotion?'mt-0':'mt-3'} text-lg font-black`}>S/ {promotion?Number(finalPrice).toFixed(2):service.price}</p>
+                    <span className="min-w-0 flex-1">
+                      <span className="block text-xs leading-snug font-semibold [overflow-wrap:anywhere] sm:text-sm">{service.name}</span>
+                      <span className="mt-0.5 block text-[11px] text-neutral-400">{service.duration}</span>
+                    </span>
+                    <span className="shrink-0 text-right text-xs font-semibold text-amber-300 tabular-nums">
+                      {promotion&&<span className="block text-[11px] font-normal text-neutral-400 line-through">S/ {Number(service.price).toFixed(2)}</span>}
+                      S/ {promotion?Number(finalPrice).toFixed(2):service.price}
+                    </span>
                   </button>
                 ))}
               </div>
+              <div className="mt-4 border-t border-white/10 pt-3" role="group" aria-label="Equipo">
+                <p className="mb-2 text-xs font-semibold capitalize text-neutral-400">{professional}</p>
+                <div className="space-y-1.5">
+                  {team.map(member=>{
+                    const enabled=eligible.includes(member);
+                    const chosen=enabled&&member.id===selectedBarber;
+                    const initials=String(member.nombre||'?').trim().split(/\s+/).slice(0,2).map(part=>part.charAt(0)).join('').toUpperCase();
+                    return <button key={member.id} type="button" aria-pressed={chosen} disabled={!enabled}
+                      onClick={()=>{setSelectedBarber(member.id);setSelectedTime('');}}
+                      className={`flex min-h-12 w-full min-w-0 items-center gap-2 rounded-xl border px-2 py-1.5 text-left ${chosen?'border-amber-400/45 bg-amber-400/10':'border-white/10'} disabled:opacity-60`}>
+                      <span aria-hidden="true" className="relative grid size-8 shrink-0 place-items-center overflow-hidden rounded-full bg-amber-400/10 text-[10px] font-semibold text-amber-300">
+                        {initials}
+                        {member.foto_url&&<img src={member.foto_url} alt="" className="absolute inset-0 size-full object-cover" onError={e=>{e.currentTarget.hidden=true;}}/>}
+                      </span>
+                      <span className="min-w-0 flex-1 text-xs leading-snug [overflow-wrap:anywhere]">
+                        <span className="font-semibold">{member.nombre}</span>
+                        {!enabled&&<span className="block text-[10px] text-neutral-400">No ofrece este servicio</span>}
+                      </span>
+                      {chosen&&<span aria-hidden="true" className="text-xs text-amber-300">✓</span>}
+                    </button>;
+                  })}
+                </div>
+                {!eligible.length&&<p className="mt-2 text-xs text-amber-300">No hay profesionales para este servicio.</p>}
+              </div>
             </div>
 
-            <div className="rounded-3xl border border-white/10 bg-neutral-900 p-5">
-              <h4 className="text-xl font-bold">2. Elige la fecha</h4><label className="mt-3 block text-sm">Otra fecha (hasta 30 días)<input aria-label="Fecha de la cita" type="date" min={AVAILABLE_DATES[0]} max={sumarDias(AVAILABLE_DATES[0],30)} value={selectedDate} onChange={e=>{setSelectedDate(e.target.value);setSelectedTime("");}} className="mt-2 w-full rounded-xl border border-white/10 bg-neutral-900 p-3"/></label>
-              <div className="mt-4 grid gap-3 sm:grid-cols-3">
-                {AVAILABLE_DATES.map((date) => (
+          <div className="relative min-w-0 space-y-3 before:absolute before:inset-y-0 before:-left-[7px] before:w-px before:bg-amber-300/20 sm:space-y-5 sm:before:-left-[11px]">
+            <div className="min-w-0 px-1.5 py-2 sm:px-3">
+              <h4 className="flex items-baseline gap-1.5 font-[Georgia,serif] text-[15px] leading-tight text-amber-300 sm:gap-2 sm:text-xl"><span className="shrink-0 font-sans text-[10px] font-medium tabular-nums opacity-80 sm:text-xs">2.</span> <span>Elige la fecha</span></h4>
+              <div className="mt-3 grid grid-cols-1 gap-2 sm:grid-cols-3">
+                {AVAILABLE_DATES.map((date, index) => (
                   <button
                     key={date}
-                    onClick={() => {
-                      setSelectedDate(date);
-                      setSelectedTime("");
-                    }}
-                    className={`rounded-2xl border px-4 py-4 text-sm font-semibold ${pointerClass} ${
+                    type="button"
+                    aria-pressed={selectedDate === date}
+                    onClick={() => {setSelectedDate(date);setSelectedTime("");}}
+                    className={`min-h-11 min-w-0 rounded-lg border px-1 py-1.5 text-[11px] font-medium ${pointerClass} ${
                       selectedDate === date
                         ? "border-amber-400 bg-amber-400 text-black"
                         : "border-white/10 bg-black/20 text-white"
                     }`}
                   >
-                    {date}
+                    {index < 2 && <span className="block">{index === 0 ? 'Hoy' : 'Mañana'}</span>}
+                    <span>{formatDate(date)}</span>
                   </button>
                 ))}
               </div>
+              <label className="mt-2 block text-xs">Otra fecha (hasta 30 días)
+                <input aria-label="Fecha de la cita" type="date" min={AVAILABLE_DATES[0]} max={sumarDias(AVAILABLE_DATES[0],30)} value={selectedDate} onChange={e=>{setSelectedDate(e.target.value);setSelectedTime("");}} className="mt-1 block min-h-11 w-full min-w-0 max-w-full rounded-xl border border-white/10 bg-neutral-900 px-1 text-xs sm:px-3 sm:text-sm"/>
+              </label>
             </div>
 
-            <div className="rounded-3xl border border-white/10 bg-neutral-900 p-5">
-              <div className="flex items-center justify-between gap-3">
-                <h4 className="text-xl font-bold">3. Elige la hora</h4>
-                <div className="flex items-center gap-4 text-xs text-neutral-400">
+            <div className="min-w-0 rounded-2xl border border-white/10 bg-neutral-900 p-3 sm:p-4">
+              <div className="flex flex-wrap items-center justify-between gap-2 border-b border-amber-300/20 pb-2.5">
+                <h4 className="flex items-start gap-1.5 text-xs leading-snug font-bold text-amber-300 sm:gap-2 sm:text-sm"><span className="shrink-0 font-medium tabular-nums opacity-80">3.</span> <span>Elige la hora</span></h4>
+                {activeSlots.length>0&&<div className="flex flex-wrap items-center gap-2 text-xs text-neutral-400">
                   <span className="flex items-center gap-2"><span className="h-3 w-3 rounded-full bg-white/70" /> Disponible</span>
-                  <span className="flex items-center gap-2"><span className="h-3 w-3 rounded-full bg-red-500" /> Ocupada</span>
-                </div>
+                  <span className="flex items-center gap-2"><span className="h-3 w-3 rounded-full bg-neutral-500" /> Ocupada</span>
+                </div>}
               </div>
-              {agendaLoading&&<p>Cargando horarios del servidor…</p>}{agendaError&&<p role="alert" className="text-red-300">{agendaError}</p>}{!agendaLoading&&!agendaError&&!activeSlots.length&&<p>{promotion?'No quedan turnos participantes disponibles para esta fecha.':'Sin horarios disponibles para este servicio y fecha.'}</p>}
+              {agendaLoading&&<p>Cargando horarios del servidor…</p>}{agendaError&&<p role="alert" className="text-red-300">{agendaError}</p>}{!agendaLoading&&!agendaError&&!activeSlots.length&&<p>{promotion?'No quedan turnos participantes disponibles para esta fecha.':'No hay horarios para esta fecha. Prueba otro día.'}</p>}
               {promotionError&&<div role="alert" className="mt-3 space-y-2 rounded-xl border border-amber-400/30 bg-amber-400/10 p-3 text-sm text-amber-100"><p>{promotionError} No se cambió el precio.</p><button type="button" onClick={onBackToOffers} className="underline underline-offset-2">Volver a promociones y revisar el precio</button></div>}
               {promotion&&!agendaLoading&&!activeSlots.length&&<button type="button" onClick={onRegularPrice} className="mt-3 min-h-11 rounded-xl border border-white/20 px-4 py-2 text-sm">Ver otros horarios al precio habitual S/ {Number(promotion.regularPrice).toFixed(2)}</button>}
-              <div className="meryo-time-grid mt-4 grid grid-cols-3 gap-2 min-[390px]:grid-cols-4">
+              <div className="meryo-time-grid mt-3 grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-4">
                 {activeSlots.map((slot) => (
                   <button
                     key={`${selectedDate}-${slot.time}`}
@@ -291,9 +327,9 @@ export function BookingModal({
                     onClick={() => setSelectedTime(slot.time)}
                     aria-pressed={selectedTime===slot.time}
                     aria-label={`${slot.label}${slot.occupied?' · no disponible':selectedTime===slot.time?' · seleccionado':' · disponible'}`}
-                    className={`meryo-time-slot min-h-11 min-w-0 whitespace-nowrap rounded-xl border px-2 py-3 text-sm font-semibold transition ${
+                    className={`meryo-time-slot min-h-11 min-w-0 rounded-lg border px-1 py-2 !text-[11px] leading-tight font-medium tabular-nums transition sm:!text-xs ${
                       slot.occupied
-                        ? "cursor-not-allowed border-red-500/40 bg-red-500 text-white opacity-80"
+                        ? "cursor-not-allowed border-white/10 bg-black/20 text-neutral-400 line-through opacity-70"
                         : `${pointerClass} ${selectedTime === slot.time ? "border-amber-400 bg-amber-400 text-black" : "border-white/10 bg-black/20 text-white hover:border-amber-400/50"}`
                     }`}
                   >
@@ -303,58 +339,62 @@ export function BookingModal({
               </div>
             </div>
 
-            <div className="rounded-3xl border border-white/10 bg-neutral-900 p-5">
-              <h4 className="text-xl font-bold">4. Datos del cliente</h4>
-              <div className="mt-4 grid gap-3 md:grid-cols-2">
+          </div>
+          <div className="col-span-2 min-w-0 space-y-3 sm:col-span-1">
+            <div className="min-w-0 rounded-2xl border border-white/10 bg-neutral-900 p-3 sm:p-4">
+              <h4 className="flex items-start gap-1.5 text-xs leading-snug font-bold text-amber-300 sm:gap-2 sm:text-sm border-b border-amber-300/20 pb-2.5"><span className="shrink-0 font-medium tabular-nums opacity-80">4.</span> <span>Datos del cliente</span></h4>
+              <div className="mt-2 grid gap-2 sm:grid-cols-2">
                 <input
+                  aria-label="Tu nombre"
+                  autoComplete="name"
                   value={customerInfo.name}
                   onChange={(e) => setCustomerInfo((prev) => ({ ...prev, name: e.target.value }))}
-                  className="rounded-xl border border-white/10 bg-black/20 px-4 py-3 outline-none"
+                  className="min-h-11 min-w-0 rounded-xl border border-white/10 bg-black/20 px-3 py-2 outline-none"
                   placeholder="Tu nombre"
                 />
                 <input
+                  aria-label="Tu celular"
+                  type="tel"
+                  autoComplete="tel"
                   value={customerInfo.phone}
                   onChange={(e) => setCustomerInfo((prev) => ({ ...prev, phone: e.target.value }))}
-                  className="rounded-xl border border-white/10 bg-black/20 px-4 py-3 outline-none"
+                  className="min-h-11 min-w-0 rounded-xl border border-white/10 bg-black/20 px-3 py-2 outline-none"
                   placeholder="Tu celular"
                 />
               </div>
             </div>
 
-            <div className="rounded-3xl border border-white/10 bg-neutral-900 p-5">
-              <h4 className="text-xl font-bold">5. Pedido especial (opcional)</h4>
-              <p className="mt-2 text-sm text-neutral-400">Si deseas un estilo distinto puedes explicarlo al barbero.</p>
+            <details className="min-w-0 rounded-2xl border border-white/10 bg-neutral-900 px-3 sm:px-4">
+              <summary className="min-h-11 cursor-pointer py-3 text-sm font-semibold">Añadir pedido especial <span className="font-normal text-neutral-400">(opcional)</span></summary>
               <textarea
+                aria-label="Pedido especial"
                 value={customRequest}
                 onChange={(e) => setCustomRequest(e.target.value)}
-                placeholder="Ej: degradado alto con línea al costado, barba marcada o cejas suaves"
-                className="mt-3 min-h-[110px] w-full rounded-xl border border-white/10 bg-black/20 px-4 py-3 text-sm outline-none"
+                placeholder="Ej.: degradado alto con línea al costado"
+                className="mb-3 min-h-20 w-full rounded-xl border border-white/10 bg-black/20 px-3 py-2 text-sm outline-none"
               />
-
-            </div>
-
-
+            </details>
           </div>
 
-          <div className="rounded-3xl border border-amber-400/20 bg-amber-400/10 p-5">
+          <div className="col-span-2 min-w-0 rounded-2xl border border-amber-400/20 bg-amber-400/10 p-3 sm:col-span-1 sm:p-4">
             <p className="text-sm uppercase tracking-[0.2em] text-amber-300">Resumen</p>
-            <h4 className="mt-2 text-2xl font-black">{selectedShop.name}</h4>
-            <div className="mt-5 space-y-3 text-sm">
+
+            <div className="mt-2 space-y-2 text-sm [&>div]:gap-2 [&>div>span:last-child]:min-w-0 [&>div>span:last-child]:text-right [&>div>span:last-child]:[overflow-wrap:anywhere]">
               <div className="flex justify-between"><span>Cliente</span><span>{customerInfo.name || "-"}</span></div>
               <div className="flex justify-between"><span>Servicio</span><span>{selectedService?.name || "-"}</span></div>
-              <div className="flex justify-between"><span>Barbero</span><span>{eligible.find(m=>m.id===selectedBarber)?.nombre||'Selecciona un barbero'}</span></div>
-              <div className="flex justify-between"><span>Fecha</span><span>{selectedDate}</span></div>
+              <div className="flex justify-between"><span className="capitalize">{professional}</span><span>{eligible.find(m=>m.id===selectedBarber)?.nombre||'Sin elegir'}</span></div>
+              <div className="flex justify-between"><span>Fecha</span><span>{formatDate(selectedDate)}</span></div>
               <div className="flex justify-between"><span>Hora</span><span>{activeSlots.find(slot=>slot.time===selectedTime)?.label || "Selecciona una hora"}</span></div>
-              <div className="flex justify-between"><span>Pedido especial</span><span className="max-w-[170px] text-right">{customRequest || "No"}</span></div>
+              {customRequest.trim()&&<div className="flex justify-between"><span>Pedido especial</span><span className="max-w-[170px] text-right">{customRequest}</span></div>}
               {promotion&&<div className="flex justify-between"><span>Precio habitual</span><span className="line-through">S/ {Number(promotion.regularPrice).toFixed(2)}</span></div>}
               <div className="flex justify-between"><span>Adelanto tras aceptar</span><span>S/ {(finalPrice * 0.5).toFixed(2)}</span></div>
               <div className="flex justify-between text-lg font-black"><span>{promotion?'Precio promocional':'Total'}</span><span className="text-amber-300">S/ {Number(finalPrice).toFixed(2)}</span></div>
             </div>
-            <p className="mt-5 text-sm text-amber-200">El barbero tendrá hasta 15 minutos para aceptar tu solicitud. Te avisaremos cuando puedas pagar el adelanto del 50 %.</p>
+            <p className="mt-3 text-xs text-amber-200">El {professional} tiene hasta 15 minutos para aceptar. Si acepta, te avisaremos para pagar el adelanto del 50 %.</p>
             <button
               onClick={submitReservation}
               disabled={savingReservation || identityLoading || !selectedTime || !selectedBarber || (reservationsEnabled&&(!customerInfo.name.trim() || !customerInfo.phone.trim())) || requestSaved}
-              className={`mt-6 w-full rounded-xl py-3 font-bold ${
+              className={`mt-3 min-h-11 w-full rounded-xl py-2 font-bold ${
                 selectedTime && customerInfo.name.trim() && customerInfo.phone.trim() && !requestSaved
                   ? `${pointerClass} bg-amber-400 text-black`
                   : "cursor-not-allowed bg-neutral-700 text-neutral-400"
@@ -367,7 +407,7 @@ export function BookingModal({
             {!identityLoading&&!identityError&&!reservationsEnabled&&<div className="mt-3 text-sm text-amber-300"><p>Al solicitar, continúa con Google o con correo y contraseña. Conservaremos tu selección; no se realiza ningún cobro.</p><button onClick={onLogin} className="mt-2 underline">Iniciar sesión</button></div>}
             {requestSaved && (
               <div className="mt-4 rounded-2xl border border-emerald-500/30 bg-emerald-500/10 p-4 text-sm text-emerald-300">
-                Solicitud guardada para {selectedDate} a las {activeSlots.find(slot=>slot.time===selectedTime)?.label}. Pendiente de aceptación del barbero. No se ha realizado ningún cobro.
+                Solicitud guardada para {formatDate(selectedDate)} a las {activeSlots.find(slot=>slot.time===selectedTime)?.label}. Pendiente de aceptación del barbero. No se ha realizado ningún cobro.
               </div>
             )}
           </div>
