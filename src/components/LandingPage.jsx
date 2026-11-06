@@ -2,6 +2,7 @@ import {useEffect, useLayoutEffect, useRef, useState} from 'react';
 import barberPhoto from '../assets/meryo-entry-barber-reference.png';
 import beautyPhoto from '../assets/meryo-entry-beauty-reference.png';
 import {consumeLandingIntro} from '../lib/landing-intro';
+import MeryoHeader from './MeryoHeader';
 import MeryoLogo from './MeryoLogo';
 import './LandingPage.css';
 
@@ -12,7 +13,7 @@ function reducedMotionEnabled() {
   catch { return false; }
 }
 
-export default function LandingPage({setView, onExplore, onPromotions, profile=null, identityLoading=false, adminAccess=false, onSignIn, onAccount, onProfessionalAccess}) {
+export default function LandingPage({setView, onExplore, onPromotions, profile=null, identityLoading=false, onSignIn, onAccount, onProfessionalAccess}) {
   const [intro, setIntro] = useState(false);
   const introDecision = useRef(null);
   const brandRef = useRef(null);
@@ -38,22 +39,15 @@ export default function LandingPage({setView, onExplore, onPromotions, profile=n
   const skipIntro = () => setIntro(false);
 
   const explore = category => onExplore ? onExplore(category) : setView('client');
-  const accountLabel=profile?'Mi cuenta':'Ingresar';
-  const professionalLabel=adminAccess?'Administración':profile?.rol==='barbero'?'Mi negocio':'Soy profesional';
-  const enterAccount=()=>{if(identityLoading)return;if(profile)onAccount?.();else onSignIn?.();};
-  const enterProfessional=()=>{if(identityLoading)return;onProfessionalAccess?.();};
+  const enterAccount=()=>profile?onAccount?.():onSignIn?.();
 
   return (
     <div className="meryo-cover" data-intro={intro ? 'playing' : 'done'}>
-      <header className="meryo-cover__header">
-        <button ref={brandRef} className="meryo-cover__brand" aria-label="MERYO, inicio" onClick={() => setView('landing')}>
-          <MeryoLogo className="meryo-cover__brand-image" onError={skipIntro}/>
-        </button>
-        <nav className="meryo-cover__nav" aria-label="Navegación de portada">
-          <button type="button" onClick={enterAccount} disabled={identityLoading}>{accountLabel}</button>
-          <button type="button" onClick={enterProfessional} disabled={identityLoading}>{professionalLabel}</button>
-        </nav>
-      </header>
+      <MeryoHeader cover brandRef={brandRef} onLogoError={skipIntro}
+        signedIn={Boolean(profile)} loading={identityLoading}
+        onHome={()=>setView('landing')} onProfessional={onProfessionalAccess}
+        onAccount={enterAccount} onNotifications={()=>setView('notifications')}
+      />
 
       <main className="meryo-cover__main">
         <section className="meryo-cover__hero" aria-labelledby="meryo-cover-title">

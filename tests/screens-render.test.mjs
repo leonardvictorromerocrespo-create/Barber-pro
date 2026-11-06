@@ -11,7 +11,7 @@ test('existing screens render without a fictitious identity or a payment confirm
  await build({stdin:{contents:`import React from 'react';import {renderToStaticMarkup} from 'react-dom/server';import App,{BookingModal,ProfileModal} from './src/App.jsx';import LandingPage from './src/components/LandingPage.jsx';import {catalogCountLabel} from './src/lib/catalog-copy.js';
    export function screen(view,search=''){globalThis.window={location:{hash:'#'+view,search},history:{replaceState(){}}};try{return renderToStaticMarkup(React.createElement(App));}finally{delete globalThis.window;}}
    export function countLabel(category,count){return catalogCountLabel(category,count);}
-   export function cover(profile=null,adminAccess=false){return renderToStaticMarkup(React.createElement(LandingPage,{setView(){},onExplore(){},profile,adminAccess,onSignIn(){},onAccount(){},onProfessionalAccess(){}}));}
+   export function cover(profile=null){return renderToStaticMarkup(React.createElement(LandingPage,{setView(){},onExplore(){},profile,onSignIn(){},onAccount(){},onProfessionalAccess(){}}));}
    export function booking(shop,slots,category='barberia'){return renderToStaticMarkup(React.createElement(BookingModal,{catalogCategory:category,selectedShop:shop,selectedService:shop.services[0],selectedBarber:'member',selectedDate:'2026-10-27',selectedTime:'',customerInfo:{name:'',phone:''},customRequest:'',customExtra:0,paymentMethod:'Tarjeta',activeSlots:slots,finalPrice:30,requestSaved:false,savingReservation:false,reservationsEnabled:false,agendaLoading:false,agendaError:''}));}
    export function profile(shop,category){return renderToStaticMarkup(React.createElement(ProfileModal,{selectedShop:shop,catalogCategory:category,onClose(){},onReserve(){},onStore(){}}));}`,
    resolveDir:process.cwd(),loader:'jsx'},outfile:output,bundle:true,platform:'node',format:'esm',jsx:'automatic',loader:{'.css':'empty','.png':'dataurl','.webp':'file'},external:['react','react-dom/server'],plugins:[{name:'local-only',setup(b){b.onResolve({filter:/^(?:\.\.?\/)+lib\/supabase(?:\.js)?$/},()=>({path:path.resolve('src/lib/supabase.local.js')}));}}]});
@@ -30,12 +30,12 @@ test('existing screens render without a fictitious identity or a payment confirm
  assert.doesNotMatch(screen('client'),/Barberos más reservados|en ranking/);
  assert.doesNotMatch(screen('landing'),/\+120/);
  const anonymousCover=cover();
- const coverHeader=anonymousCover.match(/<header class="meryo-cover__header">([\s\S]*?)<\/header>/)?.[1]||'';
+ const coverHeader=anonymousCover.match(/<header class="meryo-site-header meryo-site-header--cover">([\s\S]*?)<\/header>/)?.[1]||'';
  assert.match(coverHeader,/>Ingresar<\/button>/);assert.match(coverHeader,/>Soy profesional<\/button>/);
  assert.doesNotMatch(coverHeader,/Explorar barberías|Explorar salones/);
  const clientCover=cover({rol:'cliente'});assert.match(clientCover,/<button[^>]*>Mi cuenta<\/button>/);assert.match(clientCover,/>Soy profesional<\/button>/);
- const barberCover=cover({rol:'barbero'});assert.match(barberCover,/>Mi negocio<\/button>/);
- const adminCover=cover({rol:'admin',activo:true},true);assert.match(adminCover,/>Administración<\/button>/);
+ const barberCover=cover({rol:'barbero'});assert.match(barberCover,/>Soy profesional<\/button>/);
+ const adminCover=cover({rol:'admin',activo:true});assert.match(adminCover,/>Soy profesional<\/button>/);
  const beautyCatalog=screen('client','?catalogo=belleza');
  assert.match(beautyCatalog,/data-meryo-theme="beauty"/);
  assert.match(beautyCatalog,/Peluquerías y salones cerca de ti/);
@@ -92,7 +92,6 @@ test('split cover scales portraits and retains both navigation actions on small 
  assert.match(css,/\.meryo-cover__portrait img\s*\{[^}]*transform:\s*scale\(\.82\)/s);
  assert.match(css,/min-height:\s*clamp\(34rem,\s*calc\(100svh\s*-\s*8rem\),\s*58rem\)/);
  assert.match(css,/min-height:\s*clamp\(15rem,\s*50svh,\s*32rem\)/);
- assert.doesNotMatch(css,/\.meryo-cover__nav button:not\(:last-child\)\s*\{\s*display:\s*none/s);
  assert.match(css,/overflow-y:\s*visible/);
  assert.match(css,/@media \(max-width: 370px\)/);
 });

@@ -11,7 +11,7 @@ function dismissedNoticeIds(id){
  try{const value=JSON.parse(storage()?.getItem(dismissedKey(id))||'[]');return new Set(Array.isArray(value)?value.map(String):[]);}catch{return new Set();}
 }
 
-export function NotificationBell(){return <a href="/#notifications" aria-label="Notificaciones" title="Notificaciones" className="inline-flex items-center justify-center rounded-xl border border-white/20 p-2 text-amber-300"><svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" aria-hidden="true"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9M10 21h4"/></svg></a>;}
+export function NotificationBell({onOpen}={}){return <a href="/#notifications" onClick={onOpen ? event=>{if(event.metaKey||event.ctrlKey||event.shiftKey||event.altKey)return;event.preventDefault();onOpen();} : undefined} aria-label="Notificaciones" title="Notificaciones" className="inline-flex items-center justify-center rounded-xl border border-white/20 p-2 text-amber-300"><svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" aria-hidden="true"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9M10 21h4"/></svg></a>;}
 
 export function NotificationOffer({busy=false,top=72,onAccept,onReject}){
  return <aside className="meryo-notification-offer" style={{top}} aria-labelledby="meryo-notification-offer-title">
@@ -36,7 +36,7 @@ export function OwnerBookingNotice({notice,onDismiss}){
  </aside>;
 }
 
-export default function NotificationAccess({api,profile,loading}){
+export default function NotificationAccess({api,profile,loading,showNavigation=true}){
  const [offer,setOffer]=useState(null),[dismissed,setDismissed]=useState(null),[busy,setBusy]=useState(false),[feedback,setFeedback]=useState(null),[offerTop,setOfferTop]=useState(72),[bookingNotice,setBookingNotice]=useState(null),[requestOfferFor,setRequestOfferFor]=useState(null),[blockedHint,setBlockedHint]=useState(null),id=profile?.id;
  const shownNoticeIds=useRef(new Set());
  const chime=useRef(null);
@@ -85,7 +85,7 @@ export default function NotificationAccess({api,profile,loading}){
   const observer=typeof ResizeObserver==='undefined'||!anchor?null:new ResizeObserver(updateTop);
   observer?.observe(anchor);
   return()=>{window.removeEventListener('scroll',updateTop);window.removeEventListener('resize',updateTop);observer?.disconnect();};
- },[visible,blockedVisible]);
+ },[visible,blockedVisible,showNavigation]);
  useEffect(()=>{
   if(!id||loading||profile?.rol!=='barbero'){setBookingNotice(null);return undefined;}
   let active=true;const openedAt=Date.now();
@@ -112,5 +112,12 @@ export default function NotificationAccess({api,profile,loading}){
   if(bookingNotice){const store=storage();if(store){const key=dismissedKey(id),ids=dismissedNoticeIds(id);ids.add(String(bookingNotice.id));try{store.setItem(key,JSON.stringify([...ids].slice(-50)));}catch{/* The notice still closes for this visit. */}}}
   setBookingNotice(null);
  }
- return <><header className="meryo-notification-access-header border-b border-white/10 bg-neutral-950 text-white"><div className="mx-auto max-w-7xl space-y-2 px-6 py-2"><nav aria-label="Mi cuenta y avisos" className="flex items-center justify-end gap-3"><a className="text-sm text-neutral-300" href="/#account">Mi cuenta</a><NotificationBell/></nav>{feedback?.id===id&&feedback.error&&<p role="alert" className="text-sm text-red-300">{feedback.text} <a className="underline" href="/#notifications">Mi cuenta → Notificaciones</a></p>}</div></header>{visible&&<NotificationOffer busy={busy} top={offerTop} onAccept={activate} onReject={reject}/>}{blockedVisible&&<NotificationBlocked top={offerTop}/>}<OwnerBookingNotice notice={bookingNotice} onDismiss={dismissBookingNotice}/>{feedback?.id===id&&!feedback.error&&<p role="status" className="pointer-events-none fixed bottom-4 left-3 right-3 z-50 mx-auto max-w-sm rounded-xl border border-amber-400/30 bg-neutral-900 px-4 py-3 text-center text-sm text-amber-300 shadow-xl">{feedback.text}</p>}</>;
+ const hasFeedback=feedback && feedback.id===id;
+ return <>
+  {showNavigation&&<header className="meryo-notification-access-header border-b border-white/10 bg-neutral-950 text-white"><div className="mx-auto max-w-7xl px-6 py-2"><nav aria-label="Mi cuenta y avisos" className="flex items-center justify-end gap-3"><a className="text-sm text-neutral-300" href="/#account">Mi cuenta</a><NotificationBell/></nav></div></header>}
+  {visible&&<NotificationOffer busy={busy} top={offerTop} onAccept={activate} onReject={reject}/>}
+  {blockedVisible&&<NotificationBlocked top={offerTop}/>}
+  <OwnerBookingNotice notice={bookingNotice} onDismiss={dismissBookingNotice}/>
+  {hasFeedback&&<p role={feedback.error?'alert':'status'} className={`fixed bottom-20 left-3 right-3 z-50 mx-auto max-w-sm rounded-xl border border-amber-400/30 bg-neutral-900 px-4 py-3 text-center text-sm shadow-xl md:bottom-4 ${feedback.error?'text-red-300':'pointer-events-none text-amber-300'}`}>{feedback.text}{feedback.error&&<> <a className="underline" href="/#notifications">Mi cuenta → Notificaciones</a></>}</p>}
+ </>;
 }

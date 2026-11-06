@@ -11,66 +11,9 @@
   color: var(--meryo-text, #f5f1e8);
 }
 
-.meryo-cover__header,
 .meryo-cover__footer {
   width: min(100% - 3rem, 80rem);
   margin-inline: auto;
-}
-
-.meryo-cover__header {
-  position: relative;
-  z-index: 2;
-  display: flex;
-  min-height: 5rem;
-  align-items: center;
-  justify-content: space-between;
-  gap: 1.25rem;
-  border-bottom: 1px solid rgba(245, 241, 232, .08);
-}
-
-.meryo-cover__brand {
-  display: inline-flex;
-  min-width: 7.5rem;
-  min-height: 2.75rem;
-  align-items: center;
-  border: 0;
-  background: transparent;
-  padding: 0;
-  cursor: pointer;
-}
-
-.meryo-cover__brand-image {
-  display: block;
-  width: clamp(7.5rem, 14vw, 10rem);
-  max-height: 3rem;
-  object-fit: contain;
-  object-position: left center;
-  transition: opacity .25s ease;
-}
-
-.meryo-cover__nav {
-  display: flex;
-  align-items: center;
-  gap: .6rem;
-}
-
-.meryo-cover__nav button {
-  min-height: 2.75rem;
-  border: 1px solid rgba(245, 241, 232, .2);
-  border-radius: 999px;
-  background: transparent;
-  color: #f5f1e8;
-  padding: .6rem .95rem;
-  font: inherit;
-  font-size: .84rem;
-  font-weight: 650;
-  cursor: pointer;
-  transition: border-color .2s ease, background-color .2s ease, color .2s ease;
-}
-
-.meryo-cover__nav button:hover {
-  border-color: var(--meryo-cover-gold-light);
-  background: rgba(232, 199, 102, .12);
 }
 
 .meryo-cover__main {
@@ -224,7 +167,6 @@
 
 .meryo-cover__footer a:hover { color: var(--meryo-cover-gold); }
 
-.meryo-cover[data-intro='playing'] .meryo-cover__brand-image { opacity: 0; }
 
 .meryo-cover[data-intro='playing'] .meryo-cover__entry {
   animation: meryo-cover-copy-in .32s both;
@@ -305,11 +247,6 @@
 @keyframes meryo-cover-intro-bg { 0%, 88% { opacity: 1; } 100% { opacity: 0; visibility: hidden; } }
 
 @media (max-width: 47.999rem) {
-  .meryo-cover__header { min-height: 4.25rem; gap: .5rem; }
-  .meryo-cover__brand { min-width: 6.5rem; }
-  .meryo-cover__brand-image { width: clamp(6.5rem, 31vw, 8.25rem); max-height: 2.5rem; }
-  .meryo-cover__nav { gap: .35rem; }
-  .meryo-cover__nav button { min-height: 2.65rem; padding-inline: .55rem; font-size: .74rem; }
   .meryo-cover__entry-grid { min-height: clamp(34rem, calc(100svh - 7rem), 50rem); }
   .meryo-cover__portrait { min-height: clamp(10rem, 44vw, 16rem); }
   .meryo-cover__portrait img { width: auto; max-width: 100%; }
@@ -322,12 +259,7 @@
 }
 
 @media (max-width: 370px) {
-  .meryo-cover__header,
   .meryo-cover__footer { width: calc(100% - 1.5rem); }
-  .meryo-cover__brand { min-width: 5rem; }
-  .meryo-cover__brand-image { width: clamp(5rem, 26vw, 6rem); max-height: 2.2rem; }
-  .meryo-cover__nav { gap: .25rem; }
-  .meryo-cover__nav button { padding-inline: .45rem; font-size: .68rem; }
   .meryo-cover__entry-copy { padding-inline: .45rem; }
   .meryo-cover__entry-copy h2 { font-size: .9rem; }
   .meryo-cover__entry-copy button { font-size: .65rem; }
