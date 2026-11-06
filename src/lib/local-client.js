@@ -1,6 +1,6 @@
 // Local facade for the existing MERYO UI. Does not emulate Supabase services.
 const blocked = (message = 'Operación no disponible: pruebas locales sin Supabase Auth') => ({ data: null, error: { message, code: 'LOCAL_ONLY' } });
-export function createLocalClient(fetchImpl = (...args) => fetch(...args)) {
+export function createLocalClient(fetchImpl = (...args) => fetch(...args), anonKey = import.meta.env?.VITE_MERYO_LOCAL_ANON_KEY || '') {
   const listeners = new Set();
   function from(table) {
     const filters = [];
@@ -32,6 +32,13 @@ export function createLocalClient(fetchImpl = (...args) => fetch(...args)) {
     authUnavailable: true,
     from,
     rpc: async (name,args) => {
+      if(name==='meryo_belleza_promociones_hoy'&&anonKey){
+        try{
+          const response=await fetchImpl(`/__supabase/rest/v1/rpc/${name}`,{method:'POST',headers:{apikey:anonKey,Authorization:`Bearer ${anonKey}`,'Content-Type':'application/json'},body:JSON.stringify(args||{}),redirect:'error'});
+          const body=await response.json();
+          return response.ok?{data:body,error:null}:{data:null,error:{message:body.message||'No se pudieron consultar las ofertas públicas',code:body.code||'LOCAL_ONLY'}};
+        }catch{return blocked('No se pudieron consultar las ofertas públicas locales');}
+      }
       if(name!=='horarios_disponibles')return blocked();
       try {
         const params=new URLSearchParams({shop:args.p_barberia_id,service:args.p_servicio_id,day:args.p_fecha});

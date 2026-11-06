@@ -59,8 +59,9 @@ export default function CutCampaign({ api, shop }) {
       {uncertain.length > 0 && <p className="mt-2 text-sm text-amber-200">Revisión necesaria: {uncertain.map(item => item.nombre).join(', ')} no coincide con la clasificación de corte del servidor.</p>}
     </div>
     <form onSubmit={save} className="space-y-4">
+      <p className="text-xs text-neutral-400">La fecha inicial define el día semanal de la campaña. El servidor limita a un día promocional por negocio cada semana (hora de Lima), compartido con las promociones de Belleza.</p>
       <div className="grid gap-3 sm:grid-cols-2">
-        <label className="text-sm">Desde<input aria-label="Inicio de campaña" type="date" required min={limaToday()} value={from} onChange={event => setFrom(event.target.value)} className={`${inputClass} mt-1`} /></label>
+        <label className="text-sm">Día semanal desde<input aria-label="Día semanal de inicio de campaña" type="date" required min={limaToday()} value={from} onChange={event => setFrom(event.target.value)} className={`${inputClass} mt-1`} /></label>
         <label className="text-sm">Hasta<input aria-label="Fin de campaña" type="date" required min={from || limaToday()} value={to} onChange={event => setTo(event.target.value)} className={`${inputClass} mt-1`} /></label>
       </div>
       <fieldset className="space-y-3"><legend className="mb-2 text-sm font-semibold">Horarios participantes (hora de Lima)</legend>

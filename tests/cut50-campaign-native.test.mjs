@@ -129,6 +129,8 @@ test('native Supabase staging: all cuts, partial-category rejection, price valid
     }
     if (originalCategory !== null) await db.query('update public.servicios set categoria=$2 where id=$1', [service, originalCategory]);
     if (secondShopId) await db.query("update public.barberias set estado='rechazada',verificada=false,disponible_ahora=false where id=$1 and nombre=$2", [secondShopId,secondShopName]);
+    await db.query('select meryo_private.rebuild_business_promotion_calendar($1)', [shop]);
+    if (secondShopId) await db.query('select meryo_private.rebuild_business_promotion_calendar($1)', [secondShopId]);
     await accounts.close(); await secondOwner.auth.signOut({ scope: 'local' }).catch(() => {}); await db.end();
   }
 });

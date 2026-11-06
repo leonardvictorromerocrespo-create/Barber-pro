@@ -42,7 +42,7 @@ export default function SalonPromotions({api}){
  }
  if(loading)return <Cargando texto="Cargando promociones del salón…"/>;
  return <section className="space-y-5" aria-labelledby="salon-promotions-title">
-  <header className={`${card} space-y-2`}><h2 id="salon-promotions-title" className="text-xl font-bold">Promociones del salón</h2><p className="text-sm text-neutral-400">Elige un servicio publicado y define un precio inferior al habitual y las fechas. El servidor revisa el precio vigente al mostrar la oferta y al guardar cada solicitud de cita.</p></header>
+  <header className={`${card} space-y-2`}><h2 id="salon-promotions-title" className="text-xl font-bold">Promociones del salón</h2><p className="text-sm text-neutral-400">Elige un servicio publicado, su precio promocional y un día de inicio. La oferta se repite ese día de la semana hasta la fecha final. Cada negocio puede tener un solo día promocional por semana, compartido con Cortes al 50 %; el descuento de belleza lo defines tú.</p></header>
   <Mensaje>{error}</Mensaje><Mensaje tipo="ok">{message}</Mensaje>
   {offers.length>0&&<section className={`${card} space-y-3`} aria-label="Ofertas configuradas"><h3 className="font-semibold">Ofertas configuradas</h3>{offers.map(offer=>{
    const status=!offer.active?'Pausada':offer.expired?'Vencida':!offer.service_published?'Servicio oculto':offer.price_changed?'Revisar precio habitual':'Activa';
@@ -54,11 +54,11 @@ export default function SalonPromotions({api}){
    {selected&&<p className="text-sm text-neutral-300">Precio habitual actual: S/ {money(selected.precio)}</p>}
    <div className="grid gap-3 sm:grid-cols-3">
     <label className="block text-sm">Precio promocional (S/)<input required type="number" min="0.01" max={selected?Math.max(.01,Number(selected.precio)-.01):undefined} step="0.01" value={form.promoPrice} onChange={event=>setForm(current=>({...current,promoPrice:event.target.value}))} className={`${inputClass} mt-1`} /></label>
-    <label className="block text-sm">Desde<input required type="date" min={limaToday()} value={form.startsOn} onChange={event=>setForm(current=>({...current,startsOn:event.target.value,endsOn:current.endsOn<event.target.value?event.target.value:current.endsOn}))} className={`${inputClass} mt-1`} /></label>
+    <label className="block text-sm">Día semanal desde<input required type="date" min={limaToday()} value={form.startsOn} onChange={event=>setForm(current=>({...current,startsOn:event.target.value,endsOn:current.endsOn<event.target.value?event.target.value:current.endsOn}))} className={`${inputClass} mt-1`} /></label>
     <label className="block text-sm">Hasta<input required type="date" min={form.startsOn||limaToday()} value={form.endsOn} onChange={event=>setForm(current=>({...current,endsOn:event.target.value}))} className={`${inputClass} mt-1`} /></label>
    </div>
    <label className="flex items-center gap-3 text-sm"><input type="checkbox" checked={form.active} onChange={event=>setForm(current=>({...current,active:event.target.checked}))} className="size-5 accent-amber-400"/>Publicar esta promoción</label>
-   <p className="text-xs text-neutral-400">La oferta solo aparece mientras el servicio siga publicado, el precio promocional sea menor al habitual y las fechas estén vigentes. Una cita solicitada queda sujeta a la aceptación del salón; no se realizan cobros.</p>
+   <p className="text-xs text-neutral-400">La oferta solo aparece ese día semanal, mientras el servicio siga publicado y el precio promocional sea menor al habitual. El servidor impide un segundo día promocional para este negocio en la misma semana. Una cita queda sujeta a aceptación; no se realizan cobros.</p>
    {offers.length===0&&services.length===0&&<p className="text-sm text-neutral-400">Publica primero un servicio con precio y duración definidos.</p>}
    <div className="flex flex-wrap gap-2"><button type="submit" disabled={busy||(!services.some(service=>String(service.id)===String(form.serviceId))&&!pausingHiddenOffer)} className={btnPrimary}>{busy?'Guardando…':'Guardar promoción'}</button>{editing&&<button type="button" onClick={newOffer} className={btnGhost}>Cancelar edición</button>}</div>
   </form>

@@ -1,5 +1,13 @@
 @import "tailwindcss";
 
+@font-face {
+  font-family: "Sunny Brunch";
+  src: url("/fonts/SunnyBrunch-Regular.ttf") format("truetype");
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+}
+
 @theme {
   --color-amber-50: #fbf7e8;
   --color-amber-100: #f5e9bc;
@@ -118,6 +126,43 @@ body {
 .meryo-catalog-section { scroll-margin-top: 5rem; }
 .meryo-bookings-page-header { display: flex; flex-wrap: wrap; align-items: center; gap: .75rem; }
 .meryo-bookings-page-header h1 { flex: 1 1 auto; }
+
+.meryo-beauty-promotions-banner {
+  background-image: linear-gradient(90deg, rgba(250, 247, 244, .72) 0%, rgba(250, 247, 244, .54) 38%, rgba(250, 247, 244, .22) 66%, transparent 82%), url('/salon-promotions-banner.jpg');
+  background-size: cover;
+  background-position: right center;
+}
+
+.meryo-beauty-promotions-title {
+  max-width: 72%;
+  font-family: "Sunny Brunch", "Arial Narrow", sans-serif;
+  font-size: clamp(3.25rem, 7vw, 6rem);
+  font-weight: 400;
+  letter-spacing: .015em;
+  line-height: .92;
+  text-transform: uppercase;
+  text-wrap: balance;
+}
+
+@media (min-width: 640px) {
+  .meryo-beauty-promotions-title {
+    max-width: 52%;
+    font-size: clamp(4.5rem, 6.5vw, 6rem);
+  }
+}
+
+@media (max-width: 400px) {
+  .meryo-beauty-promotions-title {
+    max-width: 54%;
+    font-size: clamp(2.75rem, 12.5vw, 3.125rem);
+  }
+}
+
+@media (max-width: 639px) {
+  .meryo-beauty-promotions-banner {
+    background-position: 80% center;
+  }
+}
 .meryo-reservations { min-width: 0; color: var(--meryo-text); }
 .meryo-reservations-heading { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: .75rem; }
 .meryo-reservations-heading h2 { margin: 0; font-size: 1.35rem; font-weight: 800; }

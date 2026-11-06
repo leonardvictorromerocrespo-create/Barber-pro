@@ -138,23 +138,6 @@
 
 .meryo-cover__entry-copy button:hover { transform: translateY(-1px); }
 
-.meryo-cover__entry-copy .meryo-cover__promotions-link {
-  min-width: 0;
-  min-height: 2.75rem;
-  margin: 0;
-  border-color: transparent;
-  color: var(--meryo-cover-gold-light);
-  padding: .35rem .7rem;
-  font-size: .9rem;
-  text-decoration: underline;
-  text-underline-offset: .25rem;
-}
-
-.meryo-cover__entry-copy .meryo-cover__promotions-link:hover {
-  background: transparent;
-  color: #fff0c2;
-}
-
 .meryo-cover__footer {
   display: flex;
   justify-content: flex-end;
