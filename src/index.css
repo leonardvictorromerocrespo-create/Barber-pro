@@ -124,6 +124,114 @@ body {
 }
 
 .meryo-catalog-section { scroll-margin-top: 5rem; }
+
+/* Low-profile finish for the barber catalog only. Beauty keeps its own theme. */
+.meryo-soft-catalog .meryo-soft-promotion-link {
+  border: 0;
+  border-radius: 7px;
+  background: #191710;
+  box-shadow: 0 4px 12px rgb(0 0 0 / 24%);
+  color: var(--meryo-gold-light);
+}
+.meryo-soft-catalog .meryo-soft-promotion-link:hover { background: #211e15; }
+.meryo-soft-catalog .meryo-catalog-filters {
+  border: 0;
+  border-radius: 11px;
+  background: #151410;
+  box-shadow: 0 5px 14px rgb(0 0 0 / 24%);
+}
+.meryo-soft-catalog .meryo-catalog-filters input,
+.meryo-soft-catalog .meryo-catalog-filters select {
+  border: 0;
+  border-radius: 7px;
+  background-color: #0e0d0b;
+  box-shadow: 0 3px 8px rgb(0 0 0 / 28%);
+  color: var(--meryo-text);
+}
+.meryo-soft-catalog .meryo-catalog-filters input::placeholder { color: #aaa394; }
+.meryo-soft-catalog .meryo-catalog-filters button {
+  border: 0;
+  border-radius: 7px;
+  background: #c5a32f;
+  box-shadow: 0 3px 8px rgb(0 0 0 / 25%);
+  color: #17140c;
+}
+.meryo-soft-catalog .meryo-catalog-filters button:hover { background: #d0ae3d; }
+.meryo-soft-catalog .meryo-shop-card {
+  border: 0;
+  border-radius: 11px;
+  background: #151410;
+  box-shadow: 0 6px 16px rgb(0 0 0 / 28%);
+}
+.meryo-soft-catalog .meryo-shop-card__services {
+  border: 0;
+  border-radius: 7px;
+  background: #100f0c !important;
+  box-shadow: 0 3px 9px rgb(0 0 0 / 22%);
+}
+.meryo-soft-catalog .meryo-shop-card button { border-radius: 7px; }
+.meryo-soft-catalog .meryo-shop-card button:first-child { border-color: transparent; box-shadow: 0 3px 8px rgb(0 0 0 / 24%); }
+.meryo-soft-catalog-info .meryo-info-block {
+  border-color: transparent !important;
+  border-radius: 11px;
+  background: #171510 !important;
+  box-shadow: 0 7px 18px rgb(0 0 0 / 26%);
+}
+.meryo-soft-catalog-info .meryo-info-block > .rounded-2xl {
+  border-color: transparent;
+  border-radius: 7px;
+  background: #100f0d;
+  box-shadow: 0 3px 9px rgb(0 0 0 / 22%);
+}
+.meryo-soft-catalog-info .meryo-info-block button { border-radius: 7px; }
+
+.meryo-soft-booking {
+  border-color: transparent !important;
+  border-radius: 12px !important;
+  background: #100f0d !important;
+  box-shadow: 0 12px 32px rgb(0 0 0 / 48%);
+}
+.meryo-soft-booking .meryo-booking-close,
+.meryo-soft-booking .meryo-booking-option,
+.meryo-soft-booking .meryo-booking-field,
+.meryo-soft-booking button.meryo-booking-submit {
+  border-color: transparent !important;
+  border-radius: 7px !important;
+  box-shadow: 0 3px 9px rgb(0 0 0 / 25%);
+}
+.meryo-soft-booking .meryo-booking-close { background: #1b1915; color: var(--meryo-text); }
+.meryo-soft-booking .meryo-booking-option {
+  background-color: #191815;
+  color: var(--meryo-text);
+}
+.meryo-soft-booking .meryo-booking-option:hover:not(:disabled) { background-color: #242119; }
+.meryo-soft-booking .meryo-booking-option.is-selected {
+  background: var(--meryo-gold);
+  color: #15120a;
+  font-weight: 750;
+}
+.meryo-soft-booking .meryo-booking-option.is-selected .meryo-booking-price { color: #15120a; }
+.meryo-soft-booking .meryo-booking-option.is-unavailable,
+.meryo-soft-booking .meryo-booking-option:disabled {
+  background: #11100e;
+  color: #817b70;
+  opacity: .72;
+  text-decoration-color: #817b70;
+}
+.meryo-soft-booking .meryo-booking-field {
+  background-color: #181713;
+  color: var(--meryo-text);
+}
+.meryo-soft-booking .meryo-booking-panel {
+  border-color: transparent !important;
+  border-radius: 10px !important;
+  background: #171613 !important;
+  box-shadow: 0 5px 13px rgb(0 0 0 / 24%);
+}
+.meryo-soft-booking :where(button, input, select, textarea):focus-visible {
+  outline: 3px solid var(--meryo-gold-light);
+  outline-offset: 2px;
+}
 .meryo-bookings-page-header { display: flex; flex-wrap: wrap; align-items: center; gap: .75rem; }
 .meryo-bookings-page-header h1 { flex: 1 1 auto; }
 

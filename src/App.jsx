@@ -222,7 +222,7 @@ export function BookingModal({
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-2 sm:p-4">
       
-      <div data-meryo-theme={catalogCategory==='belleza'?'beauty':'barberia'} className="max-h-[92vh] w-full max-w-5xl overflow-auto rounded-2xl border border-white/10 bg-neutral-950 p-3 text-white shadow-2xl sm:rounded-3xl sm:p-6">
+      <div data-meryo-theme={catalogCategory==='belleza'?'beauty':'barberia'} className={`max-h-[92vh] w-full max-w-5xl overflow-auto rounded-2xl border border-white/10 bg-neutral-950 p-3 text-white shadow-2xl sm:rounded-3xl sm:p-6 ${catalogCategory==='barberia'?'meryo-soft-booking':''}`}>
         <div className="mb-4 flex items-start justify-between gap-2 sm:gap-4">
           <div className="min-w-0">
             <p className="text-xs uppercase tracking-[0.2em] text-amber-300">Reserva tu cita</p>
@@ -232,7 +232,7 @@ export function BookingModal({
             </p>
               {salonPromotion&&<p className="mt-3 rounded-xl border border-amber-400/25 bg-amber-400/10 p-3 text-sm text-amber-100">Promoción del salón: precio habitual S/ {Number(salonPromotion.regularPrice).toFixed(2)} · precio promocional S/ {Number(salonPromotion.promoPrice).toFixed(2)}. El servidor comprobará la oferta antes de guardar.</p>}
           </div>
-          <button onClick={closeBookingModal} className={`min-h-11 shrink-0 rounded-xl border border-white/10 px-3 text-sm ${pointerClass}`}>
+          <button onClick={closeBookingModal} className={`meryo-booking-close min-h-11 shrink-0 rounded-xl border border-white/10 px-3 text-sm ${pointerClass}`}>
             Cerrar
           </button>
         </div>
@@ -248,9 +248,9 @@ export function BookingModal({
                     aria-pressed={selectedService?.id === service.id}
                     key={service.id}
                     onClick={() => {(onServiceSelect||setSelectedService)(service);setSelectedTime("");}}
-                    className={`flex min-h-12 w-full min-w-0 items-center gap-1.5 rounded-lg px-1.5 py-2 text-left transition sm:gap-3 sm:px-3 ${pointerClass} ${
+                    className={`meryo-booking-option flex min-h-12 w-full min-w-0 items-center gap-1.5 rounded-lg px-1.5 py-2 text-left transition sm:gap-3 sm:px-3 ${pointerClass} ${
                       selectedService?.id === service.id
-                        ? "bg-amber-400/10 ring-1 ring-inset ring-amber-400/45"
+                        ? "is-selected"
                         : "hover:bg-white/5"
                     }`}
                   >
@@ -258,7 +258,7 @@ export function BookingModal({
                       <span className="block text-xs leading-snug font-semibold [overflow-wrap:anywhere] sm:text-sm">{service.name}</span>
                       <span className="mt-0.5 block text-[11px] text-neutral-400">{service.duration}</span>
                     </span>
-                    <span className="shrink-0 text-right text-xs font-semibold text-amber-300 tabular-nums">
+                      <span className="meryo-booking-price shrink-0 text-right text-xs font-semibold text-amber-300 tabular-nums">
                       {(promotion||salonPromotion)&&<span className="block text-[11px] font-normal text-neutral-400 line-through">S/ {Number(service.price).toFixed(2)}</span>}
                       S/ {promotion||salonPromotion?Number(finalPrice).toFixed(2):Number(service.price).toFixed(2)}
                     </span>
@@ -274,7 +274,7 @@ export function BookingModal({
                     const initials=String(member.nombre||'?').trim().split(/\s+/).slice(0,2).map(part=>part.charAt(0)).join('').toUpperCase();
                     return <button key={member.id} type="button" aria-pressed={chosen} disabled={!enabled}
                       onClick={()=>{setSelectedBarber(member.id);setSelectedTime('');}}
-                      className={`flex min-h-12 w-full min-w-0 items-center gap-2 rounded-xl border px-2 py-1.5 text-left ${chosen?'border-amber-400/45 bg-amber-400/10':'border-white/10'} disabled:opacity-60`}>
+                      className={`meryo-booking-option flex min-h-12 w-full min-w-0 items-center gap-2 rounded-xl border px-2 py-1.5 text-left ${chosen?'is-selected':''}`}>
                       <span aria-hidden="true" className="relative grid size-8 shrink-0 place-items-center overflow-hidden rounded-full bg-amber-400/10 text-[10px] font-semibold text-amber-300">
                         {initials}
                         {member.foto_url&&<img src={member.foto_url} alt="" className="absolute inset-0 size-full object-cover" onError={e=>{e.currentTarget.hidden=true;}}/>}
@@ -302,10 +302,10 @@ export function BookingModal({
                     aria-pressed={selectedDate === date}
                     disabled={Boolean(salonPromotion&&date!==salonPromotion.promotionDate)}
                     onClick={() => {setSelectedDate(date);setSelectedTime("");}}
-                    className={`min-h-11 min-w-0 rounded-lg border px-1 py-1.5 text-[11px] font-medium ${pointerClass} disabled:cursor-not-allowed disabled:opacity-40 ${
+                    className={`meryo-booking-option min-h-11 min-w-0 rounded-lg border px-1 py-1.5 text-[11px] font-medium ${pointerClass} ${
                       selectedDate === date
-                        ? "border-amber-400 bg-amber-400 text-black"
-                        : "border-white/10 bg-black/20 text-white"
+                        ? "is-selected"
+                        : ""
                     }`}
                   >
                     {index < 2 && <span className="block">{index === 0 ? 'Hoy' : 'Mañana'}</span>}
@@ -314,11 +314,11 @@ export function BookingModal({
                 ))}
               </div>
               <label className="mt-2 block text-xs">Otra fecha (hasta 30 días)
-                <input aria-label="Fecha de la cita" type="date" min={salonPromotion?.promotionDate||AVAILABLE_DATES[0]} max={salonPromotion?.promotionDate||sumarDias(AVAILABLE_DATES[0],30)} disabled={Boolean(salonPromotion)} value={selectedDate} onChange={e=>{setSelectedDate(e.target.value);setSelectedTime("");}} className="mt-1 block min-h-11 w-full min-w-0 max-w-full rounded-xl border border-white/10 bg-neutral-900 px-1 text-xs sm:px-3 sm:text-sm disabled:opacity-60"/>
+                <input aria-label="Fecha de la cita" type="date" min={salonPromotion?.promotionDate||AVAILABLE_DATES[0]} max={salonPromotion?.promotionDate||sumarDias(AVAILABLE_DATES[0],30)} disabled={Boolean(salonPromotion)} value={selectedDate} onChange={e=>{setSelectedDate(e.target.value);setSelectedTime("");}} className="meryo-booking-field mt-1 block min-h-11 w-full min-w-0 max-w-full rounded-xl border border-white/10 bg-neutral-900 px-1 text-xs sm:px-3 sm:text-sm disabled:opacity-60"/>
               </label>
             </div>
 
-            <div className="min-w-0 rounded-2xl border border-white/10 bg-neutral-900 p-3 sm:p-4">
+            <div className="meryo-booking-panel min-w-0 rounded-2xl border border-white/10 bg-neutral-900 p-3 sm:p-4">
               <div className="flex flex-wrap items-center justify-between gap-2 border-b border-amber-300/20 pb-2.5">
                 <h4 className="flex items-start gap-1.5 text-xs leading-snug font-bold text-amber-300 sm:gap-2 sm:text-sm"><span className="shrink-0 font-medium tabular-nums opacity-80">3.</span> <span>Elige la hora</span></h4>
                 {activeSlots.length>0&&<div className="flex flex-wrap items-center gap-2 text-xs text-neutral-400">
@@ -339,10 +339,10 @@ export function BookingModal({
                     onClick={() => setSelectedTime(slot.time)}
                     aria-pressed={selectedTime===slot.time}
                     aria-label={`${slot.label}${slot.occupied?' · no disponible':selectedTime===slot.time?' · seleccionado':' · disponible'}`}
-                    className={`meryo-time-slot min-h-11 min-w-0 rounded-lg border px-1 py-2 !text-[11px] leading-tight font-medium tabular-nums transition sm:!text-xs ${
+                    className={`meryo-booking-option meryo-time-slot min-h-11 min-w-0 rounded-lg border px-1 py-2 !text-[11px] leading-tight font-medium tabular-nums transition sm:!text-xs ${
                       slot.occupied
-                        ? "cursor-not-allowed border-white/10 bg-black/20 text-neutral-400 line-through opacity-70"
-                        : `${pointerClass} ${selectedTime === slot.time ? "border-amber-400 bg-amber-400 text-black" : "border-white/10 bg-black/20 text-white hover:border-amber-400/50"}`
+                        ? "is-unavailable cursor-not-allowed text-neutral-400 line-through"
+                        : `${pointerClass} ${selectedTime === slot.time ? "is-selected" : ""}`
                     }`}
                   >
                     {slot.label}
@@ -353,7 +353,7 @@ export function BookingModal({
 
           </div>
           <div className="col-span-2 min-w-0 space-y-3 sm:col-span-1">
-            <div className="min-w-0 rounded-2xl border border-white/10 bg-neutral-900 p-3 sm:p-4">
+            <div className="meryo-booking-panel min-w-0 rounded-2xl border border-white/10 bg-neutral-900 p-3 sm:p-4">
               <h4 className="flex items-start gap-1.5 text-xs leading-snug font-bold text-amber-300 sm:gap-2 sm:text-sm border-b border-amber-300/20 pb-2.5"><span className="shrink-0 font-medium tabular-nums opacity-80">4.</span> <span>Datos del cliente</span></h4>
               <div className="mt-2 grid gap-2 sm:grid-cols-2">
                 <input
@@ -361,7 +361,7 @@ export function BookingModal({
                   autoComplete="name"
                   value={customerInfo.name}
                   onChange={(e) => setCustomerInfo((prev) => ({ ...prev, name: e.target.value }))}
-                  className="min-h-11 min-w-0 rounded-xl border border-white/10 bg-black/20 px-3 py-2 outline-none"
+                  className="meryo-booking-field min-h-11 min-w-0 rounded-xl border border-white/10 bg-black/20 px-3 py-2 outline-none"
                   placeholder="Tu nombre"
                 />
                 <input
@@ -370,25 +370,25 @@ export function BookingModal({
                   autoComplete="tel"
                   value={customerInfo.phone}
                   onChange={(e) => setCustomerInfo((prev) => ({ ...prev, phone: e.target.value }))}
-                  className="min-h-11 min-w-0 rounded-xl border border-white/10 bg-black/20 px-3 py-2 outline-none"
+                  className="meryo-booking-field min-h-11 min-w-0 rounded-xl border border-white/10 bg-black/20 px-3 py-2 outline-none"
                   placeholder="Tu celular"
                 />
               </div>
             </div>
 
-            <details className="min-w-0 rounded-2xl border border-white/10 bg-neutral-900 px-3 sm:px-4">
+            <details className="meryo-booking-panel min-w-0 rounded-2xl border border-white/10 bg-neutral-900 px-3 sm:px-4">
               <summary className="min-h-11 cursor-pointer py-3 text-sm font-semibold">Añadir pedido especial <span className="font-normal text-neutral-400">(opcional)</span></summary>
               <textarea
                 aria-label="Pedido especial"
                 value={customRequest}
                 onChange={(e) => setCustomRequest(e.target.value)}
                 placeholder="Ej.: degradado alto con línea al costado"
-                className="mb-3 min-h-20 w-full rounded-xl border border-white/10 bg-black/20 px-3 py-2 text-sm outline-none"
+                className="meryo-booking-field mb-3 min-h-20 w-full rounded-xl border border-white/10 bg-black/20 px-3 py-2 text-sm outline-none"
               />
             </details>
           </div>
 
-          <div className="col-span-2 min-w-0 rounded-2xl border border-amber-400/20 bg-amber-400/10 p-3 sm:col-span-1 sm:p-4">
+          <div className="meryo-booking-panel col-span-2 min-w-0 rounded-2xl border border-amber-400/20 bg-amber-400/10 p-3 sm:col-span-1 sm:p-4">
             <p className="text-sm uppercase tracking-[0.2em] text-amber-300">Resumen</p>
 
             <div className="mt-2 space-y-2 text-sm [&>div]:gap-2 [&>div>span:last-child]:min-w-0 [&>div>span:last-child]:text-right [&>div>span:last-child]:[overflow-wrap:anywhere]">
@@ -406,7 +406,7 @@ export function BookingModal({
             <button
               onClick={submitReservation}
               disabled={savingReservation || identityLoading || !selectedTime || !selectedBarber || Boolean(salonPriceDecision) || (reservationsEnabled&&(!customerInfo.name.trim() || !customerInfo.phone.trim())) || requestSaved}
-              className={`mt-3 min-h-11 w-full rounded-xl py-2 font-bold ${
+              className={`meryo-booking-submit mt-3 min-h-11 w-full rounded-xl py-2 font-bold ${
                 selectedTime && customerInfo.name.trim() && customerInfo.phone.trim() && !requestSaved
                   ? `${pointerClass} bg-amber-400 text-black`
                   : "cursor-not-allowed bg-neutral-700 text-neutral-400"
@@ -1056,10 +1056,10 @@ if (view === "admin" && adminAccess) return <AdminShops api={api} profile={ident
         {identity.error&&<p role="alert" className="px-6 text-red-300">{identity.error}</p>}
         {accessMessage&&<p role="status" className="px-6 text-amber-300">{accessMessage}</p>}
         {profileUnavailable&&<div role="alert" className="mx-auto my-5 max-w-4xl rounded-2xl border border-white/15 bg-neutral-900 p-5"><h1 className="text-xl font-bold">Este negocio ya no está disponible</h1><p className="mt-2 text-neutral-300">No mostramos perfiles que ya no están publicados.</p><button onClick={closeProfileModal} className="mt-4 rounded-xl border border-amber-400/50 px-4 py-2 text-amber-200">Volver al catálogo</button></div>}
-        <section id="catalogo" className="meryo-catalog-section mx-auto max-w-7xl px-3 pt-4 pb-10 md:px-6 md:py-16">
+        <section id="catalogo" className={`meryo-catalog-section ${catalogCategory==='barberia'?'meryo-soft-catalog':''} mx-auto max-w-7xl px-3 pt-4 pb-10 md:px-6 md:py-16`}>
           <ClientHero heroIndex={heroIndex} setHeroIndex={setHeroIndex} setView={setView} catalogCategory={catalogCategory} />
 
-          {catalogCategory==='barberia'&&<button type="button" onClick={()=>setView('promotions')} className="mb-8 min-h-12 rounded-xl border border-amber-400/50 bg-neutral-900 px-5 py-3 font-bold text-amber-200 shadow-sm transition hover:bg-neutral-800">Ver promociones</button>}
+          {catalogCategory==='barberia'&&<button type="button" onClick={()=>setView('promotions')} className="meryo-soft-promotion-link mb-8 min-h-12 rounded-xl border border-amber-400/50 bg-neutral-900 px-5 py-3 font-bold text-amber-200 shadow-sm transition hover:bg-neutral-800">Ver promociones</button>}
           {catalogCategory==='belleza'&&<button type="button" onClick={openBeautyPromotions} className="mb-8 min-h-12 rounded-xl border border-[#C5AD86]/60 bg-[#FFFEFC] px-5 py-3 font-bold text-[#352832] shadow-sm transition hover:bg-[#EEDDE2]">Ver ofertas</button>}
 
           <div className="mb-10 flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
@@ -1087,7 +1087,7 @@ if (view === "admin" && adminAccess) return <AdminShops api={api} profile={ident
           <CatalogShopGrid shops={ranking} category={catalogCategory} onView={openProfileModal} onReserve={openBookingModal}/>
         </section>
 
-        <section className="border-y border-white/10 bg-neutral-900 py-16">
+        <section className={catalogCategory==='barberia'?"meryo-soft-catalog-info border-y border-white/10 bg-neutral-900 py-16":"border-y border-white/10 bg-neutral-900 py-16"}>
           <div className="mx-auto grid max-w-7xl gap-8 px-6 md:grid-cols-2">
             <div className="meryo-info-block meryo-info-block--teal rounded-3xl border border-white/10 bg-neutral-950 p-6">
               <h2 className="text-2xl font-black">Solicita tu cita</h2><p className="mt-3 text-neutral-400">Elige un servicio en el catálogo. El adelanto del 50 % se solicita únicamente después de que {catalogCategory==='belleza'?'el profesional del salón':'el barbero'} acepte.</p>
