@@ -1,0 +1,155 @@
+/* Optional smoked-plum mode for Belleza. Existing rose/marfil stays the default. */
+[data-meryo-theme="beauty"][data-meryo-mode="light"] .meryo-profile-modal section { border-color: rgb(197 173 134 / 34%) !important; background-color: #fffefc !important; color: #352832; box-shadow: 0 4px 12px rgb(53 40 50 / 7%); }
+[data-meryo-theme="beauty"][data-meryo-mode="light"] .meryo-profile-modal [class~="bg-black/30"] { border-color: rgb(197 173 134 / 24%) !important; background-color: #faf7f4 !important; color: #352832; }
+[data-meryo-theme="beauty"][data-meryo-mode="light"] .meryo-profile-modal .meryo-profile-close { border-color: rgb(197 173 134 / 34%) !important; background: #eedde2 !important; color: #352832 !important; }
+
+[data-meryo-theme="beauty"][data-meryo-mode="dark"] {
+  color-scheme: dark;
+  --meryo-carbon: #342c33;
+  --meryo-surface: #413740;
+  --meryo-surface-raised: #493f47;
+  --meryo-surface-soft: #554650;
+  --meryo-gold: #b9788c;
+  --meryo-gold-light: #e3b1bf;
+  --meryo-gold-border: rgb(227 177 191 / 25%);
+  --meryo-text: #f7f0e9;
+  --meryo-text-muted: #d0c1c9;
+  --meryo-border: rgb(247 240 233 / 15%);
+  --meryo-profile-wash-start: rgb(52 44 51 / 90%);
+  --meryo-profile-wash-end: rgb(52 44 51 / 94%);
+  --color-neutral-950: #342c33;
+  --color-neutral-900: #413740;
+  --color-neutral-800: #493f47;
+  --color-neutral-700: #554650;
+  --color-neutral-600: #897b84;
+  --color-neutral-500: #a899a1;
+  --color-neutral-400: #d0c1c9;
+  --color-neutral-300: #e2d8dd;
+  --color-neutral-200: #efe6e9;
+  --color-neutral-100: #f7f0e9;
+  --color-amber-50: #fbf5f6;
+  --color-amber-100: #f4e4e9;
+  --color-amber-200: #eacbd4;
+  --color-amber-300: #dfaaba;
+  --color-amber-400: #955568;
+  --color-amber-500: #a86479;
+  --color-amber-600: #8d4e64;
+  --color-amber-700: #713d50;
+  --color-amber-800: #58303e;
+  --color-amber-900: #3d222c;
+  background-color: #342c33;
+  color: #f7f0e9;
+}
+
+[data-meryo-theme="beauty"][data-meryo-mode="dark"] .bg-neutral-950,
+[data-meryo-theme="beauty"][data-meryo-mode="dark"] [class~="bg-neutral-950/90"],
+[data-meryo-theme="beauty"][data-meryo-mode="dark"] [class~="bg-neutral-950/95"] { background-color: #342c33 !important; }
+[data-meryo-theme="beauty"][data-meryo-mode="dark"] .bg-neutral-900 { background-color: #413740 !important; }
+[data-meryo-theme="beauty"][data-meryo-mode="dark"] .bg-neutral-800 { background-color: #493f47 !important; }
+[data-meryo-theme="beauty"][data-meryo-mode="dark"] .bg-neutral-700,
+[data-meryo-theme="beauty"][data-meryo-mode="dark"] [class~="bg-black/20"],
+[data-meryo-theme="beauty"][data-meryo-mode="dark"] [class~="bg-black/30"],
+[data-meryo-theme="beauty"][data-meryo-mode="dark"] [class~="bg-black/35"],
+[data-meryo-theme="beauty"][data-meryo-mode="dark"] [class~="bg-black/40"],
+[data-meryo-theme="beauty"][data-meryo-mode="dark"] [class~="bg-white/10"],
+[data-meryo-theme="beauty"][data-meryo-mode="dark"] [class~="bg-white/15"],
+[data-meryo-theme="beauty"][data-meryo-mode="dark"] [class~="bg-white/20"],
+[data-meryo-theme="beauty"][data-meryo-mode="dark"] [class~="bg-white/40"] { background-color: #554650 !important; }
+[data-meryo-theme="beauty"][data-meryo-mode="dark"] [class~="bg-black/70"],
+[data-meryo-theme="beauty"][data-meryo-mode="dark"] [class~="bg-black/80"] { background-color: rgb(21 17 22 / 78%) !important; }
+[data-meryo-theme="beauty"][data-meryo-mode="dark"] .text-white,
+[data-meryo-theme="beauty"][data-meryo-mode="dark"] .text-neutral-100,
+[data-meryo-theme="beauty"][data-meryo-mode="dark"] .text-neutral-200,
+[data-meryo-theme="beauty"][data-meryo-mode="dark"] .text-neutral-300 { color: #f7f0e9 !important; }
+[data-meryo-theme="beauty"][data-meryo-mode="dark"] .text-neutral-400,
+[data-meryo-theme="beauty"][data-meryo-mode="dark"] .text-neutral-500 { color: #d0c1c9 !important; }
+[data-meryo-theme="beauty"][data-meryo-mode="dark"] [class~="text-black"],
+[data-meryo-theme="beauty"][data-meryo-mode="dark"] [class~="text-black/80"] { color: #f7f0e9 !important; }
+[data-meryo-theme="beauty"][data-meryo-mode="dark"] [class*="text-amber-"] { color: #e3b1bf !important; }
+[data-meryo-theme="beauty"][data-meryo-mode="dark"] [class*="bg-amber-400/"] { background-color: rgb(185 120 140 / 18%) !important; }
+[data-meryo-theme="beauty"][data-meryo-mode="dark"] [class~="bg-amber-400"] { background-color: #955568 !important; color: #fff8f6 !important; }
+[data-meryo-theme="beauty"][data-meryo-mode="dark"] [class~="bg-amber-400"][class~="text-black"] { color: #fff8f6 !important; }
+[data-meryo-theme="beauty"][data-meryo-mode="dark"] [class*="border-white/"],
+[data-meryo-theme="beauty"][data-meryo-mode="dark"] [class*="border-amber-"] { border-color: rgb(227 177 191 / 22%) !important; }
+[data-meryo-theme="beauty"][data-meryo-mode="dark"] [class~="border-dashed"] { border-color: rgb(227 177 191 / 38%) !important; }
+[data-meryo-theme="beauty"][data-meryo-mode="dark"] input,
+[data-meryo-theme="beauty"][data-meryo-mode="dark"] select,
+[data-meryo-theme="beauty"][data-meryo-mode="dark"] textarea { border-color: rgb(227 177 191 / 22%) !important; background-color: #493f47 !important; color: #f7f0e9 !important; color-scheme: dark; }
+[data-meryo-theme="beauty"][data-meryo-mode="dark"] select option { background-color: #413740; color: #f7f0e9; }
+[data-meryo-theme="beauty"][data-meryo-mode="dark"] input::placeholder,
+[data-meryo-theme="beauty"][data-meryo-mode="dark"] textarea::placeholder { color: #c3b3bc; opacity: 1; }
+[data-meryo-theme="beauty"][data-meryo-mode="dark"] :where(button, a, input, select, textarea, [tabindex]):focus-visible { outline: 3px solid #e3b1bf !important; outline-offset: 2px; }
+[data-meryo-theme="beauty"][data-meryo-mode="dark"] :is(input, select, textarea):disabled { background-color: #554650 !important; color: #c3b3bc !important; opacity: 1 !important; }
+[data-meryo-theme="beauty"][data-meryo-mode="dark"] button:disabled { opacity: .72 !important; }
+[data-meryo-theme="beauty"][data-meryo-mode="dark"] [class~="bg-amber-400"]:disabled { border-color: rgb(227 177 191 / 25%); background-color: #554650 !important; color: #c3b3bc !important; }
+[data-meryo-theme="beauty"][data-meryo-mode="dark"] [class~="hover:bg-black/60"]:hover { background-color: #554650 !important; color: #f7f0e9 !important; }
+[data-meryo-theme="beauty"][data-meryo-mode="dark"] [class~="bg-emerald-500/10"] { background-color: rgb(185 120 140 / 16%) !important; }
+[data-meryo-theme="beauty"][data-meryo-mode="dark"] [class~="border-emerald-500/30"],
+[data-meryo-theme="beauty"][data-meryo-mode="dark"] [class~="border-emerald-500/40"] { border-color: rgb(227 177 191 / 22%) !important; }
+
+[data-meryo-theme="beauty"][data-meryo-mode="dark"] .meryo-site-header { border-color: rgb(247 240 233 / 14%) !important; background-color: #342c33 !important; color: #f7f0e9 !important; }
+[data-meryo-theme="beauty"][data-meryo-mode="dark"] .meryo-site-header button { border-color: transparent !important; color: #f7f0e9 !important; }
+[data-meryo-theme="beauty"][data-meryo-mode="dark"] .meryo-site-header button:hover { background-color: #554650 !important; }
+[data-meryo-theme="beauty"][data-meryo-mode="dark"] .meryo-header-professional { border-color: rgb(247 240 233 / 15%) !important; }
+[data-meryo-theme="beauty"][data-meryo-mode="dark"] .meryo-catalog-filters { border-color: transparent !important; background-color: #413740 !important; box-shadow: 0 5px 14px rgb(20 15 20 / 20%); }
+[data-meryo-theme="beauty"][data-meryo-mode="dark"] .meryo-shop-card__services,
+[data-meryo-theme="beauty"][data-meryo-mode="dark"] .meryo-shop-card:nth-child(3n + 1) .meryo-shop-card__services,
+[data-meryo-theme="beauty"][data-meryo-mode="dark"] .meryo-shop-card:nth-child(3n + 2) .meryo-shop-card__services { background-color: #554650 !important; }
+[data-meryo-theme="beauty"][data-meryo-mode="dark"] .meryo-mobile-bottom-nav { border-color: rgb(227 177 191 / 22%); background: rgb(52 44 51 / 97%); color: #f7f0e9; }
+[data-meryo-theme="beauty"][data-meryo-mode="dark"] .meryo-mobile-bottom-nav button { color: #d0c1c9; }
+[data-meryo-theme="beauty"][data-meryo-mode="dark"] .meryo-mobile-bottom-nav button.is-active { background: #554650; color: #e3b1bf; }
+[data-meryo-theme="beauty"][data-meryo-mode="dark"] .meryo-beauty-hero { border-color: rgb(227 177 191 / 25%); background-color: #342c33; }
+[data-meryo-theme="beauty"][data-meryo-mode="dark"] .meryo-beauty-hero-overlay { background: linear-gradient(90deg, rgb(38 30 38 / 74%) 0%, rgb(52 42 52 / 48%) 52%, rgb(52 42 52 / 14%) 100%); }
+[data-meryo-theme="beauty"][data-meryo-mode="dark"] .meryo-beauty-hero h1,
+[data-meryo-theme="beauty"][data-meryo-mode="dark"] .meryo-beauty-hero p { color: #fff8f3 !important; }
+[data-meryo-theme="beauty"][data-meryo-mode="dark"] .meryo-beauty-hero .text-amber-400 { color: #e3b1bf !important; }
+[data-meryo-theme="beauty"][data-meryo-mode="dark"] .meryo-beauty-hero button:not([aria-label^="Ver imagen"]) { border-color: #e3b1bf !important; background-color: rgb(65 55 64 / 90%) !important; color: #f7f0e9 !important; }
+
+[data-meryo-theme="beauty"][data-meryo-mode="dark"] .meryo-booking-card { border-color: rgb(227 177 191 / 25%); background: #413740; color: #f7f0e9; }
+[data-meryo-theme="beauty"][data-meryo-mode="dark"] .meryo-booking-business { color: #f7f0e9; }
+[data-meryo-theme="beauty"][data-meryo-mode="dark"] .meryo-booking-details dt,
+[data-meryo-theme="beauty"][data-meryo-mode="dark"] .meryo-booking-amounts dt,
+[data-meryo-theme="beauty"][data-meryo-mode="dark"] .meryo-booking-note,
+[data-meryo-theme="beauty"][data-meryo-mode="dark"] .meryo-booking-payment { color: #d0c1c9; }
+[data-meryo-theme="beauty"][data-meryo-mode="dark"] .meryo-booking-status { background: rgb(185 120 140 / 18%); color: #f0c5d0; }
+[data-meryo-theme="beauty"] .meryo-booking-option { background-color: #fffefc; color: #352832; }
+[data-meryo-theme="beauty"] .meryo-booking-option:hover:not(:disabled) { background-color: #eedde2; }
+[data-meryo-theme="beauty"] .meryo-booking-option.is-selected { background-color: #955568; color: #fffefc; font-weight: 700; }
+[data-meryo-theme="beauty"] .meryo-booking-option.is-selected .meryo-booking-price { color: #fffefc; }
+[data-meryo-theme="beauty"] .meryo-booking-option.is-unavailable,
+[data-meryo-theme="beauty"] .meryo-booking-option:disabled { background-color: #eedde2; color: #655761; opacity: .78; }
+[data-meryo-theme="beauty"] .meryo-booking-option:disabled .text-neutral-400 { color: #655761 !important; }
+[data-meryo-theme="beauty"][data-meryo-mode="dark"] .meryo-booking-option { background-color: #493f47; color: #f7f0e9; }
+[data-meryo-theme="beauty"][data-meryo-mode="dark"] .meryo-booking-option:hover:not(:disabled) { background-color: #554650; }
+[data-meryo-theme="beauty"][data-meryo-mode="dark"] .meryo-booking-option.is-selected { background-color: #955568; color: #fff8f6; }
+[data-meryo-theme="beauty"][data-meryo-mode="dark"] .meryo-booking-option.is-selected .meryo-booking-price { color: #fff8f6; }
+[data-meryo-theme="beauty"][data-meryo-mode="dark"] .meryo-booking-option.is-unavailable,
+[data-meryo-theme="beauty"][data-meryo-mode="dark"] .meryo-booking-option:disabled { background-color: #554650; color: #c3b3bc; opacity: .78; }
+[data-meryo-theme="beauty"][data-meryo-mode="dark"] .meryo-booking-group > h3,
+[data-meryo-theme="beauty"][data-meryo-mode="dark"] .meryo-reservations-heading button,
+[data-meryo-theme="beauty"][data-meryo-mode="dark"] .meryo-booking-timer span { color: #e3b1bf; }
+
+[data-meryo-theme="beauty"][data-meryo-mode="dark"] .meryo-beauty-promotions-page { background: #342c33 !important; color: #f7f0e9 !important; }
+[data-meryo-theme="beauty"][data-meryo-mode="dark"] .meryo-beauty-promotions-header { border-color: rgb(227 177 191 / 22%); background: rgb(52 44 51 / 96%); }
+[data-meryo-theme="beauty"][data-meryo-mode="dark"] .meryo-beauty-promotions-header button:not(.meryo-promotion-theme-toggle) { border-color: rgb(227 177 191 / 24%) !important; color: #f7f0e9 !important; }
+[data-meryo-theme="beauty"][data-meryo-mode="dark"] .meryo-beauty-promotions-banner { border-color: rgb(227 177 191 / 22%); background-color: #554650; background-image: linear-gradient(90deg, rgb(52 44 51 / 92%) 0%, rgb(52 44 51 / 78%) 40%, rgb(52 44 51 / 35%) 70%, rgb(52 44 51 / 8%) 100%), url('/salon-promotions-banner.jpg'); background-position: right center; background-size: cover; }
+[data-meryo-theme="beauty"][data-meryo-mode="dark"] .meryo-beauty-promotions-title { color: #fff8f3 !important; text-shadow: 0 2px 14px rgb(28 21 28 / 45%); }
+[data-meryo-theme="beauty"][data-meryo-mode="dark"] .meryo-beauty-promo-status,
+[data-meryo-theme="beauty"][data-meryo-mode="dark"] .meryo-beauty-promotions-page [role="status"],
+[data-meryo-theme="beauty"][data-meryo-mode="dark"] .meryo-beauty-promotions-page [role="alert"] { border-color: rgb(227 177 191 / 20%); background: #413740; color: #f7f0e9; }
+[data-meryo-theme="beauty"][data-meryo-mode="dark"] .meryo-beauty-promo-card { border-color: rgb(227 177 191 / 20%); background: #413740; box-shadow: 0 6px 16px rgb(20 15 20 / 20%); }
+[data-meryo-theme="beauty"][data-meryo-mode="dark"] .meryo-beauty-promo-card h2 { color: #f7f0e9 !important; }
+[data-meryo-theme="beauty"][data-meryo-mode="dark"] .meryo-beauty-promo-card p,
+[data-meryo-theme="beauty"][data-meryo-mode="dark"] .meryo-beauty-promo-card [class*="text-[#6B5866]"] { color: #d0c1c9 !important; }
+[data-meryo-theme="beauty"][data-meryo-mode="dark"] .meryo-beauty-promo-card [class*="text-[#955568]"] { color: #e3b1bf !important; }
+[data-meryo-theme="beauty"][data-meryo-mode="dark"] .meryo-beauty-promotions-page [class*="bg-[#FAF7F4]"],
+[data-meryo-theme="beauty"][data-meryo-mode="dark"] .meryo-beauty-promotions-page [class*="bg-[#FFFEFC]"] { background-color: #413740 !important; color: #f7f0e9 !important; }
+[data-meryo-theme="beauty"][data-meryo-mode="dark"] .meryo-beauty-promotions-page [class*="text-[#352832]"] { color: #f7f0e9 !important; }
+[data-meryo-theme="beauty"][data-meryo-mode="dark"] .meryo-beauty-promotions-page [class*="text-[#6B5866]"] { color: #d0c1c9 !important; }
+[data-meryo-theme="beauty"][data-meryo-mode="dark"] .meryo-beauty-promotions-page [class*="bg-[#955568]"] { background-color: #955568 !important; color: #fff8f6 !important; }
+[data-meryo-theme="beauty"][data-meryo-mode="dark"] .meryo-beauty-promotions-page [class*="border-[#C5AD86]"] { border-color: rgb(227 177 191 / 22%) !important; }
+
+@media (max-width: 640px) {
+  [data-meryo-theme="beauty"][data-meryo-mode="dark"] .meryo-beauty-hero-overlay { background: linear-gradient(0deg, rgb(38 30 38 / 82%) 0%, rgb(52 42 52 / 52%) 72%, rgb(52 42 52 / 27%) 100%); }
+  [data-meryo-theme="beauty"][data-meryo-mode="dark"] .meryo-beauty-promotions-banner { background-image: linear-gradient(90deg, rgb(52 44 51 / 92%) 0%, rgb(52 44 51 / 80%) 43%, rgb(52 44 51 / 42%) 70%, rgb(52 44 51 / 10%) 100%), url('/salon-promotions-banner.jpg'); background-position: 80% center; }
+}
