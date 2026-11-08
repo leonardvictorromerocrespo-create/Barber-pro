@@ -96,9 +96,9 @@ try{
   const ownerRows=await owner.rpc('meryo_inspiracion_propietario');assert.ifError(ownerRows.error);assert.ok(ownerRows.data.some(row=>row.id===publicationId&&row.barberia_id===shop));
   const otherRows=await stranger.rpc('meryo_inspiracion_propietario');assert.ifError(otherRows.error);assert.equal(otherRows.data.length,0,'Second business cannot read the first business publications');
   const foreignEdit=await stranger.rpc('meryo_guardar_inspiracion',{...publicationArgs,p_id:publicationId,p_asset_id:otherAssetId,p_title:'Edición ajena',p_published:false});
-  assert.ok(foreignEdit.error,'Second business cannot edit or withdraw another business publication');
+  assert.ok(foreignEdit.error,'Second business cannot edit or withdraw another business publication');assert.equal(foreignEdit.error.code,'42501','The server rejects cross-business management as forbidden');
   const unchanged=await db.query('select published,asset_id,barberia_id from meryo_private.inspiration_publications where id=$1',[publicationId]);
-  assert.deepEqual(unchanged.rows[0],{published:true,asset_id:assetId,barberia_id:shop},'Unauthorized edit left the original publication unchanged');
+  assert.equal(unchanged.rows.length,1);assert.equal(unchanged.rows[0].published,true,'Unauthorized edit left publication visible');assert.equal(unchanged.rows[0].asset_id,assetId,'Unauthorized edit left the original asset unchanged');assert.equal(String(unchanged.rows[0].barberia_id),String(shop),'Unauthorized edit left the owner business unchanged');
   phase='owner withdrawal removes public listing without deleting stored photo';
   const withdraw=await owner.rpc('meryo_guardar_inspiracion',{...publicationArgs,p_id:publicationId,p_published:false});assert.ifError(withdraw.error);
   const afterWithdrawal=await anonymous.rpc('meryo_inspiracion',{p_catalog_category:'barberia',p_work_category:null,p_limit:24,p_offset:0});assert.ifError(afterWithdrawal.error);
