@@ -1,15 +1,16 @@
 import PushCenter from './components/PushCenter';
-import PublicShopLocation from './components/PublicShopLocation';
 import NotificationAccess from './components/NotificationAccess';
 import MeryoHeader from './components/MeryoHeader';
 import CatalogShopGrid from './components/CatalogShopGrid';
 import ShopRegistration from './components/ShopRegistration';
+import ProfileModal from './components/ProfileModal';
+import BookingModal from './components/BookingModal';
+export {ProfileModal, BookingModal};
 import {visiblePolling} from './lib/visible-polling';
 import { endSession, signInWithProfile } from "./lib/operations";
 import { supabase, googleAuthEnabled, emailSignupEnabled } from "./lib/supabase";
 import { lazy, Suspense, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { createMeryoApi } from './lib/meryo-api';
-import { PROFILE_PHOTO_TITLE } from './lib/shop-content';
 import MeryoLogo from './components/MeryoLogo';
 import { useIdentity } from './lib/useIdentity';
 import Reservations from './components/Reservations';
@@ -26,10 +27,6 @@ import LandingPage from './components/LandingPage';
 import {CutPromotions} from './components/CutPromotions';
 import {BeautyPromotions} from './components/BeautyPromotions';
 import {markLandingIntroSeen} from './lib/landing-intro';
-import beautySalonStyling from './assets/beauty-carousel/salon-styling.webp';
-import beautySalonBlowdry from './assets/beauty-carousel/salon-blowdry.webp';
-import beautySalonManicure from './assets/beauty-carousel/salon-manicure.webp';
-import beautySalonColor from './assets/beauty-carousel/salon-color.webp';
 import {catalogCountLabel} from './lib/catalog-copy';
 import {createCatalogLoader} from './lib/catalog-loader';
 import {isPublicShopIndexable,isPublicShopPath,publicShopCanonical,publicShopIdFromPath,publicShopUrl} from './lib/public-shop-url.js';
@@ -82,367 +79,6 @@ const BARBER_HERO_IMAGES = [
   "https://images.unsplash.com/photo-1599351431202-1e0f0137899a?auto=format&fit=crop&w=1600&q=80",
   "https://images.unsplash.com/photo-1503951914875-452162b0f3f1?auto=format&fit=crop&w=1600&q=80",
 ];
-// Licensed under the Unsplash License; salon styling, blow-dry, manicure and hair-color scenes.
-const BEAUTY_HERO_IMAGES = [beautySalonStyling, beautySalonBlowdry, beautySalonManicure, beautySalonColor];
-
-function ClientHero({ heroIndex, setHeroIndex, setView, catalogCategory='barberia' }) {
-  const isBeauty=catalogCategory==='belleza';
-  const heroImages=isBeauty?BEAUTY_HERO_IMAGES:BARBER_HERO_IMAGES;
-  const safeIndex=heroIndex%heroImages.length;
-  return (
-    <>
-      <div className={`meryo-beauty-hero mb-10 overflow-hidden rounded-3xl border border-white/10 bg-black`}>
-        <div className="relative h-72 w-full">
-          <div
-            className="absolute inset-0 bg-cover bg-center transition-all duration-1000"
-            style={{ backgroundImage: `url(${heroImages[safeIndex]})` }}
-          />
-          <div className={`absolute inset-0 ${isBeauty?'meryo-beauty-hero-overlay':'bg-black/60'}`} />
-          <div className="absolute bottom-4 right-4 z-20 flex gap-2">
-            {heroImages.map((_, index) => (
-              <button
-                key={index}
-                onClick={() => setHeroIndex(index)}
-                aria-label={`Ver imagen ${index+1} de ${isBeauty?'peluquerías y salones':'barberías'}`}
-                aria-pressed={safeIndex===index}
-                className={`h-2.5 w-8 rounded-full transition ${pointerClass} ${
-                  safeIndex === index ? "bg-amber-400" : "bg-white/40"
-                }`}
-              />
-            ))}
-          </div>
-          <div className="relative z-10 flex h-full flex-col justify-center px-8">
-            <h1 className="text-3xl font-extrabold tracking-wide text-white md:text-5xl">
-              {isBeauty?'TU BELLEZA, TU ESTILO':'EL ESTILO NO SE IMPROVISA'}
-            </h1>
-            <p className="mt-3 max-w-xl text-sm text-neutral-300 md:text-base">
-              {isBeauty?'Descubre peluquerías y salones de belleza. Conoce sus servicios y solicita tu cita.':'Descubre barberías cerca de ti. Mira sus trabajos, conoce su estilo y solicita tu cita.'}
-            </p>
-            <div className="mt-4 text-xs uppercase tracking-widest text-amber-400">
-              MERYO • Reserva inteligente
-            </div>
-            <div className="mt-6 flex gap-3">
-              <button
-                onClick={() => setView("barber")}
-                className={`rounded-xl border border-white/20 bg-black/30 px-4 py-2 text-sm font-bold ${pointerClass}`}
-              >
-                Soy profesional
-              </button>
-            </div>
-          </div>
-        </div>
-      </div>
-
-    </>
-  );
-}
-
-function ProfileSectionTitle({children}) {
-  return <h4 className="border-b border-amber-400/40 pb-2 text-lg font-bold text-amber-300">{children}</h4>;
-}
-
-export function ProfileModal({ selectedShop, onClose, onReserve,onStore, catalogCategory='barberia',themeMode='dark' }) {
-  const [shareFeedback,setShareFeedback]=useState('');
-  if (!selectedShop) return null;
-  const photos = selectedShop.assets?.filter(a => a.kind === 'foto' && a.url && a.title !== PROFILE_PHOTO_TITLE) ?? [];
-  const videos = selectedShop.assets?.filter(a => a.kind === 'video' && a.url) ?? [];
-  const services = selectedShop.services ?? [];
-  const team = selectedShop.equipo ?? [];
-  const reviews = selectedShop.resenas ?? [];
-  const hasVideo = Boolean(videos.length || selectedShop.contentError);
-  const hasBookableService=services.some(service=>service.bookable);
-  const profileLabel=selectedShop.businessTypes?.includes('belleza')?'salón':'barbería';
-  const cover=selectedShop.coverImage||selectedShop.image||'';
-  const initials=selectedShop.name.trim().split(/\s+/).slice(0,2).map(part=>Array.from(part)[0]||'').join('').toLocaleUpperCase('es');
-  const profileUrl=publicShopUrl(selectedShop,catalogCategory,typeof window==='undefined'?undefined:window.location.origin);
-  const shareProfile=async()=>{
-    setShareFeedback('');
-    try {
-      if(navigator.share){await navigator.share({title:selectedShop.name,text:`Mira el perfil de ${selectedShop.name} en MERYO`,url:profileUrl});setShareFeedback('Perfil compartido.');return;}
-      if(navigator.clipboard?.writeText){await navigator.clipboard.writeText(profileUrl);setShareFeedback('Enlace del perfil copiado.');return;}
-      setShareFeedback('Copia este enlace:');
-    } catch(error) {if(error?.name!=='AbortError')setShareFeedback('No se pudo compartir. Puedes copiar el enlace del perfil.');}
-  };
-
-  return (
-    <div data-meryo-theme={catalogCategory==='belleza'?'beauty':'barberia'} data-meryo-mode={themeMode} className="meryo-booking-backdrop fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-2 sm:p-4">
-      <div data-meryo-theme={catalogCategory==='belleza'?'beauty':'barberia'} data-meryo-mode={themeMode} className="meryo-profile-modal max-h-[92vh] min-w-0 overflow-auto rounded-2xl border border-white/10 bg-neutral-950 p-2 text-white shadow-2xl sm:rounded-[2rem] sm:p-5" style={{width:'calc(100vw - 1rem)',maxWidth:'72rem',boxSizing:'border-box',overflowX:'hidden',overflowY:'auto',backgroundImage:`linear-gradient(var(--meryo-profile-wash-start),var(--meryo-profile-wash-end)),url("${(catalogCategory==='belleza'?BEAUTY_HERO_IMAGES:BARBER_HERO_IMAGES)[0]}")`,backgroundSize:'cover',backgroundPosition:'center'}}>
-        <header className="relative min-w-0">
-          {cover?<img src={cover} alt={`Portada de ${selectedShop.name}`} className="h-28 w-full rounded-xl object-cover object-center sm:h-56 sm:rounded-2xl"/>:<div className="flex h-28 items-center justify-center rounded-xl border border-white/10 bg-black/30 sm:h-56 sm:rounded-2xl"><MeryoLogo className="h-8 w-auto object-contain sm:h-12"/></div>}
-          <div className="absolute inset-x-0 top-0 flex items-center justify-between gap-2 p-2 sm:p-3"><MeryoLogo className="h-5 w-auto object-contain drop-shadow sm:h-7"/><button onClick={onClose} className={`meryo-profile-close min-h-11 rounded-lg border border-white/30 bg-black/70 px-3 py-1.5 text-xs font-semibold text-white ${pointerClass}`}>Cerrar</button></div>
-          <div className="flex min-w-0 items-center gap-2 px-1 pb-2 pt-2 sm:gap-4 sm:px-3 sm:pb-4 sm:pt-3">
-            <div className="-mt-8 flex h-14 w-14 shrink-0 items-center justify-center overflow-hidden rounded-full border-2 border-amber-300 bg-neutral-900 text-lg font-bold text-amber-200 sm:-mt-12 sm:h-24 sm:w-24 sm:text-3xl">{selectedShop.profileImage?<img src={selectedShop.profileImage} alt={`Foto de ${selectedShop.name}`} className="h-full w-full object-cover"/>:initials}</div>
-            <div className="min-w-0 flex-1"><h3 className="break-words text-lg font-black leading-tight sm:text-3xl">{selectedShop.name}</h3>{selectedShop.about&&<p className="mt-1 line-clamp-3 text-xs leading-snug text-neutral-300 sm:mt-2 sm:text-base sm:leading-relaxed">{selectedShop.about}</p>}</div>
-          </div>
-        </header>
-        <div className="grid min-w-0 grid-cols-2 items-start gap-2 sm:gap-4" style={{width:'100%',maxWidth:'100%',gridTemplateColumns:'minmax(0,1fr) minmax(0,1fr)'}}>
-          <div className="min-w-0 space-y-2 sm:space-y-4">
-            <section className="min-w-0 rounded-xl border border-white/10 bg-black/40 p-2 sm:rounded-2xl sm:p-4"><div className="grid gap-2 sm:grid-cols-2"><button disabled={!hasBookableService} title={hasBookableService?'Reservar cita':'Aún no hay servicios con precio final y duración definidos'} onClick={onReserve} className={`min-h-11 rounded-xl bg-amber-400 px-2 py-2 text-xs font-bold leading-tight text-black disabled:cursor-not-allowed disabled:opacity-50 sm:text-base ${pointerClass}`}>Reservar cita</button><button onClick={()=>onStore(selectedShop)} className={`min-h-11 rounded-xl border border-amber-400/60 px-2 py-2 text-xs font-bold text-amber-200 sm:text-base ${pointerClass}`}>Tienda</button></div></section>
-            <section className="min-w-0 rounded-xl border border-white/10 bg-black/40 p-2 sm:rounded-2xl sm:p-4"><button onClick={shareProfile} className={`min-h-11 w-full rounded-lg border border-amber-400/50 px-2 py-2 text-xs font-semibold text-amber-200 sm:text-sm ${pointerClass}`}>Compartir perfil</button>{shareFeedback&&<p aria-live="polite" className="mt-2 break-words text-xs text-neutral-300">{shareFeedback}{shareFeedback.startsWith('Copia')&&<> <a className="break-all text-amber-300 underline" href={profileUrl}>{profileUrl}</a></>}</p>}</section>
-            {team.length>0&&<section className="min-w-0 rounded-xl border border-white/10 bg-black/40 p-2 sm:rounded-2xl sm:p-4"><ProfileSectionTitle>Equipo</ProfileSectionTitle><div className="mt-2 space-y-2">{team.map((p,i)=><p key={i} className="break-words text-xs text-neutral-300 sm:text-sm">{p.nombre}{p.propietario?' · propietario':''}</p>)}</div></section>}
-            {services.length>0&&<section className="min-w-0 rounded-xl border border-white/10 bg-black/40 p-2 sm:rounded-2xl sm:p-4"><ProfileSectionTitle>Servicios</ProfileSectionTitle><div className="mt-2 space-y-2">{services.map(service=><div key={service.id} className="min-w-0 rounded-lg border border-white/10 bg-black/30 p-2 text-xs sm:rounded-xl sm:p-3 sm:text-sm"><p className="break-words font-semibold text-white">{service.name}</p><p className="mt-1 text-[10px] text-neutral-400 sm:text-xs">{service.duration||'Duración por definir'}</p>{service.bookable?<p className="mt-1 text-amber-400">S/ {Number(service.price).toFixed(2)}</p>:<p className="mt-1 text-[10px] leading-snug text-amber-300 sm:text-xs">Requiere evaluación · precio final y duración por confirmar</p>}</div>)}</div></section>}
-          </div>
-          <div className="min-w-0 space-y-2 sm:space-y-4">
-            <PublicShopLocation key={selectedShop.id} shop={selectedShop} mapHeight="h-24 sm:h-44" className="mt-0"/>
-            {hasVideo&&<section className="min-w-0 rounded-xl border border-white/10 bg-black/40 p-2 sm:rounded-2xl sm:p-4"><ProfileSectionTitle>Video</ProfileSectionTitle>{videos.map(a=><video key={a.id} src={a.url} controls preload="metadata" aria-label="Video de presentación" className="mt-2 max-h-80 w-full rounded-lg"/>)}{selectedShop.contentError&&<p role="alert" className="mt-2 text-xs text-amber-300 sm:text-sm">{selectedShop.contentError}</p>}</section>}
-            {photos.length>0&&<section className="min-w-0 rounded-xl border border-white/10 bg-black/40 p-2 sm:rounded-2xl sm:p-4"><ProfileSectionTitle>Portafolio</ProfileSectionTitle><div className="mt-2 grid grid-cols-1 gap-2 sm:grid-cols-2">{photos.map(a=><figure key={a.id} className="min-w-0"><img src={a.url} alt={a.title||`Trabajo publicado por el ${profileLabel}`} className="h-24 w-full rounded-lg object-cover sm:h-48 sm:rounded-xl"/>{a.title&&<figcaption className="mt-1 break-words text-[10px] text-neutral-300 sm:text-xs">{a.title}</figcaption>}</figure>)}</div></section>}
-            {(selectedShop.reviews>0||reviews.length>0)&&<section className="min-w-0 rounded-xl border border-white/10 bg-black/40 p-2 sm:rounded-2xl sm:p-4"><ProfileSectionTitle>Reseñas</ProfileSectionTitle>{selectedShop.reviews>0&&<p className="mt-2 text-xs text-neutral-300 sm:text-sm">⭐ {selectedShop.rating} basado en {selectedShop.reviews} reseñas</p>}{reviews.map(r=><article key={r.id} className="mt-2 border-t border-white/10 pt-2"><p className="text-xs">{r.autor} · {r.calificacion}/5</p><p className="mt-1 break-words text-xs text-neutral-300">{r.comentario}</p></article>)}</section>}
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-export function BookingModal({
-  catalogCategory='barberia',
-  themeMode='dark',
-  selectedShop,
-  selectedService,
-  setSelectedService,
-  onServiceSelect,
-  selectedBarber,setSelectedBarber,
-  onBarberSelect,
-  selectedDate,
-  setSelectedDate,
-  selectedTime,
-  setSelectedTime,
-  customerInfo,
-  setCustomerInfo,
-  customRequest,
-  setCustomRequest,
-  activeSlots,
-  finalPrice,
-  requestSaved,
-  submitReservation,
-  closeBookingModal,
-  savingReservation,
-  reservationsEnabled,
-  agendaLoading,agendaError,onLogin,accessMessage,
-  identityLoading=false,identityError='',onRetrySession,promotion=null,promotionError='',onRegularPrice,onBackToOffers,
-  salonPromotion=null,salonPromotionError='',salonPriceDecision=null,onSalonRegularPrice,onCancelSalonPriceDecision,
-  reservationValidationMessage='',inspiration=null,inspirationIssue='',onClearInspiration,
-}) {
-  if (!selectedShop) return null;
-  const team=selectedShop.equipo??[];
-  const eligible=team.filter(m=>m.servicios?.some(id=>String(id)===String(selectedService?.id)));
-
-  const dateFormatter = new Intl.DateTimeFormat('es-PE', {day:'numeric', month:'short', timeZone:'UTC'});
-  const formatDate = date => date ? dateFormatter.format(new Date(date + 'T00:00:00Z')) : 'Sin elegir';
-  const professional = catalogCategory==='belleza' ? 'profesional' : 'barbero';
-
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-2 sm:p-4">
-      
-      <div data-meryo-theme={catalogCategory==='belleza'?'beauty':'barberia'} data-meryo-mode={themeMode} className={`max-h-[92vh] w-full max-w-5xl overflow-auto rounded-2xl border border-white/10 bg-neutral-950 p-3 text-white shadow-2xl sm:rounded-3xl sm:p-6 ${catalogCategory==='barberia'?'meryo-soft-booking':'meryo-beauty-booking'}`}>
-        <div className="mb-4 flex items-start justify-between gap-2 sm:gap-4">
-          <div className="min-w-0">
-            <p className="text-xs uppercase tracking-[0.2em] text-amber-300">Reserva tu cita</p>
-            <h3 className="mt-1 [overflow-wrap:anywhere] text-xl font-black sm:text-3xl">{selectedShop.name}</h3>{accessMessage&&<p role="status" className="mt-3 text-amber-300">{accessMessage}</p>}
-            <p className="mt-1 text-sm text-neutral-400">
-              Elige un servicio y un horario. No se cobra al solicitar.
-            </p>
-              {salonPromotion&&<p className="mt-3 rounded-xl border border-amber-400/25 bg-amber-400/10 p-3 text-sm text-amber-100">Promoción del salón: precio habitual S/ {Number(salonPromotion.regularPrice).toFixed(2)} · precio promocional S/ {Number(salonPromotion.promoPrice).toFixed(2)}. El servidor comprobará la oferta antes de guardar.</p>}
-              {inspiration&&<section className="mt-3 rounded-lg bg-white/5 p-3 text-sm"><p className="font-semibold">Referencia de estilo: {inspiration.title||'Trabajo seleccionado'}</p><p className="mt-1 text-neutral-400">Se adjuntará a la solicitud; revisaremos el servicio, profesional, precio y horario en el servidor.</p>{inspirationIssue&&<p role="alert" className="mt-2 text-amber-300">{inspirationIssue}</p>}<button type="button" className="mt-2 min-h-10 rounded-md bg-white/10 px-3 py-2 text-xs font-semibold" onClick={onClearInspiration}>Continuar sin esta referencia</button></section>}
-          </div>
-          <button onClick={closeBookingModal} className={`meryo-booking-close min-h-11 shrink-0 rounded-xl border border-white/10 px-3 text-sm ${pointerClass}`}>
-            Cerrar
-          </button>
-        </div>
-
-        <div className="grid grid-cols-2 items-start gap-3 sm:gap-5">
-            <div className="min-w-0 px-1.5 py-2 sm:px-3">
-              <h4 className="flex items-baseline gap-1.5 font-[Georgia,serif] text-[15px] leading-tight text-amber-300 sm:gap-2 sm:text-xl"><span className="shrink-0 font-sans text-[10px] font-medium tabular-nums opacity-80 sm:text-xs">1.</span> <span>Servicio y {professional}</span></h4>
-              {promotion&&<p className="mt-3 rounded-xl border border-amber-400/25 bg-amber-400/10 p-3 text-sm text-amber-100">Corte al 50 %: precio habitual S/ {Number(promotion.regularPrice).toFixed(2)} · oferta S/ {Number(finalPrice).toFixed(2)}. El adelanto, si el barbero acepta, se calcula sobre el precio promocional.</p>}
-              <div className="mt-3 divide-y divide-white/10">
-                {(promotion||salonPromotion?selectedShop.services.filter(service=>service.bookable&&String(service.id)===String(selectedService?.id)):selectedShop.services.filter(service=>service.bookable)).map((service) => (
-                  <button
-                    type="button"
-                    aria-pressed={selectedService?.id === service.id}
-                    key={service.id}
-                    onClick={() => {(onServiceSelect||setSelectedService)(service);setSelectedTime("");}}
-                    className={`meryo-booking-option flex min-h-12 w-full min-w-0 items-center gap-1.5 rounded-lg px-1.5 py-2 text-left transition sm:gap-3 sm:px-3 ${pointerClass} ${
-                      selectedService?.id === service.id
-                        ? "is-selected"
-                        : "hover:bg-white/5"
-                    }`}
-                  >
-                    <span className="min-w-0 flex-1">
-                      <span className="block text-xs leading-snug font-semibold [overflow-wrap:anywhere] sm:text-sm">{service.name}</span>
-                      <span className="mt-0.5 block text-[11px] text-neutral-400">{service.duration}</span>
-                    </span>
-                      <span className="meryo-booking-price shrink-0 text-right text-xs font-semibold text-amber-300 tabular-nums">
-                      {(promotion||salonPromotion)&&<span className="block text-[11px] font-normal text-neutral-400 line-through">S/ {Number(service.price).toFixed(2)}</span>}
-                      S/ {promotion||salonPromotion?Number(finalPrice).toFixed(2):Number(service.price).toFixed(2)}
-                    </span>
-                  </button>
-                ))}
-              </div>
-              <div className="mt-4 border-t border-white/10 pt-3" role="group" aria-label="Equipo">
-                <p className="mb-2 text-xs font-semibold capitalize text-neutral-400">{professional}</p>
-                <div className="space-y-1.5">
-                  {team.map(member=>{
-                    const enabled=eligible.includes(member);
-                    const chosen=enabled&&member.id===selectedBarber;
-                    const initials=String(member.nombre||'?').trim().split(/\s+/).slice(0,2).map(part=>part.charAt(0)).join('').toUpperCase();
-                    return <button key={member.id} type="button" aria-pressed={chosen} disabled={!enabled}
-                      onClick={()=>{(onBarberSelect||setSelectedBarber)(member.id);setSelectedTime('');}}
-                      className={`meryo-booking-option flex min-h-12 w-full min-w-0 items-center gap-2 rounded-xl border px-2 py-1.5 text-left ${chosen?'is-selected':''}`}>
-                      <span aria-hidden="true" className="relative grid size-8 shrink-0 place-items-center overflow-hidden rounded-full bg-amber-400/10 text-[10px] font-semibold text-amber-300">
-                        {initials}
-                        {member.foto_url&&<img src={member.foto_url} alt="" className="absolute inset-0 size-full object-cover" onError={e=>{e.currentTarget.hidden=true;}}/>}
-                      </span>
-                      <span className="min-w-0 flex-1 text-xs leading-snug [overflow-wrap:anywhere]">
-                        <span className="font-semibold">{member.nombre}</span>
-                        {!enabled&&<span className="block text-[10px] text-neutral-400">No ofrece este servicio</span>}
-                      </span>
-                      {chosen&&<span aria-hidden="true" className="text-xs text-amber-300">✓</span>}
-                    </button>;
-                  })}
-                </div>
-                {!eligible.length&&<p className="mt-2 text-xs text-amber-300">No hay profesionales para este servicio.</p>}
-              </div>
-            </div>
-
-          <div className="relative min-w-0 space-y-3 before:absolute before:inset-y-0 before:-left-[7px] before:w-px before:bg-amber-300/20 sm:space-y-5 sm:before:-left-[11px]">
-            <div className="min-w-0 px-1.5 py-2 sm:px-3">
-              <h4 className="flex items-baseline gap-1.5 font-[Georgia,serif] text-[15px] leading-tight text-amber-300 sm:gap-2 sm:text-xl"><span className="shrink-0 font-sans text-[10px] font-medium tabular-nums opacity-80 sm:text-xs">2.</span> <span>Elige la fecha</span></h4>
-              <div className="mt-3 grid grid-cols-1 gap-2 sm:grid-cols-3">
-                {AVAILABLE_DATES.map((date, index) => (
-                  <button
-                    key={date}
-                    type="button"
-                    aria-pressed={selectedDate === date}
-                    disabled={Boolean(salonPromotion&&date!==salonPromotion.promotionDate)}
-                    onClick={() => {setSelectedDate(date);setSelectedTime("");}}
-                    className={`meryo-booking-option min-h-11 min-w-0 rounded-lg border px-1 py-1.5 text-[11px] font-medium ${pointerClass} ${
-                      selectedDate === date
-                        ? "is-selected"
-                        : ""
-                    }`}
-                  >
-                    {index < 2 && <span className="block">{index === 0 ? 'Hoy' : 'Mañana'}</span>}
-                    <span>{formatDate(date)}</span>
-                  </button>
-                ))}
-              </div>
-              <label className="mt-2 block text-xs">Otra fecha (hasta 30 días)
-                <input aria-label="Fecha de la cita" type="date" min={salonPromotion?.promotionDate||AVAILABLE_DATES[0]} max={salonPromotion?.promotionDate||sumarDias(AVAILABLE_DATES[0],30)} disabled={Boolean(salonPromotion)} value={selectedDate} onChange={e=>{setSelectedDate(e.target.value);setSelectedTime("");}} className="meryo-booking-field mt-1 block min-h-11 w-full min-w-0 max-w-full rounded-xl border border-white/10 bg-neutral-900 px-1 text-xs sm:px-3 sm:text-sm disabled:opacity-60"/>
-              </label>
-            </div>
-
-            <div className="meryo-booking-panel min-w-0 rounded-2xl border border-white/10 bg-neutral-900 p-3 sm:p-4">
-              <div className="flex flex-wrap items-center justify-between gap-2 border-b border-amber-300/20 pb-2.5">
-                <h4 className="flex items-start gap-1.5 text-xs leading-snug font-bold text-amber-300 sm:gap-2 sm:text-sm"><span className="shrink-0 font-medium tabular-nums opacity-80">3.</span> <span>Elige la hora</span></h4>
-                {activeSlots.length>0&&<div className="flex flex-wrap items-center gap-2 text-xs text-neutral-400">
-                  <span className="flex items-center gap-2"><span className="h-3 w-3 rounded-full bg-white/70" /> Disponible</span>
-                  <span className="flex items-center gap-2"><span className="h-3 w-3 rounded-full bg-neutral-500" /> Ocupada</span>
-                </div>}
-              </div>
-              {agendaLoading&&<p>Cargando horarios del servidor…</p>}{agendaError&&<p role="alert" className="text-red-300">{agendaError}</p>}{!agendaLoading&&!agendaError&&!activeSlots.length&&<p>{promotion||salonPromotion?'No quedan turnos promocionales disponibles para esta fecha. Actualiza las ofertas para ver disponibilidad vigente.':'No hay horarios para esta fecha. Prueba otro día.'}</p>}
-              {reservationValidationMessage&&<p role="alert" className="mt-3 rounded-lg bg-amber-400/10 p-3 text-sm text-amber-100">{reservationValidationMessage}</p>}
-              {promotionError&&<div role="alert" className="mt-3 space-y-2 rounded-xl border border-amber-400/30 bg-amber-400/10 p-3 text-sm text-amber-100"><p>{promotionError} No se cambió el precio.</p><button type="button" onClick={onBackToOffers} className="underline underline-offset-2">Volver a promociones y revisar el precio</button></div>}
-              {salonPromotionError&&<p role="alert" className="mt-3 rounded-xl border border-amber-400/30 bg-amber-400/10 p-3 text-sm text-amber-100">{salonPromotionError}</p>}
-              {salonPriceDecision&&<div role="alert" className="mt-3 space-y-3 rounded-xl border border-amber-400/30 bg-amber-400/10 p-3 text-sm text-amber-100"><p>La oferta ya no se aplicó. El precio habitual actual es <strong>S/ {Number(salonPriceDecision.regularPrice).toFixed(2)}</strong>. Elige si deseas continuar con ese importe.</p><div className="flex flex-wrap gap-2"><button type="button" disabled={!activeSlots.some(slot=>slot.time===selectedTime)} onClick={onSalonRegularPrice} className="min-h-11 rounded-lg bg-amber-400 px-3 py-2 font-bold text-black disabled:cursor-not-allowed disabled:opacity-50">Reservar a S/ {Number(salonPriceDecision.regularPrice).toFixed(2)}</button><button type="button" onClick={onCancelSalonPriceDecision} className="min-h-11 rounded-lg border border-white/20 px-3 py-2">No ahora</button></div>{!activeSlots.some(slot=>slot.time===selectedTime)&&<p className="text-xs">Elige primero un horario disponible; el turno anterior puede haber cambiado.</p>}</div>}
-              {(promotion||salonPromotion)&&!agendaLoading&&!activeSlots.length&&<button type="button" onClick={onBackToOffers} className="mt-3 min-h-11 rounded-xl border border-white/20 px-4 py-2 text-sm">Volver a promociones</button>}
-              <div className="meryo-time-grid mt-3 grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-4">
-                {activeSlots.map((slot) => (
-                  <button
-                    key={`${selectedDate}-${slot.time}`}
-                    disabled={slot.occupied}
-                    onClick={() => setSelectedTime(slot.time)}
-                    aria-pressed={selectedTime===slot.time}
-                    aria-label={`${slot.label}${slot.occupied?' · no disponible':selectedTime===slot.time?' · seleccionado':' · disponible'}`}
-                    className={`meryo-booking-option meryo-time-slot min-h-11 min-w-0 rounded-lg border px-1 py-2 !text-[11px] leading-tight font-medium tabular-nums transition sm:!text-xs ${
-                      slot.occupied
-                        ? "is-unavailable cursor-not-allowed text-neutral-400 line-through"
-                        : `${pointerClass} ${selectedTime === slot.time ? "is-selected" : ""}`
-                    }`}
-                  >
-                    {slot.label}
-                  </button>
-                ))}
-              </div>
-            </div>
-
-          </div>
-          <div className="col-span-2 min-w-0 space-y-3 sm:col-span-1">
-            <div className="meryo-booking-panel min-w-0 rounded-2xl border border-white/10 bg-neutral-900 p-3 sm:p-4">
-              <h4 className="flex items-start gap-1.5 text-xs leading-snug font-bold text-amber-300 sm:gap-2 sm:text-sm border-b border-amber-300/20 pb-2.5"><span className="shrink-0 font-medium tabular-nums opacity-80">4.</span> <span>Datos del cliente</span></h4>
-              <div className="mt-2 grid gap-2 sm:grid-cols-2">
-                <input
-                  aria-label="Tu nombre"
-                  autoComplete="name"
-                  value={customerInfo.name}
-                  onChange={(e) => setCustomerInfo((prev) => ({ ...prev, name: e.target.value }))}
-                  className="meryo-booking-field min-h-11 min-w-0 rounded-xl border border-white/10 bg-black/20 px-3 py-2 outline-none"
-                  placeholder="Tu nombre"
-                />
-                <input
-                  aria-label="Tu celular"
-                  type="tel"
-                  autoComplete="tel"
-                  value={customerInfo.phone}
-                  onChange={(e) => setCustomerInfo((prev) => ({ ...prev, phone: e.target.value }))}
-                  className="meryo-booking-field min-h-11 min-w-0 rounded-xl border border-white/10 bg-black/20 px-3 py-2 outline-none"
-                  placeholder="Tu celular"
-                />
-              </div>
-            </div>
-
-            <details className="meryo-booking-panel min-w-0 rounded-2xl border border-white/10 bg-neutral-900 px-3 sm:px-4">
-              <summary className="min-h-11 cursor-pointer py-3 text-sm font-semibold">Añadir pedido especial <span className="font-normal text-neutral-400">(opcional)</span></summary>
-              <textarea
-                aria-label="Pedido especial"
-                value={customRequest}
-                onChange={(e) => setCustomRequest(e.target.value)}
-                placeholder="Ej.: degradado alto con línea al costado"
-                className="meryo-booking-field mb-3 min-h-20 w-full rounded-xl border border-white/10 bg-black/20 px-3 py-2 text-sm outline-none"
-              />
-            </details>
-          </div>
-
-          <div className="meryo-booking-panel col-span-2 min-w-0 rounded-2xl border border-amber-400/20 bg-amber-400/10 p-3 sm:col-span-1 sm:p-4">
-            <p className="text-sm uppercase tracking-[0.2em] text-amber-300">Resumen</p>
-
-            <div className="mt-2 space-y-2 text-sm [&>div]:gap-2 [&>div>span:last-child]:min-w-0 [&>div>span:last-child]:text-right [&>div>span:last-child]:[overflow-wrap:anywhere]">
-              <div className="flex justify-between"><span>Cliente</span><span>{customerInfo.name || "-"}</span></div>
-              <div className="flex justify-between"><span>Servicio</span><span>{selectedService?.name || "-"}</span></div>
-              <div className="flex justify-between"><span className="capitalize">{professional}</span><span>{eligible.find(m=>m.id===selectedBarber)?.nombre||'Sin elegir'}</span></div>
-              <div className="flex justify-between"><span>Fecha</span><span>{formatDate(selectedDate)}</span></div>
-              <div className="flex justify-between"><span>Hora</span><span>{activeSlots.find(slot=>slot.time===selectedTime)?.label || "Selecciona una hora"}</span></div>
-              {customRequest.trim()&&<div className="flex justify-between"><span>Pedido especial</span><span className="max-w-[170px] text-right">{customRequest}</span></div>}
-              {(promotion||salonPromotion)&&<div className="flex justify-between"><span>Precio habitual</span><span className="line-through">S/ {Number(promotion?.regularPrice??salonPromotion?.regularPrice).toFixed(2)}</span></div>}
-              <div className="flex justify-between"><span>Adelanto tras aceptar</span><span>S/ {(finalPrice * 0.5).toFixed(2)}</span></div>
-              <div className="flex justify-between text-lg font-black"><span>{promotion||salonPromotion?'Precio promocional':'Total'}</span><span className="text-amber-300">S/ {Number(finalPrice).toFixed(2)}</span></div>
-            </div>
-            <p className="mt-3 text-xs text-amber-200">El {professional} tiene hasta 15 minutos para aceptar. Si acepta, te avisaremos para pagar el adelanto del 50 %.</p>
-            <button
-              onClick={submitReservation}
-              disabled={savingReservation || identityLoading || agendaLoading || !activeSlots.some(slot=>!slot.occupied&&slot.time===selectedTime) || !selectedTime || !selectedBarber || Boolean(salonPriceDecision) || Boolean(inspirationIssue) || (reservationsEnabled&&(!customerInfo.name.trim() || !customerInfo.phone.trim())) || requestSaved}
-              className={`meryo-booking-submit mt-3 min-h-11 w-full rounded-xl py-2 font-bold ${
-                selectedTime && customerInfo.name.trim() && customerInfo.phone.trim() && !requestSaved
-                  ? `${pointerClass} bg-amber-400 text-black`
-                  : "cursor-not-allowed bg-neutral-700 text-neutral-400"
-              }`}
-            >
-              {requestSaved ? "Solicitud guardada" : savingReservation ? "Guardando…" : "Solicitar cita"}
-            </button>
-            {identityLoading&&<p role="status" className="mt-3 text-sm text-neutral-300">Restaurando tu sesión…</p>}
-            {!identityLoading&&identityError&&<div className="mt-3 text-sm text-amber-300"><p>No pudimos comprobar tu sesión todavía.</p><button type="button" onClick={onRetrySession} className="mt-2 underline">Reintentar</button></div>}
-            {!identityLoading&&!identityError&&!reservationsEnabled&&<div className="mt-3 text-sm text-amber-300"><p>Al solicitar, continúa con Google o con correo y contraseña. Conservaremos tu selección; no se realiza ningún cobro.</p><button onClick={onLogin} className="mt-2 underline">Iniciar sesión</button></div>}
-            {requestSaved && (
-              <div className="mt-4 rounded-2xl border border-emerald-500/30 bg-emerald-500/10 p-4 text-sm text-emerald-300">
-                Solicitud guardada para {formatDate(selectedDate)} a las {activeSlots.find(slot=>slot.time===selectedTime)?.label}. Pendiente de aceptación del barbero. No se ha realizado ningún cobro.
-              </div>
-            )}
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-}
-
 export default function BarberProApp() {
  const identity=useIdentity(supabase);
   const [view, setView] = useState(()=>{const raw=typeof window==='undefined'?'':window.location.hash.slice(1);const hash=raw.startsWith('team-invite/')?'team-invite':raw;const search=typeof window==='undefined'?'':window.location.search,access=new URLSearchParams(search).get('access');const fallback=isPublicShopPath(typeof window==='undefined'?'':window.location.pathname)?'client':ALLOWED_VIEWS.includes(hash)?hash:'landing';return bookingDestination(search,access==='barber'?'barber-login':access==='shop-register'?'shop-register':fallback);});
@@ -528,8 +164,8 @@ function MeryoScreens({identity,view,setView}) {
   const [selectedDate, setSelectedDate] = useState(AVAILABLE_DATES[0]);
   const [selectedTime, setSelectedTime] = useState("");
   bookingSelectionRef.current={shop:String(selectedShop?.id??''),service:String(selectedService?.id??''),barber:String(selectedBarber??''),date:String(selectedDate??''),time:String(selectedTime??'')};
-  const [showAffiliateForm, setShowAffiliateForm] = useState(false);
   const [showBookingModal, setShowBookingModal] = useState(false);
+  const [bookingStartStep,setBookingStartStep]=useState(1);
   const [showProfileModal, setShowProfileModal] = useState(false);
   const [profileUnavailable,setProfileUnavailable]=useState(false);
   const profileRouteId=publicShopIdFromPath(locationPath);
@@ -562,7 +198,6 @@ function MeryoScreens({identity,view,setView}) {
   const [barberLogin, setBarberLogin] = useState({ email: "", password: "" });
   const [customRequest, setCustomRequest] = useState("");
   const [customerInfo, setCustomerInfo] = useState({ name: "", phone: "" });
-  const [heroIndex, setHeroIndex] = useState(0);
   const cargarBarberiasActivas = useCallback(() => catalogLoader.current.load(catalogCategory),[catalogCategory]);
   const cambiarCategoriaCatalogo = useCallback(category => {
     const next=category==='belleza'?'belleza':'barberia';
@@ -628,14 +263,6 @@ function MeryoScreens({identity,view,setView}) {
   },[showBookingModal,selectedInspiration,selectedShop?.id,selectedService?.id,selectedBarber,catalogCategory]);
 
 useEffect(() => { cargarBarberiasActivas(); }, [cargarBarberiasActivas,catalogLoadRevision]);
-  useEffect(() => {
-    const timer = setInterval(() => {
-      setHeroIndex((prev) => (prev + 1) % BARBER_HERO_IMAGES.length);
-    }, 6000);
-
-    return () => clearInterval(timer);
-  }, []);
-
   const ranking = useMemo(
     () => selectShops(catalogRows, { query, district, order, location }),
     [catalogRows, query, district, order, location]
@@ -645,7 +272,7 @@ useEffect(() => { cargarBarberiasActivas(); }, [cargarBarberiasActivas,catalogLo
 
   const handleAffiliateSubmit = async () => {
     if(affiliateBusy)return;setAffiliateBusy(true);setAffiliateError('');
-    try {if(affiliateForm.locationConfirmed!==true||!coordinates(affiliateForm))throw Error('Selecciona o confirma la ubicación del local en el mapa.');await api.registerShop(affiliateForm);const profile=await identity.refresh();if(!profile||profile.rol!=='barbero')throw Error('La solicitud se guardó, pero no se pudo actualizar tu sesión. Vuelve a iniciar sesión para consultar su estado.');setShowAffiliateForm(false);setView('shop-manage');}
+    try {if(affiliateForm.locationConfirmed!==true||!coordinates(affiliateForm))throw Error('Selecciona o confirma la ubicación del local en el mapa.');await api.registerShop(affiliateForm);const profile=await identity.refresh();if(!profile||profile.rol!=='barbero')throw Error('La solicitud se guardó, pero no se pudo actualizar tu sesión. Vuelve a iniciar sesión para consultar su estado.');setView('shop-manage');}
     catch(error){setAffiliateError(error.message);}
     finally{setAffiliateBusy(false);}
   };
@@ -701,6 +328,8 @@ useEffect(() => { cargarBarberiasActivas(); }, [cargarBarberiasActivas,catalogLo
     }, () => setLocationError("No pudimos obtener tu ubicación. Puedes buscar por distrito."), { timeout: 10000 });
   };
 
+  const clearCatalogFilters=()=>{setQuery('');setDistrict('');setOrder('name');setLocation(null);setLocationError('');};
+
   const openProfileModal = (shop) => {
     const currentId=publicShopIdFromPath(window.location.pathname);
     if(currentId!==String(shop.id)){
@@ -722,10 +351,10 @@ useEffect(() => { cargarBarberiasActivas(); }, [cargarBarberiasActivas,catalogLo
   };
   const openStoreModal = shop => {setStoreShop(shop);setStoreCategory(catalogCategory);setShowProfileModal(false);setRestoredPickupCart(null);setShowStoreModal(true);};
 
-  const openBookingModal = (shop, turn) => {
+  const openBookingModal = (shop, turn, options={}) => {
     reservationAttempt.current+=1;
     bookingReturnView.current='client';setSelectedInspiration(null);setInspirationIssue('');
-    const service=turn?.service??(shop.services??[]).find(item=>item.bookable);
+    const service=options.service??turn?.service??(shop.services??[]).find(item=>item.bookable);
     if(!service){setAccessMessage('Este negocio aún no tiene servicios con precio y duración definidos para reservar. Consulta con el negocio si el servicio requiere evaluación.');return;}
     setSelectedPromotion(null);setPromotionError('');
     setSelectedBeautyPromotion(null);
@@ -737,6 +366,7 @@ useEffect(() => { cargarBarberiasActivas(); }, [cargarBarberiasActivas,catalogLo
     setSelectedDate(turn?.date??AVAILABLE_DATES[0]);
     setActiveSlots([]);setAgendaError('');
     setSelectedTime(turn?.slot.time??"");
+    setBookingStartStep(options.startStep??(turn?3:1));
     setCustomRequest("");
     setCustomerInfo(prev=>({...prev,name:prev.name||identity.profile?.nombre||"",phone:prev.phone||identity.profile?.telefono||""}));
     setRequestSaved(false);
@@ -767,7 +397,7 @@ useEffect(() => { cargarBarberiasActivas(); }, [cargarBarberiasActivas,catalogLo
     setSelectedPromotion(null);setPromotionError('');setSelectedBeautyPromotion(null);setSalonPromotionError('');setSalonPriceDecision(null);
     setFinderExpectedPrice(null);setReservationValidationMessage('');setInspirationIssue('Comprobando el trabajo, el servicio y el precio…');
     setSelectedInspiration({...item,expectedPrice:Number(service.price)});setSelectedShop(shop);setSelectedService(service);setSelectedBarber(member.id);
-    setSelectedDate(AVAILABLE_DATES[0]);setSelectedTime('');setActiveSlots([]);setAgendaError('');setCustomRequest('');
+    setSelectedDate(AVAILABLE_DATES[0]);setSelectedTime('');setBookingStartStep(2);setActiveSlots([]);setAgendaError('');setCustomRequest('');
     setCustomerInfo(current=>({...current,name:current.name||identity.profile?.nombre||'',phone:current.phone||identity.profile?.telefono||''}));
     setRequestSaved(false);setShowProfileModal(false);setView('client');setShowBookingModal(true);
   };
@@ -791,7 +421,7 @@ useEffect(() => { cargarBarberiasActivas(); }, [cargarBarberiasActivas,catalogLo
       setCustomerInfo(current=>({...current,name:current.name||identity.profile?.nombre||'',phone:current.phone||identity.profile?.telefono||''}));
       setSelectedPromotion({campaignId:currentOffer.campaign_id,regularPrice:Number(currentOffer.regular_price),promoPrice:Number(currentOffer.promo_price),serviceId:service.id,shopId:shop.id});
       setSelectedBeautyPromotion(null);setSalonPromotionError('');setSalonPriceDecision(null);
-      setRequestSaved(false);setShowBookingModal(true);
+       setBookingStartStep(3);setRequestSaved(false);setShowBookingModal(true);
     }catch(error){setCutOffersNotice(error.message||'No se pudo actualizar esta promoción. Inténtalo de nuevo.');}
   };
 
@@ -812,7 +442,7 @@ useEffect(() => { cargarBarberiasActivas(); }, [cargarBarberiasActivas,catalogLo
       setSelectedDate(promotionDate);setSelectedTime(slot.start);setCustomRequest('');
       setCustomerInfo(value=>({...value,name:value.name||identity.profile?.nombre||'',phone:value.phone||identity.profile?.telefono||''}));
       setSelectedPromotion(null);setPromotionError('');setSelectedBeautyPromotion({id:current.promotion_id,regularPrice:Number(current.regular_price),promoPrice:Number(current.promo_price),serviceId:service.id,shopId:shop.id,promotionDate});
-      setSalonPromotionError('');setSalonPriceDecision(null);setRequestSaved(false);setShowBookingModal(true);
+       setSalonPromotionError('');setSalonPriceDecision(null);setBookingStartStep(3);setRequestSaved(false);setShowBookingModal(true);
     }catch(error){setBeautyOffersNotice(error.message||'No se pudo actualizar esta promoción. Inténtalo de nuevo.');}
   };
 
@@ -863,7 +493,7 @@ useEffect(() => { cargarBarberiasActivas(); }, [cargarBarberiasActivas,catalogLo
     if(['barber','barber-login','shop-register','shop-manage'].includes(view)){resumed.current=profile.id;return;}
     const draft=readDraft(sessionStorage);if(!draft||profile.rol!=='cliente')return;
     let active=true;const navigationAtStart=catalogNavigation.current;
-    api.catalog(draft.category).then(async catalog=>{if(!active||navigationAtStart!==catalogNavigation.current)return;const shop=catalog.find(s=>String(s.id)===draft.shop),service=shop?.services.find(s=>String(s.id)===draft.service);if(!shop||!service?.bookable)throw Error('El servicio ya no está disponible para reservar. Consulta si requiere evaluación.');let promotion=null,beautyPromotion=null,priceDecision=null;if(draft.campaignId){const offers=await api.cutPromotions(),offer=offers.find(row=>String(row.campaign_id)===draft.campaignId&&String(row.service_id)===draft.service);if(!offer||Number(offer.regular_price)!==Number(draft.regularPrice)){clearDraft(sessionStorage);setView('promotions');setAccessMessage('El precio o la disponibilidad de la oferta cambió. Revisa las promociones actuales antes de continuar.');resumed.current=profile.id;return;}promotion={campaignId:draft.campaignId,regularPrice:Number(offer.regular_price),promoPrice:Number(offer.promo_price),serviceId:service.id,shopId:shop.id};}if(draft.salonPromotionId){const offer=service.beautyPromotion;if(offer&&String(offer.id)===String(draft.salonPromotionId)&&Number(offer.regularPrice)===Number(draft.salonRegularPrice)&&Number(offer.promoPrice)===Number(draft.salonPromoPrice)){beautyPromotion={id:offer.id,regularPrice:Number(offer.regularPrice),promoPrice:Number(offer.promoPrice),serviceId:service.id,shopId:shop.id,promotionDate:draft.date};}else{priceDecision={regularPrice:Number(service.price)};setAccessMessage('La promoción del salón venció o cambió mientras iniciabas sesión. Revisa el precio habitual antes de continuar.');}}setSelectedShop(shop);setSelectedService(service);setSelectedPromotion(promotion);setSelectedBeautyPromotion(beautyPromotion);setSalonPriceDecision(priceDecision);setSalonPromotionError('');setSelectedBarber(draft.barber||'');setSelectedDate(draft.date);const finderSelection=draft.turnFinder===true&&draft.finderExpectedPrice!==null&&!promotion&&!beautyPromotion;const finderPriceChanged=finderSelection&&Math.round(Number(service.price)*100)!==Math.round(Number(draft.finderExpectedPrice)*100);setActiveSlots([]);setSelectedTime(finderPriceChanged?'':draft.barber&&!(shop.equipo??[]).some(m=>String(m.id)===String(draft.barber)&&m.servicios?.some(id=>String(id)===String(service.id)))?'':draft.time);setFinderExpectedPrice(finderSelection?Number(service.price):null);setSelectedInspiration(draft.inspirationPublicationId?{id:draft.inspirationPublicationId,title:draft.inspirationTitle||'Trabajo seleccionado',expectedPrice:Number(draft.inspirationExpectedPrice),catalog_category:draft.category,service_id:draft.service,member_id:draft.barber}:null);setInspirationIssue(draft.inspirationPublicationId?'Volviendo a comprobar la publicación, el servicio y el precio…':'');bookingReturnView.current=draft.inspirationPublicationId?'inspiration':'client';setReservationValidationMessage(finderPriceChanged?`El precio habitual cambió de S/ ${Number(draft.finderExpectedPrice).toFixed(2)} a S/ ${Number(service.price).toFixed(2)}. Elige nuevamente un horario para continuar.`:'');setCustomRequest(draft.note);setCustomerInfo(prev=>({...prev,name:draft.name||profile.nombre||'',phone:draft.phone||profile.telefono||''}));resumed.current=profile.id;setView('client');cambiarCategoriaCatalogo(draft.category);setShowBookingModal(true);clearDraft(sessionStorage);if(!priceDecision)setAccessMessage('Recuperamos tu reserva. Revisa el horario y completa solo los datos que faltan.');}).catch(error=>{if(active&&navigationAtStart===catalogNavigation.current)setAccessMessage(error.message);});
+    api.catalog(draft.category).then(async catalog=>{if(!active||navigationAtStart!==catalogNavigation.current)return;const shop=catalog.find(s=>String(s.id)===draft.shop),service=shop?.services.find(s=>String(s.id)===draft.service);if(!shop||!service?.bookable)throw Error('El servicio ya no está disponible para reservar. Consulta si requiere evaluación.');let promotion=null,beautyPromotion=null,priceDecision=null;if(draft.campaignId){const offers=await api.cutPromotions(),offer=offers.find(row=>String(row.campaign_id)===draft.campaignId&&String(row.service_id)===draft.service);if(!offer||Number(offer.regular_price)!==Number(draft.regularPrice)){clearDraft(sessionStorage);setView('promotions');setAccessMessage('El precio o la disponibilidad de la oferta cambió. Revisa las promociones actuales antes de continuar.');resumed.current=profile.id;return;}promotion={campaignId:draft.campaignId,regularPrice:Number(offer.regular_price),promoPrice:Number(offer.promo_price),serviceId:service.id,shopId:shop.id};}if(draft.salonPromotionId){const offer=service.beautyPromotion;if(offer&&String(offer.id)===String(draft.salonPromotionId)&&Number(offer.regularPrice)===Number(draft.salonRegularPrice)&&Number(offer.promoPrice)===Number(draft.salonPromoPrice)){beautyPromotion={id:offer.id,regularPrice:Number(offer.regularPrice),promoPrice:Number(offer.promoPrice),serviceId:service.id,shopId:shop.id,promotionDate:draft.date};}else{priceDecision={regularPrice:Number(service.price)};setAccessMessage('La promoción del salón venció o cambió mientras iniciabas sesión. Revisa el precio habitual antes de continuar.');}}setSelectedShop(shop);setSelectedService(service);setSelectedPromotion(promotion);setSelectedBeautyPromotion(beautyPromotion);setSalonPriceDecision(priceDecision);setSalonPromotionError('');setSelectedBarber(draft.barber||'');setSelectedDate(draft.date);const finderSelection=draft.turnFinder===true&&draft.finderExpectedPrice!==null&&!promotion&&!beautyPromotion;const finderPriceChanged=finderSelection&&Math.round(Number(service.price)*100)!==Math.round(Number(draft.finderExpectedPrice)*100);setActiveSlots([]);setSelectedTime(finderPriceChanged?'':draft.barber&&!(shop.equipo??[]).some(m=>String(m.id)===String(draft.barber)&&m.servicios?.some(id=>String(id)===String(service.id)))?'':draft.time);setFinderExpectedPrice(finderSelection?Number(service.price):null);setSelectedInspiration(draft.inspirationPublicationId?{id:draft.inspirationPublicationId,title:draft.inspirationTitle||'Trabajo seleccionado',expectedPrice:Number(draft.inspirationExpectedPrice),catalog_category:draft.category,service_id:draft.service,member_id:draft.barber}:null);setInspirationIssue(draft.inspirationPublicationId?'Volviendo a comprobar la publicación, el servicio y el precio…':'');bookingReturnView.current=draft.inspirationPublicationId?'inspiration':'client';setReservationValidationMessage(finderPriceChanged?`El precio habitual cambió de S/ ${Number(draft.finderExpectedPrice).toFixed(2)} a S/ ${Number(service.price).toFixed(2)}. Elige nuevamente un horario para continuar.`:'');setCustomRequest(draft.note);setCustomerInfo(prev=>({...prev,name:draft.name||profile.nombre||'',phone:draft.phone||profile.telefono||''}));resumed.current=profile.id;setView('client');cambiarCategoriaCatalogo(draft.category);setBookingStartStep(draft.time?3:2);setShowBookingModal(true);clearDraft(sessionStorage);if(!priceDecision)setAccessMessage('Recuperamos tu reserva. Revisa el horario y completa solo los datos que faltan.');}).catch(error=>{if(active&&navigationAtStart===catalogNavigation.current)setAccessMessage(error.message);});
     return()=>{active=false;};
   },[identity.profile,cambiarCategoriaCatalogo,setView]);
   const submitReservation = async () => {
@@ -992,7 +622,7 @@ const finalPrice = selectedPromotion ? Number((basePrice * 0.5).toFixed(2)) : ap
   const selectBookingBarber=memberId=>{if(selectedInspiration?.id&&String(memberId)!==String(selectedInspiration.member_id))setInspirationIssue('El profesional elegido ya no coincide con la referencia. Continúa sin la referencia para revisar y reservar con el profesional actual.');setSelectedBarber(memberId);};
   const selectBookingTime=time=>{setSelectedTime(time);if(time)setReservationValidationMessage('');};
   const confirmSalonRegularPrice=()=>{if(!salonPriceDecision||!activeSlots.some(slot=>slot.time===selectedTime))return;setSalonPriceDecision(null);setSalonPromotionError('');};
- const renderBookingModal=()=> <BookingModal catalogCategory={catalogCategory} themeMode={themeMode} selectedShop={showBookingModal?selectedShop:null} selectedService={selectedService} selectedBarber={selectedBarber} setSelectedBarber={setSelectedBarber} onBarberSelect={selectBookingBarber} setSelectedService={setSelectedService} onServiceSelect={selectBookingService} selectedDate={selectedDate} setSelectedDate={setSelectedDate} selectedTime={selectedTime} setSelectedTime={selectBookingTime} customerInfo={customerInfo} setCustomerInfo={setCustomerInfo} customRequest={customRequest} setCustomRequest={setCustomRequest} activeSlots={activeSlots} finalPrice={finalPrice} requestSaved={requestSaved} submitReservation={submitReservation} closeBookingModal={closeBookingModal} savingReservation={savingReservation} reservationsEnabled={reservationsEnabled} agendaLoading={agendaLoading} agendaError={agendaError} accessMessage={accessMessage} onLogin={requireBookingLogin} identityLoading={identity.loading} identityError={identity.error} onRetrySession={()=>void identity.refresh()} promotion={selectedPromotion} promotionError={promotionError} onRegularPrice={continueAtRegularPrice} onBackToOffers={backToOffers} salonPromotion={applicableBeautyPromotion} salonPromotionError={salonPromotionError} salonPriceDecision={salonPriceDecision} onSalonRegularPrice={confirmSalonRegularPrice} onCancelSalonPriceDecision={closeBookingModal} reservationValidationMessage={reservationValidationMessage} inspiration={selectedInspiration} inspirationIssue={inspirationIssue} onClearInspiration={continueWithoutInspiration}/>;
+ const renderBookingModal=()=> <BookingModal startStep={bookingStartStep} catalogCategory={catalogCategory} themeMode={themeMode} selectedShop={showBookingModal?selectedShop:null} selectedService={selectedService} selectedBarber={selectedBarber} setSelectedBarber={setSelectedBarber} onBarberSelect={selectBookingBarber} setSelectedService={setSelectedService} onServiceSelect={selectBookingService} selectedDate={selectedDate} setSelectedDate={setSelectedDate} selectedTime={selectedTime} setSelectedTime={selectBookingTime} customerInfo={customerInfo} setCustomerInfo={setCustomerInfo} customRequest={customRequest} setCustomRequest={setCustomRequest} activeSlots={activeSlots} finalPrice={finalPrice} requestSaved={requestSaved} submitReservation={submitReservation} closeBookingModal={closeBookingModal} savingReservation={savingReservation} reservationsEnabled={reservationsEnabled} agendaLoading={agendaLoading} agendaError={agendaError} accessMessage={accessMessage} onLogin={requireBookingLogin} identityLoading={identity.loading} identityError={identity.error} onRetrySession={()=>void identity.refresh()} promotion={selectedPromotion} promotionError={promotionError} onRegularPrice={continueAtRegularPrice} onBackToOffers={backToOffers} salonPromotion={applicableBeautyPromotion} salonPromotionError={salonPromotionError} salonPriceDecision={salonPriceDecision} onSalonRegularPrice={confirmSalonRegularPrice} onCancelSalonPriceDecision={closeBookingModal} reservationValidationMessage={reservationValidationMessage} inspiration={selectedInspiration} inspirationIssue={inspirationIssue} onClearInspiration={continueWithoutInspiration}/>;
   const openProfessional=()=>{if(adminAccess)setView('admin');else if(identity.profile?.rol==='barbero')setView('shop-manage');else if(identity.profile?.rol==='cliente')setView('shop-register');else setView('barber-login');};
    if(view==='inspiration')return <><InspirationGallery api={api} category={catalogCategory} themeMode={themeMode} onToggleTheme={toggleThemeMode} onBack={()=>setView('client')} onViewProfile={openInspirationProfile} onBook={openInspirationBooking} onNavigate={navigateMobile} BottomNav={MobileBottomNav} initialPublication={selectedInspiration} signedIn={Boolean(identity.profile)} loadingIdentity={identity.loading}/>{renderBookingModal()}</>;
    if(view==='promotions')return <><CutPromotions themeMode={themeModes.barberia} onToggleTheme={()=>{const next=themeModes.barberia==='dark'?'light':'dark';try{window.localStorage.setItem(themeStorageKey('barberia'),next);}catch{}setThemeModes(current=>({...current,barberia:next}));}} offers={cutOffers} loading={cutOffersLoading} error={cutOffersError} notice={cutOffersNotice} onRetry={loadCutOffers} onBack={()=>setView('landing')} onOpenOffer={openCutOffer} onNavigate={navigateMobile} heroImage={BARBER_HERO_IMAGES[0]} bannerImage="/cut-promotions-banner.png" BottomNav={MobileBottomNav}/>{renderBookingModal()}</>;
@@ -1195,62 +825,23 @@ if (view === "admin" && adminAccess) return <AdminShops api={api} profile={ident
         {identity.error&&<p role="alert" className="px-6 text-red-300">{identity.error}</p>}
         {accessMessage&&<p role="status" className="px-6 text-amber-300">{accessMessage}</p>}
         {profileUnavailable&&<div role="alert" className="mx-auto my-5 max-w-4xl rounded-2xl border border-white/15 bg-neutral-900 p-5"><h1 className="text-xl font-bold">Este negocio ya no está disponible</h1><p className="mt-2 text-neutral-300">No mostramos perfiles que ya no están publicados.</p><button onClick={closeProfileModal} className="mt-4 rounded-xl border border-amber-400/50 px-4 py-2 text-amber-200">Volver al catálogo</button></div>}
-        <section id="catalogo" className={`meryo-catalog-section ${catalogCategory==='barberia'?'meryo-soft-catalog':''} mx-auto max-w-7xl px-3 pt-4 pb-10 md:px-6 md:py-16`}>
-          <ClientHero heroIndex={heroIndex} setHeroIndex={setHeroIndex} setView={setView} catalogCategory={catalogCategory} />
-
-          {catalogCategory==='barberia'&&<button type="button" onClick={()=>setView('promotions')} className="meryo-soft-promotion-link mb-8 min-h-12 rounded-xl border border-amber-400/50 bg-neutral-900 px-5 py-3 font-bold text-amber-200 shadow-sm transition hover:bg-neutral-800">Ver promociones</button>}
-          {catalogCategory==='belleza'&&<button type="button" onClick={openBeautyPromotions} className="meryo-beauty-offer-link mb-8 min-h-12 rounded-xl border border-[#C5AD86]/60 bg-[#FFFEFC] px-5 py-3 font-bold text-[#352832] shadow-sm transition hover:bg-[#EEDDE2]">Ver ofertas</button>}
-          <button type="button" onClick={()=>{setSelectedInspiration(null);setInspirationIssue('');setView('inspiration');}} className="meryo-inspiration-access mb-8 min-h-11 rounded-lg bg-white/5 px-4 py-2.5 text-sm font-semibold text-amber-100 shadow-sm transition hover:bg-white/10 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-amber-300">✦ Inspiración</button>
-          {catalogRows.length>0&&!catalogLoading&&!catalogError&&<TurnFinder key={`turn-finder-${catalogCategory}`} category={catalogCategory} shops={catalogRows} today={todayInLima()} maxDate={sumarDias(todayInLima(),30)} slots={api.slots} themeMode={themeMode} onReserve={turn=>openBookingModal(turn.shop,turn)}/>}
-
-          <div className="mb-10 flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
-            <div>
-              <h2 className="text-3xl font-black">{catalogCategory==='belleza'?'Peluquerías y salones cerca de ti':'Barberías cerca de ti'}</h2>
-              <CatalogFilters query={query} district={district} order={order} hasLocation={!!location} onQuery={setQuery} onDistrict={setDistrict} onOrder={setOrder} onUseLocation={enableLocation} businessLabel={catalogCategory==='belleza'?'salón':'barbería'} businessPlural={catalogCategory==='belleza'?'peluquerías y salones':'barberías'} />
-              <p className="mt-2 text-neutral-400">Solicita una cita. La confirmación requiere aceptación y verificación del adelanto por el servidor.</p>
-            </div>
-            <div className="meryo-catalog-count rounded-2xl border border-white/10 bg-neutral-900 px-4 py-3 text-sm text-neutral-300">
-              {catalogLoading||!catalogMatchesCategory?'Cargando…':catalogError?'Catálogo no disponible':catalogCountLabel(catalogCategory,ranking.length)}
-            </div>
+        <section id="catalogo" className="meryo-catalog-section mx-auto max-w-7xl px-4 pt-4 pb-10 md:px-6 md:pt-8 md:pb-16">
+          <div className="meryo-catalog-topline">
+            <div className="min-w-0"><h1 className="meryo-catalog-heading">{catalogCategory==='belleza'?'Encuentra tu salón':'Encuentra tu barbería'}</h1>{district&&<p className="mt-1 text-sm text-neutral-400">Distrito: {district}</p>}</div>
+            <p className="meryo-catalog-count" aria-live="polite">{catalogLoading||!catalogMatchesCategory?'Cargando…':catalogError?'Catálogo no disponible':catalogCountLabel(catalogCategory,ranking.length)}</p>
           </div>
-
-          {locationError && <p role="alert" className="mb-4 text-sm text-amber-300">{locationError}</p>}
-          <button onClick={() => setShowMap(value => !value)} aria-expanded={showMap} className="mb-4 rounded-xl border border-white/10 px-4 py-2 text-sm">{showMap ? "Ocultar mapa" : "Ver mapa"}</button>
-          {showMap && <div className="mb-10 rounded-3xl border border-white/10 bg-neutral-900 p-6">
-            <Suspense fallback={<p role="status">Cargando mapa…</p>}>
-              <CatalogMap markers={markers} location={location} onSelect={id => { const shop = catalogRows.find(item => item.id === id); if (shop) openProfileModal(shop); }} />
-            </Suspense>
-            {markers.length === 0 && <p className="mt-3 text-sm text-neutral-400">No hay ubicaciones verificables para estos resultados.</p>}
-          </div>}
-          {catalogRows.length > 0 && ranking.length === 0 && <p role="status" className="mb-6 text-neutral-400">No encontramos {catalogCategory==='belleza'?'peluquerías ni salones':'barberías'} con esos filtros.</p>}
+          <CatalogFilters query={query} district={district} order={order} hasLocation={!!location} onQuery={setQuery} onDistrict={setDistrict} onOrder={setOrder} onUseLocation={enableLocation} onClearFilters={clearCatalogFilters} businessLabel={catalogCategory==='belleza'?'salón':'barbería'} businessPlural={catalogCategory==='belleza'?'peluquerías y salones':'barberías'} />
+          {locationError&&<p role="alert" className="mt-2 text-sm text-amber-300">{locationError}</p>}
+          <div className="meryo-catalog-shortcuts" aria-label="Accesos rápidos">
+            <TurnFinder key={`turn-finder-${catalogCategory}`} category={catalogCategory} shops={catalogMatchesCategory&&!catalogLoading&&!catalogError?catalogRows:[]} disabled={!catalogMatchesCategory||catalogLoading||Boolean(catalogError)||catalogRows.length===0} today={todayInLima()} maxDate={sumarDias(todayInLima(),30)} slots={api.slots} themeMode={themeMode} onReserve={turn=>openBookingModal(turn.shop,turn,{startStep:3})}/>
+            <button type="button" onClick={()=>{setSelectedInspiration(null);setInspirationIssue('');setView('inspiration');}}><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="m21 15-5-5L5 21"/></svg><span>Inspiración</span></button>
+            <button type="button" className="meryo-catalog-promotion-shortcut" onClick={catalogCategory==='belleza'?openBeautyPromotions:()=>setView('promotions')}><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round"><path d="M20.6 13.4 13.4 20.6a2 2 0 0 1-2.8 0L3.4 13.4a2 2 0 0 1 0-2.8l7.2-7.2H19a2 2 0 0 1 2 2v8z"/><circle cx="16.5" cy="7.5" r="1"/></svg><span>Promociones</span></button>
+          </div>
+          <div className="meryo-catalog-map-control"><button type="button" onClick={()=>setShowMap(value=>!value)} aria-expanded={showMap}><span>{showMap?'Ocultar mapa':'Ver mapa'}</span><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="m3 6 6-3 6 3 6-3v15l-6 3-6-3-6 3z"/><path d="M9 3v15m6-12v15"/></svg></button></div>
+          {showMap&&<div className="meryo-catalog-map-panel"><Suspense fallback={<p role="status">Cargando mapa…</p>}><CatalogMap markers={markers} location={location} onSelect={id=>{const shop=catalogRows.find(item=>item.id===id);if(shop)openProfileModal(shop);}}/></Suspense>{markers.length===0&&<p className="mt-3 text-sm text-neutral-400">No hay ubicaciones verificables para estos resultados.</p>}</div>}
+          {catalogMatchesCategory&&!catalogLoading&&!catalogError&&catalogRows.length>0&&ranking.length===0&&<p role="status" className="meryo-catalog-no-match">No encontramos {catalogCategory==='belleza'?'peluquerías ni salones':'barberías'} con esos filtros.</p>}
           <CatalogStatus loading={catalogLoading||!catalogMatchesCategory} error={catalogMatchesCategory?catalogError:''} empty={catalogRows.length===0} businessLabel={catalogCategory==='belleza'?'peluquerías y salones':'barberías'} onRetry={cargarBarberiasActivas}/>
-
-          <CatalogShopGrid shops={ranking} category={catalogCategory} onView={openProfileModal} onReserve={openBookingModal}/>
-        </section>
-
-        <section className={`meryo-catalog-info-section border-y border-white/10 bg-neutral-900 py-16 ${catalogCategory==='barberia'?'meryo-soft-catalog-info':''}`}>
-          <div className="mx-auto grid max-w-7xl gap-8 px-6 md:grid-cols-2">
-            <div className="meryo-info-block meryo-info-block--teal rounded-3xl border border-white/10 bg-neutral-950 p-6">
-              <h2 className="text-2xl font-black">Solicita tu cita</h2><p className="mt-3 text-neutral-400">Elige un servicio en el catálogo. El adelanto del 50 % se solicita únicamente después de que {catalogCategory==='belleza'?'el profesional del salón':'el barbero'} acepte.</p>
-            </div>
-            <div className="meryo-info-block meryo-info-block--sky rounded-3xl border border-white/10 bg-neutral-950 p-6">
-              <div className="mb-6 flex items-center justify-between gap-3">
-                <div>
-                  <h2 id="register-shop" className="text-2xl font-black">Registro de negocios</h2>
-                  <p className="mt-2 text-neutral-400">Afíliate y recibe clientes sin depender solo de Instagram o WhatsApp.</p>
-                </div>
-                <button onClick={() => setShowAffiliateForm((prev) => !prev)} className={`rounded-xl bg-amber-400 px-4 py-2 font-bold text-black ${pointerClass}`}>{showAffiliateForm ? "Ocultar" : "Registrar"}</button>
-              </div>
-           {showAffiliateForm ? (
-  registration
-) : (
-  <div className="rounded-2xl border border-dashed border-white/10 bg-neutral-900 p-6 text-sm text-neutral-400">
-    Activa el registro para mostrar el formulario de afiliación de negocios.
-  </div>
-)}
-              
-            </div>
-          </div>
+          {!catalogLoading&&!catalogError&&catalogMatchesCategory&&<CatalogShopGrid shops={ranking} category={catalogCategory} onView={openProfileModal} onReserve={shop=>openBookingModal(shop,null,{startStep:1})}/>}
         </section>
       </main>
 
@@ -1260,10 +851,11 @@ if (view === "admin" && adminAccess) return <AdminShops api={api} profile={ident
         themeMode={themeMode}
         onClose={closeProfileModal}
         onStore={openStoreModal}
-        onReserve={() => {
+        onReserve={service => {
           setShowProfileModal(false);
-          openBookingModal(selectedShop);
+          openBookingModal(selectedShop,null,{service});
         }}
+        onInspiration={()=>{const url=new URL(window.location.href);url.pathname='/';url.search='';url.searchParams.set('catalogo',catalogCategory);url.hash='inspiration';window.history.replaceState(window.history.state,'',url.href);setLocationPath('/');setShowProfileModal(false);setSelectedInspiration(null);setInspirationIssue('');setView('inspiration');}}
       />
 
       {showStoreModal&&storeShop&&<Suspense fallback={null}><StoreModal key={`${storeShop.id}-${Boolean(restoredPickupCart)}`} api={api} shop={storeShop} profile={identity.profile} category={storeCategory} initialCart={restoredPickupCart} onLogin={destination=>openLogin(destination)} onClose={()=>{setShowStoreModal(false);setRestoredPickupCart(null);}} onOpenOrders={orderId=>{setShowStoreModal(false);const url=new URL(window.location.href);url.searchParams.set('pedido',orderId);window.history.replaceState(null,'',url.pathname+url.search+'#my-orders');setView('my-orders');}}/></Suspense>}

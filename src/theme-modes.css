@@ -1,7 +1,5 @@
 /* Optional smoked-plum mode for Belleza. Existing rose/marfil stays the default. */
-[data-meryo-theme="beauty"][data-meryo-mode="light"] .meryo-profile-modal section { border-color: rgb(197 173 134 / 34%) !important; background-color: #fffefc !important; color: #352832; box-shadow: 0 4px 12px rgb(53 40 50 / 7%); }
 [data-meryo-theme="beauty"][data-meryo-mode="light"] .meryo-profile-modal [class~="bg-black/30"] { border-color: rgb(197 173 134 / 24%) !important; background-color: #faf7f4 !important; color: #352832; }
-[data-meryo-theme="beauty"][data-meryo-mode="light"] .meryo-profile-modal .meryo-profile-close { border-color: rgb(197 173 134 / 34%) !important; background: #eedde2 !important; color: #352832 !important; }
 
 [data-meryo-theme="beauty"][data-meryo-mode="dark"] {
   color-scheme: dark;
@@ -15,8 +13,6 @@
   --meryo-text: #f7f0e9;
   --meryo-text-muted: #d0c1c9;
   --meryo-border: rgb(247 240 233 / 15%);
-  --meryo-profile-wash-start: rgb(52 44 51 / 90%);
-  --meryo-profile-wash-end: rgb(52 44 51 / 94%);
   --color-neutral-950: #342c33;
   --color-neutral-900: #413740;
   --color-neutral-800: #493f47;
@@ -152,4 +148,12 @@
 @media (max-width: 640px) {
   [data-meryo-theme="beauty"][data-meryo-mode="dark"] .meryo-beauty-hero-overlay { background: linear-gradient(0deg, rgb(38 30 38 / 82%) 0%, rgb(52 42 52 / 52%) 72%, rgb(52 42 52 / 27%) 100%); }
   [data-meryo-theme="beauty"][data-meryo-mode="dark"] .meryo-beauty-promotions-banner { background-image: linear-gradient(90deg, rgb(52 44 51 / 92%) 0%, rgb(52 44 51 / 80%) 43%, rgb(52 44 51 / 42%) 70%, rgb(52 44 51 / 10%) 100%), url('/salon-promotions-banner.jpg'); background-position: 80% center; }
+}
+
+/* Profile photo controls stay legible over real covers in every category and mode. */
+[data-meryo-theme] .meryo-profile-modal .meryo-profile-cover-controls .meryo-profile-close {
+  border: 0 !important;
+  background: rgb(17 15 13 / 84%) !important;
+  color: #fffaf2 !important;
+  box-shadow: 0 2px 6px rgb(0 0 0 / 14%);
 }

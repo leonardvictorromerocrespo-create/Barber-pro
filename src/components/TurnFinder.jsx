@@ -16,7 +16,7 @@ function resultMessage(result) {
     : 'No encontramos turnos con esos filtros. Prueba otra hora, fecha o distrito.';
 }
 
-export default function TurnFinder({ shops, today, maxDate, slots, onReserve, themeMode = 'dark', category = 'barberia' }) {
+export default function TurnFinder({ shops, today, maxDate, slots, onReserve, themeMode = 'dark', category = 'barberia', disabled = false }) {
   const activeCategory = category === 'belleza' ? 'belleza' : 'barberia';
   const [district, setDistrict] = useState('');
   const [service, setService] = useState('');
@@ -118,16 +118,17 @@ export default function TurnFinder({ shops, today, maxDate, slots, onReserve, th
   return <section
     data-meryo-theme={activeCategory === 'belleza' ? 'beauty' : 'barberia'}
     data-meryo-mode={themeMode}
-    className="meryo-turn-finder mb-6"
+    className="meryo-turn-finder min-w-0 w-full"
   >
     <button ref={triggerRef} type="button" aria-haspopup="dialog" aria-expanded={open}
       aria-controls="meryo-turn-finder-dialog"
+      disabled={disabled}
       onClick={() => setOpen(true)}
-      className="meryo-turn-finder__trigger inline-flex min-h-11 items-center gap-2 rounded-md px-4 py-2 font-semibold shadow-sm">
+      className="meryo-turn-finder__trigger inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-md px-3 py-2 font-medium shadow-sm">
       <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" className="size-4 shrink-0" stroke="currentColor" strokeWidth="1.8">
         <circle cx="10.8" cy="10.8" r="6.4"/><path d="m16 16 4.2 4.2"/>
       </svg>
-      <span>Encuéntrame un turno</span>
+      <span>Buscar turno</span>
     </button>
 
     {open&&<div className="meryo-turn-finder__backdrop fixed inset-0 z-[60] flex items-center justify-center p-2 sm:p-5"

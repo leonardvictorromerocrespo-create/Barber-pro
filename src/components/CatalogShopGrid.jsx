@@ -1,20 +1,34 @@
-const pointerClass="cursor-pointer";
 const businessLabel=(shop,category)=>category==='belleza'?'Salón de belleza':shop.businessTypes?.includes('belleza')?'Barbería y salón':'Barbería';
 
-export default function CatalogShopGrid({shops,category='barberia',onView,onReserve}) {
-  return <div className="grid grid-cols-2 gap-3 sm:gap-5 lg:grid-cols-3 xl:grid-cols-4">
+export default function CatalogShopGrid({shops,category='barberia',onView,onReserve=()=>{}}) {
+  return <div className="meryo-shop-grid" aria-label={category==='belleza'?'Salones publicados':'Barberías publicadas'}>
     {shops.map(shop=>{
-      const bookable=(shop.services??[]).some(service=>service.bookable);
-      const services=(shop.services??[]);
       const label=businessLabel(shop,category);
-      return <article key={shop.id} className="meryo-shop-card min-w-0 overflow-hidden rounded-2xl border border-white/10 bg-neutral-900">
-        {shop.image?<img src={shop.image} className="h-20 w-full object-cover sm:h-36 lg:h-48" alt={shop.name}/>:<div className="flex h-20 items-center justify-center bg-neutral-950 text-xl font-black text-amber-400 sm:h-36 sm:text-3xl" aria-label="Sin portada publicada">MERYO</div>}
-        <div className="min-w-0 p-2 sm:p-4">
-          <div className="mb-1 flex min-w-0 items-start justify-between gap-1 sm:mb-2 sm:gap-3"><div className="min-w-0"><p className="text-[9px] uppercase tracking-wide text-amber-300 sm:text-[10px]">{label}</p><h3 className="line-clamp-1 break-words text-sm font-bold leading-tight sm:text-xl">{shop.name}</h3><p className="line-clamp-1 text-[10px] text-neutral-400 sm:text-sm">{shop.district}{shop.km!=null?` • A ${shop.km.toFixed(1)} km`:""}</p></div>{shop.discount&&<span className="shrink-0 rounded-full bg-amber-400 px-1.5 py-0.5 text-[9px] font-bold leading-tight text-black sm:px-3 sm:py-1 sm:text-xs">{shop.discount}</span>}</div>
-          <div className="mt-1 hidden flex-wrap gap-2 sm:flex">{(shop.tags??[]).map(tag=><span key={tag} className="rounded-full border border-white/10 px-3 py-1 text-xs text-neutral-300">{tag}</span>)}</div>
-          <div className="mt-1 flex min-w-0 items-center justify-between gap-1 text-[10px] sm:mt-3 sm:text-sm"><span className="truncate">{shop.reviews>0?`⭐ ${shop.rating} (${shop.reviews})`:'Aún sin reseñas'}</span><p className="shrink-0 font-semibold text-amber-400">{shop.basePrice==null?'Servicios por publicar':`Desde S/ ${shop.basePrice}`}</p></div>
-          <div className="meryo-shop-card__services mt-2 rounded-xl border border-white/10 bg-black/20 px-2 py-1.5 text-[10px] text-neutral-300 sm:mt-4 sm:rounded-2xl sm:p-3 sm:text-sm"><p className="font-semibold text-white">Servicios:</p><p className="mt-0.5 line-clamp-2 leading-tight sm:mt-1">{services.length?services.map((service,index)=><span key={service.id}>{index>0&&' • '}{service.bookable?`${service.name} (S/ ${service.price})`:service.requiresEvaluation?`${service.name} (requiere evaluación)`:service.name}</span>):'Servicios por publicar'}</p></div>
-          <div className="mt-2 grid grid-cols-2 gap-1.5 sm:mt-5 sm:gap-3"><button onClick={()=>onView(shop)} className={`min-w-0 rounded-lg border border-white/20 bg-black/40 px-1 py-2 text-[10px] font-bold leading-tight text-white hover:bg-black/60 sm:rounded-xl sm:py-3 sm:text-sm ${pointerClass}`}>Ver {shop.businessTypes?.includes('belleza')?'salón':'barbería'}</button><button disabled={!bookable} title={bookable?'Solicitar una cita':'No hay servicios reservables con precio y duración confirmados'} onClick={()=>onReserve(shop)} className={`min-w-0 rounded-lg bg-amber-400 px-1 py-2 text-[10px] font-bold leading-tight text-black disabled:cursor-not-allowed disabled:opacity-45 sm:rounded-xl sm:py-3 sm:text-sm ${pointerClass}`}>Reservar cita</button></div>
+      const ratingIsVerified=Number.isFinite(Number(shop.rating))&&Number(shop.rating)>=1&&Number(shop.rating)<=5&&Number(shop.reviews)>0;
+      const reservable=(shop.services??[]).filter(service=>service.bookable&&Number.isFinite(Number(service.price))&&Number(service.price)>0);
+      const servicePrices=reservable.map(service=>Number(service.price));
+      const price=Number.isFinite(Number(shop.basePrice))&&Number(shop.basePrice)>0?Number(shop.basePrice):servicePrices.length?Math.min(...servicePrices):null;
+      const services=(shop.services??[]).filter(service=>service.name);
+      const serviceSummary=services.length
+        ?`${services.slice(0,2).map(service=>service.name).join(' · ')}${services.length>2?` · +${services.length-2}`:''}`
+        :'Servicios aún no publicados';
+      return <article key={shop.id} className="meryo-shop-card min-w-0 overflow-hidden rounded-xl">
+        <div className="meryo-shop-card__image">
+          {shop.image?<img src={shop.image} alt={`Portada de ${shop.name}`} loading="lazy"/>:<div className="meryo-shop-card__placeholder" role="img" aria-label="Sin fotografía de portada publicada"/>}
+        </div>
+        <div className="meryo-shop-card__content min-w-0">
+          <p className="meryo-shop-card__category">{label}</p>
+          <h2 className="meryo-shop-card__name">{shop.name}</h2>
+          <p className="meryo-shop-card__district">{shop.district||'Distrito no publicado'}</p>
+          <div className="meryo-shop-card__facts">
+            <span className="meryo-shop-card__rating">{ratingIsVerified?<span aria-label={`${Number(shop.rating).toFixed(1)} de 5 según ${shop.reviews} reseñas`}>★ {Number(shop.rating).toFixed(1)} · {shop.reviews}</span>:'Aún sin reseñas'}</span>
+            <span className="meryo-shop-card__price">{price!==null?`Desde S/ ${price.toFixed(2)}`:'Precio por consultar'}</span>
+          </div>
+          <p className="meryo-shop-card__service-summary" title={serviceSummary}>{serviceSummary}</p>
+          <div className="meryo-shop-card__actions">
+            <button type="button" onClick={()=>onView(shop)} className="meryo-shop-card__profile-action min-h-11 rounded-lg px-2 py-2 text-sm font-semibold">{category==='belleza'?'Ver salón':'Ver barbería'}</button>
+            <button type="button" disabled={!reservable.length} onClick={()=>onReserve(shop)} className="meryo-shop-card__booking-action min-h-11 rounded-lg px-2 py-2 text-sm font-semibold">Reservar cita</button>
+          </div>
         </div>
       </article>;
     })}

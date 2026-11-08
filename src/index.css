@@ -8,6 +8,24 @@
   font-display: swap;
 }
 
+@font-face {
+  font-family: "Quicksand";
+  src: url("/fonts/Quicksand-latin-ext.woff2") format("woff2");
+  font-style: normal;
+  font-weight: 400 700;
+  font-display: swap;
+  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C4, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+
+@font-face {
+  font-family: "Quicksand";
+  src: url("/fonts/Quicksand-latin.woff2") format("woff2");
+  font-style: normal;
+  font-weight: 400 700;
+  font-display: swap;
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+
 @theme {
   --color-amber-50: #fbf7e8;
   --color-amber-100: #f5e9bc;
@@ -51,8 +69,6 @@
   --meryo-text: #f5f1e8;
   --meryo-text-muted: #b6afa1;
   --meryo-border: rgba(245, 241, 232, .12);
-  --meryo-profile-wash-start: rgb(10 10 10 / 92%);
-  --meryo-profile-wash-end: rgb(10 10 10 / 95%);
   background: var(--meryo-carbon);
   color: var(--meryo-text);
 }
@@ -191,7 +207,7 @@ body {
   border-color: transparent !important;
   border-radius: 12px !important;
   background: #100f0d !important;
-  box-shadow: 0 12px 32px rgb(0 0 0 / 48%);
+  box-shadow: 0 8px 22px rgb(0 0 0 / 20%);
 }
 .meryo-soft-booking .meryo-booking-close,
 .meryo-soft-booking .meryo-booking-option,
@@ -199,7 +215,7 @@ body {
 .meryo-soft-booking button.meryo-booking-submit {
   border-color: transparent !important;
   border-radius: 7px !important;
-  box-shadow: 0 3px 9px rgb(0 0 0 / 25%);
+  box-shadow: 0 2px 6px rgb(0 0 0 / 12%);
 }
 .meryo-soft-booking .meryo-booking-close { background: #1b1915; color: var(--meryo-text); }
 .meryo-soft-booking .meryo-booking-option {
@@ -228,7 +244,7 @@ body {
   border-color: transparent !important;
   border-radius: 10px !important;
   background: #171613 !important;
-  box-shadow: 0 5px 13px rgb(0 0 0 / 24%);
+  box-shadow: 0 3px 9px rgb(0 0 0 / 10%);
 }
 .meryo-soft-booking :where(button, input, select, textarea):focus-visible {
   outline: 3px solid var(--meryo-gold-light);
@@ -317,8 +333,6 @@ body {
   --meryo-text: #34291e;
   --meryo-text-muted: #6e6254;
   --meryo-border: rgb(72 54 35 / 18%);
-  --meryo-profile-wash-start: rgb(244 239 230 / 91%);
-  --meryo-profile-wash-end: rgb(244 239 230 / 94%);
   --color-neutral-950: #f4efe6;
   --color-neutral-900: #fffbf4;
   --color-neutral-800: #f8f2e9;
@@ -383,7 +397,6 @@ body {
 [data-meryo-theme="barberia"][data-meryo-mode="light"] .meryo-soft-booking .meryo-booking-field { background-color: #f4efe6; color: #34291e; }
 [data-meryo-theme="barberia"][data-meryo-mode="light"] .meryo-soft-booking .meryo-booking-panel { background: #f8f2e9 !important; box-shadow: 0 5px 13px rgb(65 48 30 / 8%); }
 [data-meryo-theme="barberia"][data-meryo-mode="light"] .meryo-soft-booking :where(button, input, select, textarea):focus-visible { outline-color: #795b37; }
-[data-meryo-theme="barberia"][data-meryo-mode="light"] .meryo-profile-modal section { border-color: rgb(105 79 48 / 16%) !important; background-color: #fffbf4 !important; color: #34291e; box-shadow: 0 4px 12px rgb(65 48 30 / 8%); }
 [data-meryo-theme="barberia"][data-meryo-mode="light"] .meryo-profile-modal [class~="bg-black/30"] { border-color: rgb(105 79 48 / 12%) !important; background-color: #f4efe6 !important; color: #34291e; }
 [data-meryo-theme="barberia"][data-meryo-mode="light"] .meryo-profile-modal .meryo-profile-close { border-color: rgb(105 79 48 / 18%) !important; background: #f4efe6 !important; color: #34291e !important; }
 [data-meryo-theme="barberia"][data-meryo-mode="light"] .meryo-beauty-hero h1,
@@ -400,11 +413,6 @@ body {
 [data-meryo-theme="barberia"][data-meryo-mode="light"] .meryo-booking-note,
 [data-meryo-theme="barberia"][data-meryo-mode="light"] .meryo-booking-payment { color: #6e6254; }
 [data-meryo-theme="barberia"][data-meryo-mode="light"] .meryo-booking-status { background: #ece2d4; color: #795b37; }
-
-[data-meryo-theme="beauty"] {
-  --meryo-profile-wash-start: rgb(250 247 244 / 90%);
-  --meryo-profile-wash-end: rgb(250 247 244 / 94%);
-}
 
 [data-meryo-theme="beauty"] .meryo-booking-card { border-color: #c5ad86; background: #fffefc; color: #352832; }
 [data-meryo-theme="beauty"] .meryo-booking-business { color: #352832; }
@@ -425,6 +433,229 @@ body {
   .meryo-mobile-bottom-nav { display: none; }
 }
 
+/* Structural catalog, profile and booking surfaces. Palette comes from the active category/theme. */
+.meryo-catalog-page { background: var(--meryo-carbon); color: var(--meryo-text); }
+.meryo-catalog-page,
+.meryo-catalog-page :where(*) {
+  font-family: "Quicksand", sans-serif;
+}
+.meryo-catalog-map-control { display: flex; justify-content: flex-end; margin: 0 0 .5rem; }
+.meryo-catalog-map-control > button { display: inline-flex; min-height: 2.5rem; align-items: center; justify-content: center; gap: .45rem; border: 0; border-radius: 7px; background: var(--meryo-surface-soft); padding: .35rem .65rem; color: var(--meryo-text); box-shadow: 0 2px 6px rgb(0 0 0 / 9%); font-size: .84rem; font-weight: 500; }
+.meryo-catalog-map-control > button svg { width: 1rem; height: 1rem; flex: 0 0 auto; }
+.meryo-catalog-map-control > button:hover { background: var(--meryo-surface-raised); }
+.meryo-catalog-map-control > button:focus-visible { outline: 2px solid var(--meryo-gold-light); outline-offset: 2px; }
+.meryo-catalog-topline { display: flex; min-width: 0; flex-direction: column; align-items: flex-start; gap: .45rem; }
+.meryo-catalog-heading { margin: 0; color: var(--meryo-text); font-size: clamp(1.45rem, 3vw, 2.1rem); font-weight: 600; line-height: 1.15; }
+.meryo-catalog-count { margin: 0; max-width: 100%; border: 0; border-radius: 0; padding: 0; background: transparent; color: var(--meryo-text-muted); box-shadow: none; font-size: .84rem; line-height: 1.3; }
+.meryo-catalog-controls { position: relative; min-width: 0; }
+.meryo-catalog-field { border: 0; background: var(--meryo-surface); color: var(--meryo-text); box-shadow: 0 3px 10px rgb(0 0 0 / 12%); }
+.meryo-catalog-field::placeholder { color: var(--meryo-text-muted); opacity: 1; }
+.meryo-catalog-filter-row { display: flex; align-items: flex-start; gap: .5rem; }
+.meryo-catalog-filter-summary,
+.meryo-catalog-control-button,
+.meryo-clear-filters,
+.meryo-active-filter { background: var(--meryo-surface); color: var(--meryo-text); box-shadow: 0 2px 7px rgb(0 0 0 / 10%); }
+.meryo-catalog-filter-summary { display: flex; align-items: center; justify-content: space-between; gap: .5rem; border: 0; cursor: pointer; list-style: none; }
+.meryo-catalog-filter-summary::-webkit-details-marker { display: none; }
+.meryo-catalog-filter-summary > span { display: inline-flex; min-width: 0; align-items: center; gap: .4rem; }
+.meryo-catalog-filter-summary > svg { width: 1rem; height: 1rem; flex: 0 0 auto; }
+.meryo-filter-count { display: inline-grid; min-width: 1.35rem; height: 1.35rem; place-items: center; border-radius: 999px; background: var(--meryo-gold); color: var(--meryo-carbon); font-size: .72rem; }
+.meryo-catalog-more-filters { position: relative; }
+.meryo-catalog-more-panel { background: var(--meryo-surface-raised); box-shadow: 0 8px 20px rgb(0 0 0 / 18%); }
+.meryo-catalog-control-button:hover,
+.meryo-catalog-filter-summary:hover,
+.meryo-clear-filters:hover { background: var(--meryo-surface-soft); }
+.meryo-clear-filters { color: var(--meryo-gold-light); }
+.meryo-active-filter { color: var(--meryo-text-muted); }
+.meryo-catalog-shortcuts { display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); align-items: stretch; gap: .5rem; margin-block: .75rem 1rem; }
+.meryo-catalog-shortcuts > button,
+.meryo-catalog-shortcuts .meryo-turn-finder__trigger { display: flex; width: 100%; min-width: 0; min-height: 56px; flex-direction: column; align-items: center; justify-content: center; gap: .3rem; border: 0; border-radius: 0; background: transparent !important; color: var(--meryo-text); box-shadow: none !important; font-size: .84rem; font-weight: 500; line-height: 1.2; text-align: center; text-decoration: none; }
+.meryo-catalog-shortcuts > button svg,
+.meryo-catalog-shortcuts .meryo-turn-finder__trigger svg { display: block; width: 1rem; height: 1rem; flex: 0 0 auto; }
+.meryo-catalog-shortcuts > button span,
+.meryo-catalog-shortcuts .meryo-turn-finder__trigger span { white-space: nowrap; }
+.meryo-catalog-shortcuts > button:hover,
+.meryo-catalog-shortcuts .meryo-turn-finder__trigger:hover:not(:disabled) { background: transparent !important; color: var(--meryo-gold-light); }
+.meryo-catalog-shortcuts :where(button):disabled { color: var(--meryo-text-muted); opacity: .65; box-shadow: none; }
+.meryo-catalog-shortcuts :where(button):focus-visible { outline: 2px solid var(--meryo-gold-light); outline-offset: 2px; }
+.meryo-catalog-promotion-shortcut { color: var(--meryo-gold-light) !important; }
+.meryo-shop-grid { display: grid; grid-template-columns: minmax(0,1fr); gap: .7rem; }
+.meryo-shop-card { display: flex; min-height: 164px; border: 0; border-radius: 10px; background: var(--meryo-surface); color: var(--meryo-text); box-shadow: 0 4px 12px rgb(0 0 0 / 12%); }
+.meryo-shop-card__image { width: 36%; min-width: 88px; max-width: 176px; flex: 0 0 36%; overflow: hidden; background: var(--meryo-surface-raised); }
+.meryo-shop-card__image img { display: block; width: 100%; height: 100%; min-height: 164px; object-fit: cover; }
+.meryo-shop-card__placeholder { display: block; width: 100%; min-height: 164px; height: 100%; background: linear-gradient(145deg,var(--meryo-surface-raised),var(--meryo-surface-soft)); }
+.meryo-shop-card__content { display: flex; flex: 1; flex-direction: column; align-items: stretch; min-width: 0; padding: .65rem .7rem; }
+.meryo-shop-card__category { margin: 0 0 .12rem; color: var(--meryo-gold-light); font-size: .68rem; font-weight: 500; text-transform: uppercase; letter-spacing: .045em; }
+.meryo-shop-card__name { margin: 0; max-width: 100%; color: var(--meryo-text); font-size: 1rem; font-weight: 600; line-height: 1.2; overflow-wrap: anywhere; }
+.meryo-shop-card__district { margin: .18rem 0 0; color: var(--meryo-text-muted); font-size: .84rem; }
+.meryo-shop-card__facts { display: flex; flex-wrap: wrap; justify-content: space-between; gap: .25rem .55rem; margin-top: .25rem; color: var(--meryo-text-muted); font-size: .75rem; line-height: 1.25; }
+.meryo-shop-card__rating,.meryo-shop-card__price { min-width: 0; }
+.meryo-shop-card__price { color: var(--meryo-gold-light); font-weight: 500; }
+.meryo-shop-card__service-summary { display: -webkit-box; max-width: 100%; overflow: hidden; margin: .3rem 0 .45rem; color: var(--meryo-text-muted); font-size: .78rem; font-weight: 400; line-height: 1.3; overflow-wrap: anywhere; -webkit-box-orient: vertical; -webkit-line-clamp: 2; }
+.meryo-shop-card__actions { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: .4rem; margin-top: auto; }
+.meryo-shop-card__actions button { display: inline-flex; min-width: 0; min-height: 42px; align-items: center; justify-content: center; border: 0; border-radius: 7px; padding: .3rem .2rem; box-shadow: 0 2px 6px rgb(0 0 0 / 9%); font-size: .73rem; font-weight: 500; line-height: 1.15; text-align: center; white-space: normal; }
+.meryo-shop-card__profile-action { background: var(--meryo-surface-soft); color: var(--meryo-text); }
+.meryo-shop-card__booking-action { background: var(--meryo-gold); color: var(--meryo-carbon); }
+.meryo-shop-card__actions button:disabled { background: var(--meryo-surface-soft); color: var(--meryo-text-muted); box-shadow: none; cursor: not-allowed; }
+.meryo-shop-card__actions button:hover:not(:disabled) { filter: brightness(1.04); }
+.meryo-shop-card__actions button:focus-visible { outline: 3px solid var(--meryo-gold-light); outline-offset: 2px; }
+.meryo-profile-backdrop { background: rgb(5 5 5 / 72%); }
+.meryo-profile-modal { width: min(100%,72rem); max-height: 92dvh; overflow-x: hidden; overflow-y: auto; overscroll-behavior: contain; border: 0; border-radius: 12px; background-color: var(--meryo-carbon); color: var(--meryo-text); box-shadow: 0 8px 22px rgb(0 0 0 / 20%); }
+.meryo-profile-header { position: relative; min-width: 0; }
+.meryo-profile-cover { display: block; width: 100%; height: 260px; object-fit: cover; object-position: center; }
+.meryo-profile-cover--empty { background: linear-gradient(135deg,var(--meryo-surface-raised),var(--meryo-surface-soft)); }
+.meryo-profile-cover-controls { position: absolute; inset: .5rem .5rem auto; display: flex; align-items: center; justify-content: space-between; gap: .6rem; }
+.meryo-profile-close { background: rgb(12 11 10 / 82%); color: #f5f1e8; box-shadow: 0 2px 7px rgb(0 0 0 / 15%); }
+.meryo-profile-heading { display: flex; align-items: flex-start; gap: .75rem; margin: 0 .85rem; padding: .85rem 0 .9rem; position: relative; }
+.meryo-profile-avatar { display: grid; width: 3rem; height: 3rem; flex: 0 0 auto; place-items: center; overflow: hidden; border-radius: 50%; background: var(--meryo-surface-raised); color: var(--meryo-gold-light); font-size: 1rem; font-weight: 600; box-shadow: 0 2px 8px rgb(0 0 0 / 14%); }
+.meryo-profile-heading h2 { margin: 0; color: var(--meryo-text); font-size: clamp(1.2rem,3vw,1.8rem); font-weight: 600; line-height: 1.15; overflow-wrap: anywhere; }
+.meryo-profile-meta { margin: .2rem 0 0; color: var(--meryo-text-muted); font-size: .82rem; }
+.meryo-profile-description { margin: .35rem 0 0; color: var(--meryo-text); font-size: .88rem; line-height: 1.4; }
+.meryo-profile-description.is-clamped { display: -webkit-box; overflow: hidden; -webkit-box-orient: vertical; -webkit-line-clamp: 2; }
+.meryo-profile-read-more { min-height: 2.25rem; padding: .3rem 0; color: var(--meryo-gold-light); font-size: .82rem; font-weight: 700; }
+.meryo-profile-body { min-width: 0; padding: 0 .75rem .75rem; }
+.meryo-profile-quick-actions { display: flex; min-height: 0; gap: .5rem; margin: 0 0 .65rem; }
+.meryo-profile-secondary-action { background: var(--meryo-surface-raised); color: var(--meryo-gold-light); box-shadow: 0 3px 9px rgb(0 0 0 / 12%); }
+.meryo-profile-feedback { margin: .25rem 0 .6rem; color: var(--meryo-text-muted); font-size: .8rem; }
+.meryo-profile-layout { display: grid; grid-template-columns: minmax(0,1fr); gap: 1rem; }
+.meryo-profile-tabs { display: flex; gap: .2rem; overflow-x: auto; border-bottom: 1px solid var(--meryo-border); scrollbar-width: thin; }
+.meryo-profile-tabs button { min-height: 2.9rem; flex: 1 0 auto; padding: .45rem .65rem; color: var(--meryo-text-muted); font-size: .88rem; font-weight: 500; white-space: nowrap; }
+.meryo-profile-tabs button[aria-selected="true"] { color: var(--meryo-gold-light); box-shadow: inset 0 -2px var(--meryo-gold-light); }
+.meryo-profile-tab-panel { min-width: 0; padding-top: .8rem; }
+.meryo-profile-section-title { margin: 0; color: var(--meryo-gold-light); font-size: 1.12rem; font-weight: 600; }
+.meryo-profile-service-list,.meryo-profile-team-list { display: grid; gap: .55rem; margin-top: .65rem; }
+.meryo-profile-service-row,.meryo-profile-team-card,.meryo-profile-info-block { min-width: 0; border-radius: 10px; background: var(--meryo-surface-raised); padding: .7rem; box-shadow: 0 3px 10px rgb(0 0 0 / 10%); }
+.meryo-profile-service-row { display: grid; grid-template-columns: minmax(0,1fr) auto; align-items: center; gap: .45rem .7rem; }
+.meryo-profile-service-row h4,.meryo-profile-team-card h4,.meryo-profile-info-block h4 { margin: 0; color: var(--meryo-text); font-weight: 600; overflow-wrap: anywhere; }
+.meryo-profile-service-row p,.meryo-profile-team-card p,.meryo-profile-info-block p { margin: .2rem 0 0; color: var(--meryo-text-muted); font-size: .82rem; line-height: 1.4; overflow-wrap: anywhere; }
+.meryo-profile-service-price { color: var(--meryo-gold-light); font-weight: 600; font-variant-numeric: tabular-nums; }
+.meryo-profile-row-action { grid-column: 1 / -1; justify-self: start; background: var(--meryo-surface-soft); color: var(--meryo-text); }
+.meryo-profile-row-action:disabled,.meryo-profile-book-button:disabled { cursor: not-allowed; opacity: .55; }
+.meryo-profile-team-card { display: flex; align-items: flex-start; gap: .7rem; }
+.meryo-profile-member-photo { display: grid; width: 2.8rem; height: 2.8rem; flex: 0 0 auto; place-items: center; overflow: hidden; border-radius: 50%; background: var(--meryo-surface-soft); color: var(--meryo-gold-light); font-weight: 750; }
+.meryo-profile-member-photo img { width: 100%; height: 100%; object-fit: cover; }
+.meryo-profile-work-heading { display: flex; align-items: center; justify-content: space-between; gap: .6rem; }
+.meryo-profile-work-grid { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: .55rem; margin-top: .65rem; }
+.meryo-profile-work-grid figure { margin: 0; }
+.meryo-profile-work-grid img { width: 100%; height: 130px; border-radius: 8px; object-fit: cover; }
+.meryo-profile-work-grid figcaption { margin-top: .25rem; color: var(--meryo-text-muted); font-size: .76rem; overflow-wrap: anywhere; }
+.meryo-profile-location { margin-top: .65rem !important; background: var(--meryo-surface-raised) !important; }
+.meryo-profile-info-block { margin-top: .65rem; }
+.meryo-profile-review { margin-top: .6rem; border-top: 1px solid var(--meryo-border); padding-top: .55rem; }
+.meryo-profile-empty { margin: .65rem 0 0; color: var(--meryo-text-muted); }
+.meryo-profile-sidebar { display: none; }
+.meryo-profile-book-button { background: var(--meryo-gold); color: var(--meryo-carbon); box-shadow: 0 4px 12px rgb(0 0 0 / 14%); }
+.meryo-profile-mobile-book { position: sticky; z-index: 4; bottom: -.8rem; margin: .8rem -.75rem -.8rem; padding: .65rem .75rem calc(.65rem + env(safe-area-inset-bottom)); background: color-mix(in srgb,var(--meryo-carbon) 94%,transparent); backdrop-filter: blur(8px); }
+.meryo-catalog-page :where(button,a,input,select,textarea,[tabindex]):focus-visible,
+.meryo-profile-modal :where(button,a,input,select,textarea,[tabindex]):focus-visible { outline: 3px solid var(--meryo-gold-light); outline-offset: 2px; }
+
+@media (min-width: 560px) {
+  .meryo-profile-cover { height: 260px; }
+  .meryo-profile-service-row { grid-template-columns: minmax(0,1fr) auto auto; }
+  .meryo-profile-row-action { grid-column: auto; }
+}
+@media (min-width: 900px) {
+  .meryo-catalog-topline { flex-direction: row; align-items: flex-end; justify-content: space-between; gap: 1rem; }
+  .meryo-shop-grid { grid-template-columns: repeat(2,minmax(0,1fr)); gap: .9rem; }
+  .meryo-shop-card { min-height: 182px; }
+  .meryo-shop-card__image img,.meryo-shop-card__placeholder { min-height: 182px; }
+  .meryo-shop-card__image { max-width: 184px; }
+  .meryo-profile-cover { height: 300px; }
+  .meryo-profile-body { padding: 0 1.25rem 1.25rem; }
+  .meryo-profile-layout { grid-template-columns: minmax(0,1fr) 17rem; gap: 1.25rem; }
+  .meryo-profile-sidebar { position: sticky; top: .5rem; display: flex; align-self: start; flex-direction: column; gap: .7rem; border-radius: 10px; background: var(--meryo-surface-raised); padding: 1rem; color: var(--meryo-text-muted); box-shadow: 0 5px 14px rgb(0 0 0 / 12%); }
+  .meryo-profile-sidebar-title { margin: 0; color: var(--meryo-text); font-weight: 800; overflow-wrap: anywhere; }
+  .meryo-profile-mobile-book { display: none; }
+}
+@media (max-width: 359px) {
+  .meryo-catalog-shortcuts { gap: .3rem; }
+  .meryo-catalog-shortcuts > button,.meryo-catalog-shortcuts .meryo-turn-finder__trigger { padding-inline: .3rem; font-size: .72rem; }
+  .meryo-shop-card__image { min-width: 82px; }
+  .meryo-shop-card__content { padding: .55rem; }
+  .meryo-shop-card__name { font-size: .88rem; }
+}
+@media (min-width: 360px) and (max-width: 399px) {
+  .meryo-catalog-shortcuts { gap: .25rem; }
+  .meryo-catalog-shortcuts > button,.meryo-catalog-shortcuts .meryo-turn-finder__trigger { font-size: .78rem; }
+}
+
+@media (max-width: 639px) {
+  .meryo-profile-backdrop { align-items: stretch; padding: 0 !important; }
+  .meryo-profile-modal { width: 100%; height: 100dvh; min-height: 100dvh; max-height: 100dvh; border-radius: 0; }
+  .meryo-profile-cover { height: 216px; }
+  .meryo-profile-cover-controls { inset: max(.5rem,env(safe-area-inset-top)) .65rem auto; }
+  .meryo-profile-heading { margin-inline: .7rem; }
+  .meryo-profile-body { padding-inline: .7rem; }
+  .meryo-profile-mobile-book { margin-inline: -.7rem; }
+}
+
+/* Selected booking choices keep every label legible, independent of palette. */
+.meryo-booking-dialog { font-weight: 400; }
+.meryo-booking-dialog[data-meryo-theme="barberia"][data-meryo-mode="dark"] { --booking-selected-bg: #d4af37; --booking-selected-fg: #15120a; }
+.meryo-booking-dialog[data-meryo-theme="barberia"][data-meryo-mode="light"] { --booking-selected-bg: #a77d49; --booking-selected-fg: #21190f; }
+.meryo-booking-dialog[data-meryo-theme="beauty"] { --booking-selected-bg: var(--beauty-booking-accent); --booking-selected-fg: var(--beauty-booking-selected-text); }
+.meryo-booking-dialog .meryo-booking-option.is-selected,
+.meryo-booking-dialog .meryo-booking-day.is-selected {
+  background: var(--booking-selected-bg,var(--meryo-gold)) !important;
+  color: var(--booking-selected-fg,var(--meryo-carbon)) !important;
+  font-weight: 600;
+}
+.meryo-booking-dialog .meryo-booking-option.is-selected :where(strong,small,span,.meryo-booking-price),
+.meryo-booking-dialog .meryo-booking-day.is-selected :where(strong,small,span) { color: inherit !important; }
+.meryo-booking-dialog .meryo-booking-title { font-weight: 600; }
+.meryo-booking-dialog .meryo-booking-eyebrow,
+.meryo-booking-dialog .meryo-booking-steps li,
+.meryo-booking-dialog .meryo-booking-choice-group > h4,
+.meryo-booking-dialog .meryo-booking-date-heading > h4,
+.meryo-booking-dialog .meryo-booking-agenda-heading > h4,
+.meryo-booking-dialog .meryo-booking-review-fields > h4,
+.meryo-booking-dialog .meryo-booking-review-summary > h4 { font-weight: 500; }
+.meryo-booking-dialog .meryo-booking-step-heading h3 { font-weight: 600; }
+.meryo-booking-dialog .meryo-booking-service-option strong,
+.meryo-booking-dialog .meryo-booking-member-option strong,
+.meryo-booking-dialog .meryo-booking-price,
+.meryo-booking-dialog .meryo-booking-review-total { font-weight: 600; }
+.meryo-booking-dialog .meryo-booking-service-option small,
+.meryo-booking-dialog .meryo-booking-member-option small { font-weight: 400; }
+.meryo-booking-dialog .meryo-time-slot__check { color: inherit; }
+.meryo-booking-dialog .meryo-booking-primary,
+.meryo-booking-dialog .meryo-booking-secondary { font-weight: 600; }
+.meryo-booking-day { position: relative; }
+.meryo-booking-day-check { position: absolute; top: .2rem; right: .35rem; font-size: .72rem; font-weight: 600; }
+.meryo-time-grid .meryo-time-slot { position: relative; font-weight: 500; }
+.meryo-time-grid .meryo-time-slot.is-selected { color: var(--booking-selected-fg,var(--meryo-carbon)) !important; font-weight: 600; }
+.meryo-time-slot__check { position: absolute; top: .12rem; right: .32rem; font-size: .7rem; line-height: 1; }
+.meryo-profile-modal[data-meryo-theme="beauty"][data-meryo-mode="dark"] {
+  --meryo-carbon: #392f38;
+  --meryo-surface: #463944;
+  --meryo-surface-raised: #51414e;
+  --meryo-surface-soft: #5d4959;
+  --meryo-gold: #b87589;
+  --meryo-gold-light: #e8b3c0;
+  --meryo-text: #f7eff2;
+  --meryo-text-muted: #d2c2ca;
+  background-color: #392f38 !important;
+  color: #f7eff2 !important;
+}
+.meryo-profile-modal[data-meryo-theme="beauty"][data-meryo-mode="dark"] .meryo-profile-cover-controls button { background: rgb(57 47 56 / 88%); color: #f7eff2; }
+.meryo-profile-modal[data-meryo-theme="beauty"][data-meryo-mode="light"] {
+  --meryo-carbon: #faf7f4;
+  --meryo-surface: #fffefc;
+  --meryo-surface-raised: #fffaf8;
+  --meryo-surface-soft: #eedde2;
+  --meryo-gold: #955568;
+  --meryo-gold-light: #955568;
+  --meryo-text: #352832;
+  --meryo-text-muted: #655761;
+  background-color: #faf7f4 !important;
+  color: #352832 !important;
+}
+.meryo-profile-modal[data-meryo-theme="beauty"][data-meryo-mode="light"] .meryo-profile-cover-controls button { background: rgb(53 40 50 / 80%); color: #fffaf8; }
+.meryo-profile-modal[data-meryo-theme="beauty"] .meryo-profile-section-title,
+.meryo-profile-modal[data-meryo-theme="beauty"] .meryo-profile-read-more { color: var(--meryo-gold-light); }
+.meryo-profile-modal[data-meryo-theme="beauty"] .meryo-profile-secondary-action { background: var(--meryo-surface-soft); color: var(--meryo-text); }
+.meryo-profile-modal :where(button,a,input,select,textarea,[tabindex]):focus-visible { outline: 3px solid var(--meryo-gold-light); outline-offset: 2px; }
+
 .meryo-turn-finder {
   --turn-panel: #171512;
   --turn-card: #211e19;
@@ -444,10 +675,11 @@ body {
 }
 .meryo-turn-finder__trigger:hover,
 .meryo-turn-finder__close:hover { background: var(--turn-field); }
+.meryo-turn-finder__trigger:disabled { cursor: not-allowed; opacity: .58; box-shadow: none; }
 .meryo-turn-finder__dialog {
   background: var(--turn-panel);
   color: var(--turn-text);
-  box-shadow: 0 16px 44px rgb(0 0 0 / 38%);
+  box-shadow: 0 9px 24px rgb(0 0 0 / 22%);
 }
 .meryo-turn-finder__backdrop {
   background: rgb(9 8 7 / 76%);
@@ -556,10 +788,11 @@ body {
 .meryo-catalog-page[data-meryo-theme="beauty"][data-meryo-mode="dark"] .meryo-beauty-offer-link { color: var(--beauty-text) !important; box-shadow: 0 4px 12px rgb(15 10 14 / 20%); }
 .meryo-catalog-page[data-meryo-theme="beauty"] .meryo-catalog-count {
   border: 0 !important;
-  border-radius: 10px;
-  background: var(--beauty-card) !important;
+  border-radius: 0;
+  padding: 0;
+  background: transparent !important;
   color: var(--beauty-muted) !important;
-  box-shadow: 0 4px 12px rgb(53 40 50 / 8%);
+  box-shadow: none !important;
 }
 .meryo-catalog-page[data-meryo-theme="beauty"] .meryo-catalog-filters {
   border: 0 !important;
@@ -586,7 +819,7 @@ body {
   border: 0 !important;
   border-radius: 11px;
   background: var(--beauty-surface) !important;
-  box-shadow: 0 6px 16px rgb(53 40 50 / 10%);
+  box-shadow: 0 4px 11px rgb(53 40 50 / 9%);
   color: var(--beauty-text);
 }
 .meryo-catalog-page[data-meryo-theme="beauty"] .meryo-shop-card__services {
@@ -608,7 +841,7 @@ body {
 }
 .meryo-catalog-page[data-meryo-theme="beauty"] .meryo-shop-card button:last-child {
   background: var(--beauty-accent) !important;
-  color: #fffaf8 !important;
+  color: var(--beauty-accent-text) !important;
 }
 .meryo-catalog-page[data-meryo-theme="beauty"] .meryo-shop-card button:disabled { background: var(--beauty-card) !important; color: var(--beauty-muted) !important; box-shadow: none; }
 .meryo-catalog-page[data-meryo-theme="beauty"] .meryo-catalog-info-section { border-color: color-mix(in srgb, var(--beauty-accent) 20%, transparent) !important; }
@@ -739,3 +972,133 @@ body {
 .meryo-beauty-booking .meryo-booking-option:disabled { background: var(--beauty-booking-panel) !important; color: var(--beauty-booking-muted) !important; opacity: .7; box-shadow: none; }
 .meryo-beauty-booking .meryo-booking-panel { border-color: transparent !important; border-radius: 10px; background: var(--beauty-booking-panel) !important; box-shadow: 0 4px 12px rgb(53 40 50 / 8%); }
 .meryo-beauty-booking :where(button, input, select, textarea):focus-visible { outline: 3px solid var(--beauty-booking-focus); outline-offset: 2px; }
+
+/* Three-step reservation flow shared by barbería and beauty palettes. */
+.meryo-booking-backdrop { padding: max(.5rem, env(safe-area-inset-top)) max(.5rem, env(safe-area-inset-right)) max(.5rem, env(safe-area-inset-bottom)) max(.5rem, env(safe-area-inset-left)); }
+.meryo-booking-dialog { display: flex; width: min(100%, 64rem); height: min(92dvh, 56rem); min-width: 0; max-height: 92dvh; flex-direction: column; overflow: hidden; border: 0; border-radius: 10px; padding: 0; box-shadow: 0 8px 22px rgb(0 0 0 / 20%); }
+.meryo-booking-dialog-header { display: flex; flex: 0 0 auto; align-items: flex-start; justify-content: space-between; gap: .75rem; padding: 1rem 1rem .65rem; }
+.meryo-booking-eyebrow { margin: 0; color: var(--meryo-gold-light); font-size: .72rem; font-weight: 500; letter-spacing: .08em; text-transform: uppercase; }
+.meryo-booking-title { margin: .2rem 0 0; overflow-wrap: anywhere; color: var(--meryo-text); font-size: clamp(1.25rem, 3vw, 1.75rem); font-weight: 600; line-height: 1.15; }
+.meryo-booking-subtitle { margin: .25rem 0 0; color: var(--meryo-text-muted); font-size: .9rem; }
+.meryo-booking-message { margin: .45rem 0 0; color: var(--meryo-gold-light); font-size: .86rem; }
+.meryo-booking-steps { display: grid; grid-template-columns: repeat(3, minmax(0,1fr)); flex: 0 0 auto; gap: .25rem; margin: 0; padding: .55rem 1rem .7rem; list-style: none; }
+.meryo-booking-steps li { display: flex; min-width: 0; align-items: center; justify-content: center; gap: .35rem; color: var(--meryo-text-muted); font-size: .78rem; font-weight: 500; }
+.meryo-booking-step-number { display: inline-grid; width: 1.55rem; height: 1.55rem; flex: 0 0 auto; place-items: center; border-radius: 50%; background: var(--meryo-surface-raised); color: var(--meryo-text-muted); font-size: .75rem; font-variant-numeric: tabular-nums; }
+.meryo-booking-steps li.is-current { color: var(--meryo-text); }
+.meryo-booking-steps li.is-current .meryo-booking-step-number,
+.meryo-booking-steps li.is-complete .meryo-booking-step-number { background: var(--meryo-gold); color: var(--meryo-carbon); }
+.meryo-booking-scroll { min-height: 0; flex: 1 1 auto; overflow-y: auto; overscroll-behavior: contain; padding: .2rem 1rem 1rem; }
+.meryo-booking-step-content { min-width: 0; }
+.meryo-booking-step-heading { display: flex; align-items: flex-start; gap: .65rem; margin-bottom: .85rem; }
+.meryo-booking-step-heading > span { display: grid; width: 2rem; height: 2rem; flex: 0 0 auto; place-items: center; border-radius: 7px; background: var(--meryo-surface-raised); color: var(--meryo-gold-light); font-size: .76rem; font-weight: 600; }
+.meryo-booking-step-heading h3 { margin: 0; color: var(--meryo-text); font-size: 1.13rem; font-weight: 600; line-height: 1.25; }
+.meryo-booking-step-heading p { margin: .2rem 0 0; color: var(--meryo-text-muted); font-size: .85rem; }
+.meryo-booking-choice-layout { display: grid; min-width: 0; gap: .8rem; }
+.meryo-booking-choice-group,.meryo-booking-agenda,.meryo-booking-review-fields,.meryo-booking-review-summary { min-width: 0; border: 0; border-radius: 10px; background: var(--meryo-surface); padding: .85rem; box-shadow: 0 3px 9px rgb(0 0 0 / 9%); }
+.meryo-booking-choice-group > h4,.meryo-booking-date-heading > h4,.meryo-booking-agenda-heading > h4,.meryo-booking-review-fields > h4,.meryo-booking-review-summary > h4 { margin: 0; color: var(--meryo-gold-light); font-size: .95rem; font-weight: 800; }
+.meryo-booking-service-list,.meryo-booking-member-list { display: grid; gap: .5rem; margin-top: .55rem; }
+.meryo-booking-service-option,.meryo-booking-member-option { display: flex; width: 100%; min-width: 0; min-height: 3rem; align-items: center; justify-content: space-between; gap: .65rem; padding: .55rem .65rem; text-align: left; }
+.meryo-booking-service-option strong,.meryo-booking-member-option strong { display: block; overflow-wrap: anywhere; font-size: .9rem; line-height: 1.25; }
+.meryo-booking-service-option small,.meryo-booking-member-option small { display: block; margin-top: .12rem; color: var(--meryo-text-muted); font-size: .78rem; }
+.meryo-booking-price { flex: 0 0 auto; color: var(--meryo-gold-light); font-size: .86rem; font-weight: 750; font-variant-numeric: tabular-nums; text-align: right; }
+.meryo-booking-was { display: block; color: var(--meryo-text-muted); font-size: .76rem; font-weight: 500; text-decoration: line-through; }
+.meryo-booking-member-option { justify-content: flex-start; }
+.meryo-booking-member-avatar { display: grid; width: 2.6rem; height: 2.6rem; flex: 0 0 auto; place-items: center; overflow: hidden; border-radius: 50%; background: var(--meryo-surface-raised); color: var(--meryo-gold-light); font-size: .78rem; font-weight: 800; }
+.meryo-booking-member-avatar img { width: 100%; height: 100%; object-fit: cover; }
+.meryo-booking-check { margin-left: auto; color: var(--meryo-gold-light); font-weight: 900; }
+.meryo-booking-empty { margin: .75rem 0; color: var(--meryo-text-muted); font-size: .9rem; line-height: 1.45; }
+.meryo-booking-notice,.meryo-booking-error,.meryo-booking-success { margin: .65rem 0; border-radius: 8px; padding: .7rem .8rem; font-size: .88rem; line-height: 1.45; }
+.meryo-booking-notice { background: color-mix(in srgb,var(--meryo-gold) 14%,var(--meryo-surface)); color: var(--meryo-text); }
+.meryo-booking-error { background: rgb(153 47 47 / 12%); color: #c14e4e; }
+.meryo-booking-error button,.meryo-booking-reference button { min-height: 2.75rem; color: var(--meryo-gold-light); font-weight: 700; text-decoration: underline; text-underline-offset: .2em; }
+.meryo-booking-success { background: rgb(45 138 87 / 13%); color: #2f8a59; }
+.meryo-booking-date-heading,.meryo-booking-agenda-heading { display: flex; align-items: center; justify-content: space-between; gap: .75rem; }
+.meryo-booking-date-heading label { display: flex; align-items: center; gap: .4rem; color: var(--meryo-text-muted); font-size: .78rem; }
+.meryo-booking-date-heading input,.meryo-booking-review-fields input,.meryo-booking-review-fields textarea { width: 100%; min-width: 0; min-height: 2.75rem; border: 0; border-radius: 7px; background: var(--meryo-surface-raised); color: var(--meryo-text); padding: .55rem .65rem; box-shadow: 0 2px 7px rgb(0 0 0 / 12%); }
+.meryo-booking-date-heading input { width: auto; }
+.meryo-booking-date-heading input:disabled { opacity: .65; }
+.meryo-booking-day-strip { display: grid; grid-auto-flow: column; grid-auto-columns: minmax(3.5rem,1fr); grid-template-columns: repeat(7,minmax(3.5rem,1fr)); gap: .4rem; overflow-x: auto; overscroll-behavior-x: contain; margin: .55rem 0 .8rem; padding: .15rem .1rem .5rem; scrollbar-width: thin; }
+.meryo-booking-day { display: flex; min-height: 4.25rem; flex-direction: column; align-items: center; justify-content: center; border-radius: 7px; background: var(--meryo-surface-raised); color: var(--meryo-text); font-size: .75rem; line-height: 1.2; }
+.meryo-booking-day strong { font-size: 1.05rem; }
+.meryo-booking-day small { color: var(--meryo-text-muted); font-size: .7rem; }
+.meryo-booking-day:disabled { color: var(--meryo-text-muted); opacity: .55; }
+.meryo-booking-agenda { margin-top: .3rem; }
+.meryo-booking-agenda-heading { padding-bottom: .55rem; }
+.meryo-booking-agenda-heading p { margin: 0; color: var(--meryo-text-muted); font-size: .83rem; }
+.meryo-booking-legend { display: flex; flex-wrap: wrap; gap: .5rem .9rem; margin: .55rem 0; color: var(--meryo-text-muted); font-size: .75rem; }
+.meryo-booking-legend span { display: inline-flex; align-items: center; gap: .3rem; }
+.meryo-booking-legend i { width: .7rem; height: .7rem; border-radius: 2px; background: var(--meryo-surface-raised); }
+.meryo-booking-legend i.is-occupied { background: #817b70; }
+.meryo-booking-legend i.is-selected { background: var(--meryo-gold); }
+.meryo-time-grid { display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); gap: .5rem; margin-top: .65rem; }
+.meryo-time-grid .meryo-time-slot { display: grid; min-width: 0; min-height: 2.75rem; place-items: center; border: 0; border-radius: 7px; background: var(--meryo-surface-raised); color: var(--meryo-text); font-size: .88rem; font-variant-numeric: tabular-nums; }
+.meryo-time-grid .meryo-time-slot.is-selected { background: var(--meryo-gold); color: var(--meryo-carbon); font-weight: 800; }
+.meryo-time-grid .meryo-time-slot.is-unavailable,.meryo-time-grid .meryo-time-slot:disabled { background: var(--meryo-surface); color: var(--meryo-text-muted); opacity: .6; text-decoration: line-through; }
+.meryo-booking-review-layout { display: grid; min-width: 0; gap: .8rem; }
+.meryo-booking-review-fields { display: grid; align-content: start; gap: .65rem; }
+.meryo-booking-review-fields > label { display: grid; gap: .3rem; color: var(--meryo-text-muted); font-size: .82rem; }
+.meryo-booking-review-fields > label > span { display: inline; }
+.meryo-booking-review-fields textarea { min-height: 5rem; resize: vertical; }
+.meryo-booking-request-label > span { display: inline; }
+.meryo-booking-request-label > span { color: var(--meryo-text-muted); font-size: .78rem; }
+.meryo-booking-review-summary h4 { margin-bottom: .6rem; }
+.meryo-booking-review-summary dl { display: grid; gap: .45rem; margin: 0; }
+.meryo-booking-review-summary dl > div { display: flex; justify-content: space-between; gap: .8rem; font-size: .85rem; }
+.meryo-booking-review-summary dt { color: var(--meryo-text-muted); }
+.meryo-booking-review-summary dd { max-width: 68%; margin: 0; overflow-wrap: anywhere; text-align: right; }
+.meryo-booking-review-summary .meryo-booking-review-total { border-top: 1px solid var(--meryo-border); padding-top: .5rem; font-weight: 800; }
+.meryo-booking-pending,.meryo-booking-login-note { margin: .75rem 0 0; color: var(--meryo-text-muted); font-size: .8rem; line-height: 1.45; }
+.meryo-booking-reference { display: grid; gap: .5rem; margin: .65rem 0; border-radius: 9px; background: var(--meryo-surface); padding: .65rem; }
+.meryo-booking-reference > div { display: flex; align-items: flex-start; gap: .65rem; }
+.meryo-booking-reference img { width: 4rem; height: 4rem; flex: 0 0 auto; border-radius: 7px; object-fit: cover; }
+.meryo-booking-reference strong { overflow-wrap: anywhere; }
+.meryo-booking-reference p { margin: .2rem 0 0; color: var(--meryo-text-muted); font-size: .8rem; }
+.meryo-booking-footer { display: flex; flex: 0 0 auto; align-items: center; justify-content: space-between; gap: .75rem; border-top: 1px solid var(--meryo-border); background: color-mix(in srgb,var(--meryo-carbon) 96%,transparent); padding: .65rem 1rem calc(.65rem + env(safe-area-inset-bottom)); }
+.meryo-booking-footer-summary { display: grid; min-width: 0; gap: .1rem; color: var(--meryo-text-muted); font-size: .78rem; }
+.meryo-booking-footer-summary span { overflow: hidden; max-width: min(35vw,16rem); text-overflow: ellipsis; white-space: nowrap; }
+.meryo-booking-footer-summary strong { color: var(--meryo-text); font-size: .98rem; font-variant-numeric: tabular-nums; }
+.meryo-booking-footer-actions { display: flex; align-items: center; gap: .45rem; }
+.meryo-booking-primary,.meryo-booking-secondary { display: inline-flex; min-height: 2.75rem; align-items: center; justify-content: center; border: 0; border-radius: 7px; padding: .55rem .9rem; font-size: .88rem; font-weight: 600; }
+.meryo-booking-primary { background: var(--meryo-gold); color: var(--meryo-carbon); box-shadow: 0 2px 6px rgb(0 0 0 / 10%); }
+.meryo-booking-primary:disabled { background: var(--meryo-surface-raised); color: var(--meryo-text-muted); box-shadow: none; cursor: not-allowed; opacity: .8; }
+.meryo-booking-secondary { background: var(--meryo-surface-raised); color: var(--meryo-text); }
+.meryo-booking-dialog :where(button,input,textarea):focus-visible { outline: 3px solid var(--meryo-gold-light); outline-offset: 2px; }
+.meryo-booking-dialog[data-meryo-theme="beauty"] .meryo-booking-primary { background: var(--beauty-booking-accent); color: var(--beauty-booking-selected-text); }
+.meryo-booking-dialog[data-meryo-theme="beauty"] .meryo-booking-secondary { background: var(--beauty-booking-card); color: var(--beauty-booking-text); }
+.meryo-booking-dialog[data-meryo-theme="beauty"] .meryo-booking-day.is-selected { background: var(--beauty-booking-accent); color: var(--beauty-booking-selected-text); }
+.meryo-booking-dialog[data-meryo-theme="beauty"] .meryo-booking-day.is-selected small { color: inherit; opacity: .82; }
+.meryo-booking-dialog[data-meryo-theme="beauty"] .meryo-booking-day:disabled { color: var(--beauty-booking-muted); }
+.meryo-booking-dialog[data-meryo-theme="beauty"] .meryo-booking-error { background: #f8e8e8; color: #8d2f38; }
+.meryo-booking-dialog[data-meryo-theme="beauty"][data-meryo-mode="dark"] .meryo-booking-error { background: #583c45; color: #ffdbe1; }
+.meryo-booking-dialog[data-meryo-theme="beauty"] .meryo-booking-success { background: var(--beauty-booking-panel); color: var(--beauty-booking-accent); }
+.meryo-booking-dialog[data-meryo-theme="barberia"][data-meryo-mode="light"] .meryo-booking-error { background: #f4e4e2; color: #792c29; }
+.meryo-booking-dialog[data-meryo-theme="barberia"][data-meryo-mode="light"] .meryo-booking-success { background: #e4f0e8; color: #25643d; }
+.meryo-booking-dialog[data-meryo-theme="barberia"][data-meryo-mode="light"] :where(button,input,textarea):focus-visible { outline-color: #795b37; }
+.meryo-booking-dialog[data-meryo-theme="beauty"] :where(button,input,textarea):focus-visible { outline-color: var(--beauty-booking-focus); }
+.meryo-catalog-shortcuts > .meryo-turn-finder { margin: 0; border: 0; background: transparent !important; box-shadow: none !important; }
+
+@media (min-width: 480px) {
+  .meryo-time-grid { grid-template-columns: repeat(4,minmax(0,1fr)); }
+}
+@media (min-width: 760px) {
+  .meryo-booking-dialog { height: min(88dvh, 54rem); }
+  .meryo-booking-dialog-header { padding-inline: 1.5rem; }
+  .meryo-booking-steps { padding-inline: 1.5rem; }
+  .meryo-booking-scroll { padding-inline: 1.5rem; }
+  .meryo-booking-choice-layout { grid-template-columns: minmax(0,1fr) minmax(0,1fr); gap: 1rem; }
+  .meryo-booking-choice-group + .meryo-booking-choice-group { border-left: 1px solid var(--meryo-border); padding-left: 1rem; }
+  .meryo-booking-review-layout { grid-template-columns: minmax(0,1fr) minmax(18rem,.9fr); align-items: start; }
+  .meryo-booking-footer { padding-inline: 1.5rem; }
+}
+@media (max-width: 420px) {
+  .meryo-booking-dialog { width: 100%; height: 100dvh; max-height: 100dvh; border-radius: 0 !important; }
+  .meryo-booking-dialog-header { padding: calc(.6rem + env(safe-area-inset-top)) .75rem .5rem; }
+  .meryo-booking-steps { padding: .45rem .65rem .6rem; }
+  .meryo-booking-steps li { flex-direction: column; gap: .2rem; font-size: .68rem; text-align: center; }
+  .meryo-booking-step-number { width: 1.35rem; height: 1.35rem; }
+  .meryo-booking-scroll { padding: .15rem .75rem .75rem; }
+  .meryo-booking-choice-group,.meryo-booking-agenda,.meryo-booking-review-fields,.meryo-booking-review-summary { padding: .7rem; }
+  .meryo-booking-date-heading { align-items: flex-start; flex-direction: column; }
+  .meryo-booking-footer { padding-inline: .75rem; }
+  .meryo-booking-primary,.meryo-booking-secondary { padding-inline: .7rem; }
+}
