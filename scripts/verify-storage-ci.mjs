@@ -80,6 +80,7 @@ try{
   const assetId=await uploadContent(owner,shop,new File([png],'inspiration-ci.png',{type:'image/png'}),'foto','Foto sintética de Inspiración');
   const asset=(await ownerApi.shopAssets(shop)).find(row=>row.id===assetId);assert.ok(asset,'Owner can read and sign the uploaded private Storage photo');
   assert.deepEqual(Buffer.from(await(await fetch(asset.url)).arrayBuffer()),png,'Owner can download exact uploaded bytes from official Storage');
+  const testService=await owner.from('servicios').insert({barberia_id:shop,nombre:'Corte sintético de CI',precio:30,duracion_min:30,activo:true}).select('id').single();assert.ifError(testService.error);
   phase='approve synthetic business and publish inspiration';
   await adminApi.moderateShop(shop,'aprobar','Aprobación sintética para prueba aislada de Inspiración','pendiente');
   const publicationArgs={p_id:null,p_asset_id:assetId,p_catalog_category:'barberia',p_work_category:'corte',p_title:'Prueba aislada de Inspiración',p_description:'Fotografía sintética, no es contenido de un cliente.',p_member_id:null,p_service_id:null,p_published:true};
