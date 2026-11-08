@@ -1,6 +1,14 @@
 name: MERYO isolated Storage verification
 on:
   workflow_dispatch:
+    inputs:
+      scope:
+        description: "Prueba acotada o batería completa existente"
+        type: choice
+        options:
+          - full
+          - inspiration
+        default: full
 permissions:
   contents: read
 concurrency:
@@ -32,6 +40,7 @@ jobs:
       - name: Validate isolated SQL bootstrap before compiling services
         env:
           MERYO_CI_SETUP_ONLY: 'true'
+          MERYO_CI_INSPIRATION_ONLY: ${{ inputs.scope == 'inspiration' && 'true' || 'false' }}
         run: node scripts/verify-storage-ci.mjs
       - name: Compile pinned official Supabase services, without Docker
         run: |
@@ -48,6 +57,8 @@ jobs:
           curl -fL https://github.com/PostgREST/postgrest/releases/download/v16.5/postgrest-v16.5-linux-static-x86-64.tar.xz -o "$RUNNER_TEMP/meryo-official/rest.tar.xz"
           tar -xJf "$RUNNER_TEMP/meryo-official/rest.tar.xz" -C "$RUNNER_TEMP/meryo-official"
       - name: Verify real Storage upload, read, replacement, withdrawal and tenant permissions
+        env:
+          MERYO_CI_INSPIRATION_ONLY: ${{ inputs.scope == 'inspiration' && 'true' || 'false' }}
         run: node scripts/verify-storage-ci.mjs
       - name: Publish non-secret verification result
         if: success()

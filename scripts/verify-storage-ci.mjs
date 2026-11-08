@@ -1,10 +1,10 @@
 // Real official services on a disposable standard Linux runner. No production secrets.
 import fs from 'node:fs/promises';import {createWriteStream} from 'node:fs';import path from 'node:path';import crypto from 'node:crypto';import {spawn,spawnSync} from 'node:child_process';import http from 'node:http';
 import pg from 'pg';import webpush from 'web-push';import {createClient} from '@supabase/supabase-js';import assert from 'node:assert/strict';
-import {createMeryoApi} from '../src/lib/meryo-api.js';import {uploadContent,CONTENT_BUCKET} from '../src/lib/shop-content.js';import {totp} from '../tests/helpers/totp.mjs';import {fechaLima,sumarDias} from '../src/lib/dates.js';
+import {createMeryoApi} from '../src/lib/meryo-api.js';import {uploadContent,signContent,CONTENT_BUCKET} from '../src/lib/shop-content.js';import {totp} from '../tests/helpers/totp.mjs';import {fechaLima,sumarDias} from '../src/lib/dates.js';
 import {deliverBookingPush} from '../server/web-push.mjs';
 if(process.env.GITHUB_ACTIONS!=='true'||process.platform!=='linux'||!process.env.RUNNER_TEMP)throw Error('Disposable GitHub Linux runner only');
-const root=path.join(process.env.RUNNER_TEMP,'meryo-official'),dbName='meryo_ci_storage',user=process.env.USER,setupOnly=process.env.MERYO_CI_SETUP_ONLY==='true';
+const root=path.join(process.env.RUNNER_TEMP,'meryo-official'),dbName='meryo_ci_storage',user=process.env.USER,setupOnly=process.env.MERYO_CI_SETUP_ONLY==='true',inspirationOnly=process.env.MERYO_CI_INSPIRATION_ONLY==='true';
 const jwtSecret=crypto.randomBytes(48).toString('hex'),password=crypto.randomBytes(24).toString('hex');
 function jwt(role){const body=Buffer.from(JSON.stringify({alg:'HS256',typ:'JWT'})).toString('base64url')+'.'+Buffer.from(JSON.stringify({role,aud:'authenticated',iat:Math.floor(Date.now()/1000),exp:Math.floor(Date.now()/1000)+3600})).toString('base64url');return body+'.'+crypto.createHmac('sha256',jwtSecret).update(body).digest('base64url');}
 const anon=jwt('anon'),service=jwt('service_role');for(const value of [jwtSecret,password,anon,service])console.log('::add-mask::'+value);
@@ -38,11 +38,16 @@ try{
  await db.query("insert into meryo_private.launch_settings(id,reservas_habilitadas,plazo_pago_segundos,entorno,modelo_comercial) values(1,true,600,'staging','mensualidad');insert into meryo_private.shop_content_settings values(1,true)");
  await db.query(await fs.readFile('db/incremental/021_product_pickup_store.sql','utf8'));
  await db.query(await fs.readFile('db/incremental/022_beauty_business_catalog.sql','utf8'));
+ if(inspirationOnly){
+  for(const migration of ['023_cut50_campaigns.sql','024_beauty_service_promotions.sql','025_weekly_business_promotions.sql','026_turn_finder_price_check.sql','027_inspiration_publications.sql'])
+   await db.query(await fs.readFile(`db/incremental/${migration}`,'utf8'));
+ }
  const clean=(await db.query('select (select count(*) from auth.users)::int users,(select count(*) from public.barberias)::int shops')).rows[0];assert.deepEqual(clean,{users:0,shops:0});
- console.log('Disposable isolated schema and store migration prepared; no services started');
+ console.log(inspirationOnly?'Disposable isolated schema prepared through migrations 021–027; no services started':'Disposable isolated schema and store migration prepared; no services started');
  }else{
- const ready=(await db.query("select to_regclass('public.meryo_products') is not null as products,to_regclass('public.meryo_pickup_orders') is not null as orders,to_regprocedure('public.meryo_catalogo_categoria(text)') is not null as beauty_catalog,(select count(*) from auth.users)::int users,(select count(*) from public.barberias)::int shops")).rows[0];
- assert.deepEqual(ready,{products:true,orders:true,beauty_catalog:true,users:0,shops:0},'The second isolated runner phase requires the clean prepared schema');
+ const ready=(await db.query("select to_regclass('public.meryo_products') is not null as products,to_regclass('public.meryo_pickup_orders') is not null as orders,to_regprocedure('public.meryo_catalogo_categoria(text)') is not null as beauty_catalog,to_regprocedure('public.meryo_inspiracion(text,text,integer,integer)') is not null as inspiration,(select count(*) from auth.users)::int users,(select count(*) from public.barberias)::int shops")).rows[0];
+ const expected=inspirationOnly?{products:true,orders:true,beauty_catalog:true,inspiration:true,users:0,shops:0}:{products:true,orders:true,beauty_catalog:true,inspiration:false,users:0,shops:0};
+ assert.deepEqual(ready,expected,'The second isolated runner phase requires the clean schema prepared for the selected scope');
  }
  if(!setupOnly){
  // Match the existing native Auth role's search_path: Pop's migration ledger is
@@ -61,11 +66,48 @@ try{
  assert.ifError((await serviceClient.storage.createBucket(CONTENT_BUCKET,{public:false,fileSizeLimit:20971520,allowedMimeTypes:['image/jpeg','image/png','image/webp','video/mp4','video/webm']})).error);
  const owner=make(),admin=make(),stranger=make(),anonymous=make();clients.push(owner,admin,stranger);
  const signup=async(c,label)=>{const r=await c.auth.signUp({email:label+'.'+crypto.randomUUID()+'@example.com',password:crypto.randomBytes(24).toString('base64url'),options:{data:{full_name:'Cuenta sintética '+label}}});assert.ifError(r.error);assert.ok(r.data.session);return r.data.user.id;};
- phase='genuine Auth accounts and MFA';
- const ownerId=await signup(owner,'owner'),adminId=await signup(admin,'admin'),strangerId=await signup(stranger,'stranger'),buyerTwo=make(),beautyOwner=make(),mixedOwner=make();clients.push(buyerTwo,beautyOwner,mixedOwner);const buyerTwoId=await signup(buyerTwo,'buyer-two'),beautyOwnerId=await signup(beautyOwner,'beauty-owner'),mixedOwnerId=await signup(mixedOwner,'mixed-owner');
- await db.query("update public.profiles set rol='admin' where id=$1",[adminId]);assert.ok((await admin.rpc('meryo_admin_barberias')).error,'AAL1 denied');
+ phase=inspirationOnly?'synthetic owner accounts and administrative approval':'genuine Auth accounts and MFA';
+ const ownerId=await signup(owner,'owner'),adminId=await signup(admin,'admin'),strangerId=await signup(stranger,'stranger');
+ let buyerTwo,beautyOwner,mixedOwner,buyerTwoId,beautyOwnerId,mixedOwnerId;
+ if(!inspirationOnly){buyerTwo=make();beautyOwner=make();mixedOwner=make();clients.push(buyerTwo,beautyOwner,mixedOwner);buyerTwoId=await signup(buyerTwo,'buyer-two');beautyOwnerId=await signup(beautyOwner,'beauty-owner');mixedOwnerId=await signup(mixedOwner,'mixed-owner');}
+ await db.query("update public.profiles set rol='admin' where id=$1",[adminId]);if(!inspirationOnly)assert.ok((await admin.rpc('meryo_admin_barberias')).error,'AAL1 denied');
  const factor=await admin.auth.mfa.enroll({factorType:'totp',issuer:'MERYO CI synthetic'});assert.ifError(factor.error);assert.ifError((await admin.auth.mfa.challengeAndVerify({factorId:factor.data.id,code:totp(factor.data.totp.secret)})).error);
- const ownerApi=createMeryoApi(owner),adminApi=createMeryoApi(admin),publicApi=createMeryoApi(anonymous),buyerApi=createMeryoApi(stranger),buyerTwoApi=createMeryoApi(buyerTwo),beautyApi=createMeryoApi(beautyOwner),mixedApi=createMeryoApi(mixedOwner);
+ const ownerApi=createMeryoApi(owner),adminApi=createMeryoApi(admin),publicApi=createMeryoApi(anonymous),buyerApi=createMeryoApi(stranger),buyerTwoApi=buyerTwo&&createMeryoApi(buyerTwo),beautyApi=beautyOwner&&createMeryoApi(beautyOwner),mixedApi=mixedOwner&&createMeryoApi(mixedOwner);
+ if(inspirationOnly){
+  const png=Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+a8XcAAAAASUVORK5CYII=','base64');
+  phase='upload real synthetic photo to official isolated Storage';
+  const shop=await ownerApi.registerShop({nombre:'MERYO CI Inspiración A',distrito:'Ate',direccion:'Dirección sintética CI',descripcion:'Negocio sintético para validar Inspiración',lat:-12.04,lng:-77.03,whatsapp:'',correo:''});
+  const assetId=await uploadContent(owner,shop,new File([png],'inspiration-ci.png',{type:'image/png'}),'foto','Foto sintética de Inspiración');
+  const asset=(await ownerApi.shopAssets(shop)).find(row=>row.id===assetId);assert.ok(asset,'Owner can read and sign the uploaded private Storage photo');
+  assert.deepEqual(Buffer.from(await(await fetch(asset.url)).arrayBuffer()),png,'Owner can download exact uploaded bytes from official Storage');
+  phase='approve synthetic business and publish inspiration';
+  await adminApi.moderateShop(shop,'aprobar','Aprobación sintética para prueba aislada de Inspiración','pendiente');
+  const publicationArgs={p_id:null,p_asset_id:assetId,p_catalog_category:'barberia',p_work_category:'corte',p_title:'Prueba aislada de Inspiración',p_description:'Fotografía sintética, no es contenido de un cliente.',p_member_id:null,p_service_id:null,p_published:true};
+  const publicationResult=await owner.rpc('meryo_guardar_inspiracion',publicationArgs);assert.ifError(publicationResult.error);const publicationId=publicationResult.data;assert.ok(publicationId);
+  phase='public gallery visibility and anonymous image read';
+  const galleryResult=await anonymous.rpc('meryo_inspiracion',{p_catalog_category:'barberia',p_work_category:null,p_limit:24,p_offset:0});assert.ifError(galleryResult.error);
+  const galleryRow=galleryResult.data.find(row=>row.id===publicationId);assert.ok(galleryRow,'Published photo appears in the public Inspiration gallery');
+  const [publicImage]=await signContent(anonymous,[{...galleryRow,object_path:galleryRow.object_path}]);assert.ok(publicImage?.url,'Anonymous gallery can request a short-lived signed URL');
+  assert.deepEqual(Buffer.from(await(await fetch(publicImage.url)).arrayBuffer()),png,'Gallery visitor can retrieve exact photo bytes from official Storage');
+  phase='second business cannot edit or withdraw the first business publication';
+  const otherShop=await buyerApi.registerShop({nombre:'MERYO CI Inspiración B',distrito:'Ate',direccion:'Dirección sintética CI',descripcion:'Segundo negocio sintético aislado',lat:-12.05,lng:-77.04,whatsapp:'',correo:''});
+  const otherAssetId=await uploadContent(stranger,otherShop,new File([png],'other-inspiration-ci.png',{type:'image/png'}),'foto','Foto sintética del segundo negocio');
+  const ownerRows=await owner.rpc('meryo_inspiracion_propietario');assert.ifError(ownerRows.error);assert.ok(ownerRows.data.some(row=>row.id===publicationId&&row.barberia_id===shop));
+  const otherRows=await stranger.rpc('meryo_inspiracion_propietario');assert.ifError(otherRows.error);assert.equal(otherRows.data.length,0,'Second business cannot read the first business publications');
+  const foreignEdit=await stranger.rpc('meryo_guardar_inspiracion',{...publicationArgs,p_id:publicationId,p_asset_id:otherAssetId,p_title:'Edición ajena',p_published:false});
+  assert.ok(foreignEdit.error,'Second business cannot edit or withdraw another business publication');
+  const unchanged=await db.query('select published,asset_id,barberia_id from meryo_private.inspiration_publications where id=$1',[publicationId]);
+  assert.deepEqual(unchanged.rows[0],{published:true,asset_id:assetId,barberia_id:shop},'Unauthorized edit left the original publication unchanged');
+  phase='owner withdrawal removes public listing without deleting stored photo';
+  const withdraw=await owner.rpc('meryo_guardar_inspiracion',{...publicationArgs,p_id:publicationId,p_published:false});assert.ifError(withdraw.error);
+  const afterWithdrawal=await anonymous.rpc('meryo_inspiracion',{p_catalog_category:'barberia',p_work_category:null,p_limit:24,p_offset:0});assert.ifError(afterWithdrawal.error);
+  assert.ok(!afterWithdrawal.data.some(row=>row.id===publicationId),'Withdrawn photo no longer appears in public gallery');
+  const detail=await anonymous.rpc('meryo_inspiracion_publicacion',{p_id:publicationId});assert.ifError(detail.error);assert.equal(detail.data,null,'Withdrawn publication is unavailable by direct detail URL');
+  assert.ok((await anonymous.storage.from(CONTENT_BUCKET).createSignedUrl(asset.object_path,300)).error,'Storage no longer issues new public access for the withdrawn photo');
+  assert.ok((await serviceClient.storage.from(CONTENT_BUCKET).download(asset.object_path)).data,'Withdrawal preserves the original private Storage bytes');
+  proof={verifiedAt:new Date().toISOString(),scope:'inspiration-only',officialAuth:true,officialStorage:true,officialPostgrest:true,dockerUsed:false,productionAccess:false,syntheticBusinessesOnly:true,realUploadThroughOfficialStorage:true,ownerExactByteRead:true,publicGalleryAndExactByteRead:true,otherBusinessReadDenied:true,otherBusinessEditAndWithdrawalDenied:true,withdrawalHidesGalleryAndDetail:true,withdrawalPreservesPrivateStorageObject:true};
+  await fs.writeFile(path.join(process.env.RUNNER_TEMP,'meryo-storage-proof.json'),JSON.stringify(proof,null,2));console.log(JSON.stringify(proof));
+ }else{
  phase='owner profile, services and private upload';
  const shop=await ownerApi.registerShop({nombre:'MERYO CI Storage',distrito:'Ate',direccion:'Dirección sintética CI',descripcion:'Contenido privado hasta aprobación',lat:-12.04,lng:-77.03,whatsapp:'',correo:''});
  assert.ifError((await owner.from('servicios').insert({barberia_id:shop,nombre:'Corte CI',precio:30,duracion_min:30,activo:true})).error);
@@ -192,6 +234,7 @@ try{
  await db.query('delete from meryo_private.push_subscriptions where endpoint=any($1::text[])',[[ownerEndpoint,buyerEndpoint]]);
  proof={verifiedAt:new Date().toISOString(),officialAuth:true,officialStorage:true,officialPostgrest:true,dockerUsed:false,productionAccess:false,syntheticAccountsOnly:true,uploadAndByteExactDownload:true,privateBeforeApproval:true,crossTenantDenied:true,formatAndSizeDenied:true,replacementAndRetirementPreserveFiles:true,serverMfaApproval:true,publicCatalogueAndVideoVerified:true,availabilityQueried:true,pickupProductsRls:true,pickupPrivatePhotos:true,ordersSnapshotPricesAndIdempotency:true,concurrentAcceptanceNoOversell:true,acceptanceNoPartialStock:true,priceChangeRejectedWithoutMutation:true,serverExpiryReleasesOnce:true,cancelReleasesOnce:true,deliveryConsumesStock:true,orderPushRecipientsVerified:true,legacySignedURLsLifetimeSeconds:300};
  await fs.writeFile(path.join(process.env.RUNNER_TEMP,'meryo-storage-proof.json'),JSON.stringify(proof,null,2));console.log(JSON.stringify(proof));
+ }
  }
 }catch(error){console.error('Isolated Storage verification failed during '+phase+': '+error.message);for(const file of logs){let log=await fs.readFile(file,'utf8').catch(()=>'');for(const value of [jwtSecret,password,anon,service])log=log.replaceAll(value,'[redacted]');console.error(path.basename(file)+'\n'+log.slice(-6000));}process.exitCode=1;}
 finally{for(const c of clients)await c.auth.signOut({scope:'local'}).catch(()=>{});if(proxy)await new Promise(resolve=>proxy.close(resolve));for(const c of children)c.kill();await db.end();}
