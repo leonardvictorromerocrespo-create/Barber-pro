@@ -21,6 +21,9 @@
   --inspiration-accent-soft: #a77d49;
   --inspiration-button-text: #21190f;
 }
+.meryo-inspiration-page[data-meryo-theme="barberia"][data-meryo-mode="dark"] {
+  --inspiration-button-text: #102027;
+}
 .meryo-inspiration-page[data-meryo-theme="beauty"][data-meryo-mode="light"] {
   --inspiration-bg: #faf7f4;
   --inspiration-card: #fffefc;
