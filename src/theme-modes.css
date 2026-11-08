@@ -157,3 +157,169 @@
   color: #fffaf2 !important;
   box-shadow: 0 2px 6px rgb(0 0 0 / 14%);
 }
+
+/* Review palette: neutral black and light gray, scoped only to the Barbería dark mode. */
+[data-meryo-theme="barberia"][data-meryo-mode="dark"][data-meryo-appearance="negro-gris"] {
+  color-scheme: dark;
+  --meryo-carbon: #111111;
+  --meryo-surface: #1b1b1b;
+  --meryo-surface-raised: #292929;
+  --meryo-surface-soft: #333333;
+  --meryo-gold: #d6d6d6;
+  --meryo-gold-light: #e1e1e1;
+  --meryo-gold-border: rgb(214 214 214 / 24%);
+  --meryo-text: #f2f2f2;
+  --meryo-text-muted: #bdbdbd;
+  --meryo-border: rgb(214 214 214 / 16%);
+  --color-neutral-950: #111111;
+  --color-neutral-900: #1b1b1b;
+  --color-neutral-800: #292929;
+  --color-neutral-700: #333333;
+  --color-neutral-600: #777777;
+  --color-neutral-500: #999999;
+  --color-neutral-400: #bdbdbd;
+  --color-neutral-300: #d0d0d0;
+  --color-neutral-200: #e1e1e1;
+  --color-neutral-100: #f2f2f2;
+  --color-amber-50: #f2f2f2;
+  --color-amber-100: #e1e1e1;
+  --color-amber-200: #d6d6d6;
+  --color-amber-300: #d6d6d6;
+  --color-amber-400: #d6d6d6;
+  --color-amber-500: #bdbdbd;
+  --color-amber-600: #999999;
+  --color-amber-700: #777777;
+  --color-amber-800: #555555;
+  --color-amber-900: #333333;
+  --color-sky-300: #d6d6d6;
+  --color-sky-400: #d6d6d6;
+  --color-emerald-300: #d6d6d6;
+  --color-emerald-400: #d6d6d6;
+  --color-emerald-500: #bdbdbd;
+  background-color: #111111;
+  color: #f2f2f2;
+}
+[data-meryo-theme="barberia"][data-meryo-mode="dark"][data-meryo-appearance="negro-gris"] .text-white { color: #f2f2f2 !important; }
+[data-meryo-theme="barberia"][data-meryo-mode="dark"][data-meryo-appearance="negro-gris"] [class*="text-amber-"],
+[data-meryo-theme="barberia"][data-meryo-mode="dark"][data-meryo-appearance="negro-gris"] .meryo-catalog-section .text-amber-200,
+[data-meryo-theme="barberia"][data-meryo-mode="dark"][data-meryo-appearance="negro-gris"] .meryo-catalog-section .text-amber-300,
+[data-meryo-theme="barberia"][data-meryo-mode="dark"][data-meryo-appearance="negro-gris"] .meryo-catalog-section .text-amber-400 { color: #d6d6d6 !important; }
+[data-meryo-theme="barberia"][data-meryo-mode="dark"][data-meryo-appearance="negro-gris"] [class~="bg-amber-400"],
+[data-meryo-theme="barberia"][data-meryo-mode="dark"][data-meryo-appearance="negro-gris"] [class~="bg-amber-300"] { background-color: #d6d6d6 !important; color: #111111 !important; }
+[data-meryo-theme="barberia"][data-meryo-mode="dark"][data-meryo-appearance="negro-gris"] [class*="border-amber-"] { border-color: rgb(214 214 214 / 32%) !important; }
+[data-meryo-theme="barberia"][data-meryo-mode="dark"][data-meryo-appearance="negro-gris"] .meryo-shop-card__services,
+[data-meryo-theme="barberia"][data-meryo-mode="dark"][data-meryo-appearance="negro-gris"] .meryo-shop-card:nth-child(3n + 1) .meryo-shop-card__services,
+[data-meryo-theme="barberia"][data-meryo-mode="dark"][data-meryo-appearance="negro-gris"] .meryo-shop-card:nth-child(3n + 2) .meryo-shop-card__services { background-color: #292929 !important; }
+[data-meryo-theme="barberia"][data-meryo-mode="dark"][data-meryo-appearance="negro-gris"] .meryo-soft-booking { background: #111111 !important; }
+[data-meryo-theme="barberia"][data-meryo-mode="dark"][data-meryo-appearance="negro-gris"] .meryo-soft-booking .meryo-booking-panel { background: #1b1b1b !important; }
+[data-meryo-theme="barberia"][data-meryo-mode="dark"][data-meryo-appearance="negro-gris"] .meryo-soft-booking .meryo-booking-close,
+[data-meryo-theme="barberia"][data-meryo-mode="dark"][data-meryo-appearance="negro-gris"] .meryo-soft-booking .meryo-booking-option,
+[data-meryo-theme="barberia"][data-meryo-mode="dark"][data-meryo-appearance="negro-gris"] .meryo-soft-booking .meryo-booking-field { background: #292929 !important; color: #f2f2f2; }
+[data-meryo-theme="barberia"][data-meryo-mode="dark"][data-meryo-appearance="negro-gris"] .meryo-soft-booking .meryo-booking-option.is-selected,
+[data-meryo-theme="barberia"][data-meryo-mode="dark"][data-meryo-appearance="negro-gris"] .meryo-soft-booking .meryo-booking-option.is-selected :where(strong, small, span, .meryo-booking-price) { background: #d6d6d6 !important; color: #111111 !important; }
+[data-meryo-theme="barberia"][data-meryo-mode="dark"][data-meryo-appearance="negro-gris"] .meryo-booking-dialog { --booking-selected-bg: #d6d6d6; --booking-selected-fg: #111111; }
+[data-meryo-theme="barberia"][data-meryo-mode="dark"][data-meryo-appearance="negro-gris"] .meryo-booking-dialog .meryo-booking-primary,
+[data-meryo-theme="barberia"][data-meryo-mode="dark"][data-meryo-appearance="negro-gris"] .meryo-booking-dialog .meryo-booking-option.is-selected,
+[data-meryo-theme="barberia"][data-meryo-mode="dark"][data-meryo-appearance="negro-gris"] .meryo-booking-dialog .meryo-booking-day.is-selected,
+[data-meryo-theme="barberia"][data-meryo-mode="dark"][data-meryo-appearance="negro-gris"] .meryo-booking-dialog .meryo-time-slot.is-selected { color: #111111 !important; }
+[data-meryo-theme="barberia"][data-meryo-mode="dark"][data-meryo-appearance="negro-gris"] .meryo-booking-dialog :where(button, input, textarea):focus-visible,
+[data-meryo-theme="barberia"][data-meryo-mode="dark"][data-meryo-appearance="negro-gris"] .meryo-turn-finder :where(button, input, select):focus-visible { outline-color: #e1e1e1 !important; }
+[data-meryo-theme="barberia"][data-meryo-mode="dark"][data-meryo-appearance="negro-gris"] .meryo-turn-finder { --turn-panel: #111111; --turn-card: #1b1b1b; --turn-field: #292929; --turn-text: #f2f2f2; --turn-muted: #bdbdbd; --turn-action: #d6d6d6; --turn-action-text: #111111; }
+.meryo-inspiration-page[data-meryo-theme="barberia"][data-meryo-mode="dark"][data-meryo-appearance="negro-gris"] { --inspiration-button-text: #111111; }
+
+/* Review proposal for Belleza. The current rose/ivory and smoked-plum options remain intact. */
+[data-meryo-theme="beauty"][data-meryo-mode="light"][data-meryo-appearance="malva-lino"] {
+  color-scheme: light;
+  --meryo-carbon: #f3eef0;
+  --meryo-surface: #fffcfd;
+  --meryo-surface-raised: #e8dce1;
+  --meryo-surface-soft: #e8dce1;
+  --meryo-gold: #916475;
+  --meryo-gold-light: #916475;
+  --meryo-gold-border: #c5ad86;
+  --meryo-text: #352832;
+  --meryo-text-muted: #675761;
+  --meryo-border: rgb(197 173 134 / 62%);
+  --beauty-page: #f3eef0;
+  --beauty-surface: #fffcfd;
+  --beauty-card: #e8dce1;
+  --beauty-field: #fffcfd;
+  --beauty-text: #352832;
+  --beauty-muted: #675761;
+  --beauty-accent: #916475;
+  --beauty-accent-text: #ffffff;
+  --beauty-focus: #916475;
+  --color-neutral-950: #f3eef0;
+  --color-neutral-900: #fffcfd;
+  --color-neutral-800: #e8dce1;
+  --color-neutral-700: #e8dce1;
+  --color-neutral-600: #81737c;
+  --color-neutral-500: #756770;
+  --color-neutral-400: #675761;
+  --color-neutral-300: #5a4a55;
+  --color-neutral-200: #473944;
+  --color-neutral-100: #352832;
+  --color-amber-400: #916475;
+  --color-amber-300: #916475;
+  background-color: #f3eef0;
+  color: #352832;
+}
+[data-meryo-theme="beauty"][data-meryo-mode="light"][data-meryo-appearance="malva-lino"] .bg-neutral-950,
+[data-meryo-theme="beauty"][data-meryo-mode="light"][data-meryo-appearance="malva-lino"] [class~="bg-neutral-950/90"],
+[data-meryo-theme="beauty"][data-meryo-mode="light"][data-meryo-appearance="malva-lino"] [class~="bg-neutral-950/95"] { background-color: #f3eef0 !important; }
+[data-meryo-theme="beauty"][data-meryo-mode="light"][data-meryo-appearance="malva-lino"] .bg-neutral-900,
+[data-meryo-theme="beauty"][data-meryo-mode="light"][data-meryo-appearance="malva-lino"] .bg-neutral-800 { background-color: #fffcfd !important; }
+[data-meryo-theme="beauty"][data-meryo-mode="light"][data-meryo-appearance="malva-lino"] .bg-neutral-700,
+[data-meryo-theme="beauty"][data-meryo-mode="light"][data-meryo-appearance="malva-lino"] [class~="bg-black/20"],
+[data-meryo-theme="beauty"][data-meryo-mode="light"][data-meryo-appearance="malva-lino"] [class~="bg-black/30"],
+[data-meryo-theme="beauty"][data-meryo-mode="light"][data-meryo-appearance="malva-lino"] [class~="bg-black/35"],
+[data-meryo-theme="beauty"][data-meryo-mode="light"][data-meryo-appearance="malva-lino"] [class~="bg-black/40"],
+[data-meryo-theme="beauty"][data-meryo-mode="light"][data-meryo-appearance="malva-lino"] [class~="bg-white/10"],
+[data-meryo-theme="beauty"][data-meryo-mode="light"][data-meryo-appearance="malva-lino"] [class~="bg-white/15"],
+[data-meryo-theme="beauty"][data-meryo-mode="light"][data-meryo-appearance="malva-lino"] [class~="bg-white/20"],
+[data-meryo-theme="beauty"][data-meryo-mode="light"][data-meryo-appearance="malva-lino"] [class~="bg-white/40"] { background-color: #e8dce1 !important; }
+[data-meryo-theme="beauty"][data-meryo-mode="light"][data-meryo-appearance="malva-lino"] [class~="bg-black/70"],
+[data-meryo-theme="beauty"][data-meryo-mode="light"][data-meryo-appearance="malva-lino"] [class~="bg-black/80"] { background-color: rgb(35 27 33 / 72%) !important; }
+[data-meryo-theme="beauty"][data-meryo-mode="light"][data-meryo-appearance="malva-lino"] .text-white,
+[data-meryo-theme="beauty"][data-meryo-mode="light"][data-meryo-appearance="malva-lino"] .text-neutral-100,
+[data-meryo-theme="beauty"][data-meryo-mode="light"][data-meryo-appearance="malva-lino"] .text-neutral-200,
+[data-meryo-theme="beauty"][data-meryo-mode="light"][data-meryo-appearance="malva-lino"] .text-neutral-300 { color: #352832 !important; }
+[data-meryo-theme="beauty"][data-meryo-mode="light"][data-meryo-appearance="malva-lino"] .text-neutral-400,
+[data-meryo-theme="beauty"][data-meryo-mode="light"][data-meryo-appearance="malva-lino"] .text-neutral-500 { color: #675761 !important; }
+[data-meryo-theme="beauty"][data-meryo-mode="light"][data-meryo-appearance="malva-lino"] [class*="text-amber-"] { color: #916475 !important; }
+[data-meryo-theme="beauty"][data-meryo-mode="light"][data-meryo-appearance="malva-lino"] [class~="bg-amber-400"],
+[data-meryo-theme="beauty"][data-meryo-mode="light"][data-meryo-appearance="malva-lino"] [class~="bg-amber-300"] { background-color: #916475 !important; color: #ffffff !important; }
+[data-meryo-theme="beauty"][data-meryo-mode="light"][data-meryo-appearance="malva-lino"] [class*="border-white/"],
+[data-meryo-theme="beauty"][data-meryo-mode="light"][data-meryo-appearance="malva-lino"] [class*="border-amber-"] { border-color: rgb(197 173 134 / 62%) !important; }
+[data-meryo-theme="beauty"][data-meryo-mode="light"][data-meryo-appearance="malva-lino"] input,
+[data-meryo-theme="beauty"][data-meryo-mode="light"][data-meryo-appearance="malva-lino"] select,
+[data-meryo-theme="beauty"][data-meryo-mode="light"][data-meryo-appearance="malva-lino"] textarea { border-color: rgb(197 173 134 / 72%) !important; background: #fffcfd !important; color: #352832 !important; color-scheme: light; }
+[data-meryo-theme="beauty"][data-meryo-mode="light"][data-meryo-appearance="malva-lino"] select option { background: #fffcfd; color: #352832; }
+[data-meryo-theme="beauty"][data-meryo-mode="light"][data-meryo-appearance="malva-lino"] input::placeholder,
+[data-meryo-theme="beauty"][data-meryo-mode="light"][data-meryo-appearance="malva-lino"] textarea::placeholder { color: #675761; opacity: 1; }
+[data-meryo-theme="beauty"][data-meryo-mode="light"][data-meryo-appearance="malva-lino"] :where(button, a, input, select, textarea, [tabindex]):focus-visible { outline: 3px solid #916475 !important; outline-offset: 2px; }
+[data-meryo-theme="beauty"][data-meryo-mode="light"][data-meryo-appearance="malva-lino"] .meryo-site-header { border-color: rgb(197 173 134 / 62%) !important; background: #fffcfd !important; color: #352832 !important; }
+[data-meryo-theme="beauty"][data-meryo-mode="light"][data-meryo-appearance="malva-lino"] .meryo-site-header button { color: #352832 !important; }
+[data-meryo-theme="beauty"][data-meryo-mode="light"][data-meryo-appearance="malva-lino"] .meryo-site-header button:hover { background: #e8dce1 !important; }
+[data-meryo-theme="beauty"][data-meryo-mode="light"][data-meryo-appearance="malva-lino"] .meryo-catalog-filters { background: #fffcfd !important; }
+[data-meryo-theme="beauty"][data-meryo-mode="light"][data-meryo-appearance="malva-lino"] .meryo-shop-card__services,
+[data-meryo-theme="beauty"][data-meryo-mode="light"][data-meryo-appearance="malva-lino"] .meryo-shop-card:nth-child(3n + 1) .meryo-shop-card__services,
+[data-meryo-theme="beauty"][data-meryo-mode="light"][data-meryo-appearance="malva-lino"] .meryo-shop-card:nth-child(3n + 2) .meryo-shop-card__services { background-color: #e8dce1 !important; }
+[data-meryo-theme="beauty"][data-meryo-mode="light"][data-meryo-appearance="malva-lino"] .meryo-booking-option { background-color: #e8dce1 !important; color: #352832 !important; }
+[data-meryo-theme="beauty"][data-meryo-mode="light"][data-meryo-appearance="malva-lino"] .meryo-booking-option:hover:not(:disabled) { background-color: #ddd0d7 !important; }
+[data-meryo-theme="beauty"][data-meryo-mode="light"][data-meryo-appearance="malva-lino"] .meryo-booking-option.is-selected { background-color: #916475 !important; color: #ffffff !important; }
+[data-meryo-theme="beauty"][data-meryo-mode="light"][data-meryo-appearance="malva-lino"] .meryo-booking-option.is-selected .meryo-booking-price { color: #ffffff !important; }
+[data-meryo-theme="beauty"][data-meryo-mode="light"][data-meryo-appearance="malva-lino"] .meryo-booking-option.is-unavailable,
+[data-meryo-theme="beauty"][data-meryo-mode="light"][data-meryo-appearance="malva-lino"] .meryo-booking-option:disabled { background-color: #e8dce1 !important; color: #675761 !important; }
+[data-meryo-theme="beauty"][data-meryo-mode="light"][data-meryo-appearance="malva-lino"] .meryo-beauty-booking[data-meryo-theme="beauty"][data-meryo-mode="light"][data-meryo-appearance="malva-lino"] { --beauty-booking-bg: #fffcfd; --beauty-booking-panel: #f3eef0; --beauty-booking-card: #e8dce1; --beauty-booking-text: #352832; --beauty-booking-muted: #675761; --beauty-booking-accent: #916475; --beauty-booking-selected-text: #ffffff; --beauty-booking-focus: #916475; }
+[data-meryo-theme="beauty"][data-meryo-mode="light"][data-meryo-appearance="malva-lino"] .meryo-turn-finder { --turn-panel: #f3eef0; --turn-card: #e8dce1; --turn-field: #fffcfd; --turn-text: #352832; --turn-muted: #675761; --turn-action: #916475; --turn-action-text: #ffffff; }
+[data-meryo-theme="beauty"][data-meryo-mode="light"][data-meryo-appearance="malva-lino"] .meryo-turn-finder :where(button, input, select):focus-visible { outline-color: #916475 !important; }
+[data-meryo-theme="beauty"][data-meryo-mode="light"][data-meryo-appearance="malva-lino"] .meryo-beauty-promotions-page { background: #f3eef0 !important; color: #352832 !important; }
+[data-meryo-theme="beauty"][data-meryo-mode="light"][data-meryo-appearance="malva-lino"] .meryo-beauty-promotions-header { background: rgb(255 252 253 / 96%); color: #352832; }
+[data-meryo-theme="beauty"][data-meryo-mode="light"][data-meryo-appearance="malva-lino"] .meryo-beauty-promo-card { background: #fffcfd; color: #352832; }
+[data-meryo-theme="beauty"][data-meryo-mode="light"][data-meryo-appearance="malva-lino"] .meryo-beauty-promo-card h2 { color: #352832 !important; }
+[data-meryo-theme="beauty"][data-meryo-mode="light"][data-meryo-appearance="malva-lino"] .meryo-beauty-promo-card [class*="text-[#955568]"] { color: #916475 !important; }
+[data-meryo-theme="beauty"][data-meryo-mode="light"][data-meryo-appearance="malva-lino"] .meryo-beauty-promotions-page [class*="bg-[#FAF7F4]"],
+[data-meryo-theme="beauty"][data-meryo-mode="light"][data-meryo-appearance="malva-lino"] .meryo-beauty-promotions-page [class*="bg-[#FFFEFC]"] { background-color: #fffcfd !important; color: #352832 !important; }
+[data-meryo-theme="beauty"][data-meryo-mode="light"][data-meryo-appearance="malva-lino"] .meryo-beauty-promotions-page [class*="bg-[#955568]"] { background-color: #916475 !important; color: #ffffff !important; }
+.meryo-inspiration-page[data-meryo-theme="beauty"][data-meryo-mode="light"][data-meryo-appearance="malva-lino"] { --inspiration-bg: #f3eef0; --inspiration-card: #fffcfd; --inspiration-raised: #e8dce1; --inspiration-text: #352832; --inspiration-muted: #675761; --inspiration-accent: #916475; --inspiration-accent-soft: #916475; --inspiration-button-text: #ffffff; }

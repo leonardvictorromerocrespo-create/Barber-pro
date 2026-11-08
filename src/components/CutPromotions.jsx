@@ -8,9 +8,9 @@ function dateLabel(value) {
   return new Intl.DateTimeFormat('es-PE', { timeZone: 'America/Lima', day: 'numeric', month: 'short' }).format(date);
 }
 
-export function CutPromotions({ offers, loading, error, notice='', onRetry, onBack, onOpenOffer, onNavigate, heroImage, bannerImage='/cut-promotions-banner.png', BottomNav,themeMode='dark',onToggleTheme }) {
+export function CutPromotions({ offers, loading, error, notice='', onRetry, onBack, onOpenOffer, onNavigate, heroImage, bannerImage='/cut-promotions-banner.png', BottomNav,themeMode='dark',themeAppearance,onToggleTheme }) {
   const hasLiveOffers=!loading&&!error&&offers.length>0;
-  return <div data-meryo-theme="barberia" data-meryo-mode={themeMode} className="min-h-screen bg-neutral-950 pb-24 text-white md:pb-8">
+  return <div data-meryo-theme="barberia" data-meryo-mode={themeMode} data-meryo-appearance={themeAppearance} className="min-h-screen bg-neutral-950 pb-24 text-white md:pb-8">
     <header className="sticky top-0 z-20 border-b border-white/10 bg-neutral-950/95 px-4 py-3 backdrop-blur sm:px-6">
       <div className="mx-auto flex max-w-7xl items-center justify-between gap-4">
         <MeryoLogo variant={themeMode==='light'?'light':'dark'} className="h-7 w-auto sm:h-9" />

@@ -445,6 +445,7 @@ body {
 .meryo-catalog-map-control > button:hover { background: var(--meryo-surface-raised); }
 .meryo-catalog-map-control > button:focus-visible { outline: 2px solid var(--meryo-gold-light); outline-offset: 2px; }
 .meryo-catalog-topline { display: flex; min-width: 0; flex-direction: column; align-items: flex-start; gap: .45rem; }
+.meryo-catalog-top-actions { display: flex; width: 100%; min-width: 0; align-items: center; justify-content: space-between; gap: .65rem; }
 .meryo-catalog-heading { margin: 0; color: var(--meryo-text); font-size: clamp(1.45rem, 3vw, 2.1rem); font-weight: 600; line-height: 1.15; }
 .meryo-catalog-count { margin: 0; max-width: 100%; border: 0; border-radius: 0; padding: 0; background: transparent; color: var(--meryo-text-muted); box-shadow: none; font-size: .84rem; line-height: 1.3; }
 .meryo-catalog-controls { position: relative; min-width: 0; }
@@ -556,6 +557,7 @@ body {
 }
 @media (min-width: 900px) {
   .meryo-catalog-topline { flex-direction: row; align-items: flex-end; justify-content: space-between; gap: 1rem; }
+  .meryo-catalog-top-actions { width: auto; justify-content: flex-end; }
   .meryo-shop-grid { grid-template-columns: repeat(2,minmax(0,1fr)); gap: .9rem; }
   .meryo-shop-card { min-height: 182px; }
   .meryo-shop-card__image img,.meryo-shop-card__placeholder { min-height: 182px; }

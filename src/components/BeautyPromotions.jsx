@@ -1,8 +1,8 @@
 import MeryoLogo from './MeryoLogo';
 import {MeryoThemeToggle} from './MeryoHeader';
 
-export function BeautyPromotions({offers,loading,error,notice='',onRetry,onBack,onReserve,onNavigate,BottomNav,themeMode='light',onToggleTheme}){
-  return <div data-meryo-theme="beauty" data-meryo-mode={themeMode} className="meryo-beauty-promotions-page min-h-screen overflow-x-hidden bg-[#FAF7F4] pb-24 text-[#352832] md:pb-8">
+export function BeautyPromotions({offers,loading,error,notice='',onRetry,onBack,onReserve,onNavigate,BottomNav,themeMode='light',themeAppearance,onToggleTheme}){
+  return <div data-meryo-theme="beauty" data-meryo-mode={themeMode} data-meryo-appearance={themeAppearance} className="meryo-beauty-promotions-page min-h-screen overflow-x-hidden bg-[#FAF7F4] pb-24 text-[#352832] md:pb-8">
     <header className="meryo-beauty-promotions-header sticky top-0 z-20 border-b border-[#C5AD86]/30 bg-[#FFFEFC]/95 px-4 py-3 backdrop-blur sm:px-6">
       <div className="mx-auto flex w-full min-w-0 max-w-5xl items-center justify-between gap-2 sm:gap-4">
         <MeryoLogo variant={themeMode==='light'?'light':'dark'} className="h-6 w-auto min-w-0 shrink sm:h-9" />

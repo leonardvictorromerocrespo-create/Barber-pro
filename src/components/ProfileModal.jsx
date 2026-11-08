@@ -5,7 +5,7 @@ import {publicShopUrl} from '../lib/public-shop-url';
 
 function SectionTitle({children}) { return <h3 className="meryo-profile-section-title">{children}</h3>; }
 
-export default function ProfileModal({selectedShop,onClose,onReserve,onStore,onInspiration,catalogCategory='barberia',themeMode='dark',initialTab='servicios'}) {
+export default function ProfileModal({selectedShop,onClose,onReserve,onStore,onInspiration,catalogCategory='barberia',themeMode='dark',themeAppearance,initialTab='servicios'}) {
   const [shareFeedback,setShareFeedback]=useState('');
   const [activeTab,setActiveTab]=useState(initialTab);
   const [aboutExpanded,setAboutExpanded]=useState(false);
@@ -86,7 +86,7 @@ export default function ProfileModal({selectedShop,onClose,onReserve,onStore,onI
   </section>;
 
   return <div className="meryo-profile-backdrop fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-0 sm:p-4" onMouseDown={event=>{if(event.target===event.currentTarget)onClose();}}>
-    <div role="dialog" aria-modal="true" aria-labelledby="meryo-profile-title" tabIndex={-1} data-meryo-theme={catalogCategory==='belleza'?'beauty':'barberia'} data-meryo-mode={themeMode} className="meryo-profile-modal min-w-0 w-full overflow-auto">
+    <div role="dialog" aria-modal="true" aria-labelledby="meryo-profile-title" tabIndex={-1} data-meryo-theme={catalogCategory==='belleza'?'beauty':'barberia'} data-meryo-mode={themeMode} data-meryo-appearance={themeAppearance} className="meryo-profile-modal min-w-0 w-full overflow-auto">
       <header className="meryo-profile-header">
         {cover?<img src={cover} alt={`Portada de ${selectedShop.name}`} className="meryo-profile-cover"/>:<div className="meryo-profile-cover meryo-profile-cover--empty" role="img" aria-label="Sin portada publicada"/>}
         <div className="meryo-profile-cover-controls"><button ref={closeRef} type="button" onClick={onClose} className="meryo-profile-close min-h-11 rounded-lg px-3 py-2 text-sm font-medium">Volver</button><button type="button" onClick={shareProfile} className="meryo-profile-close min-h-11 rounded-lg px-3 py-2 text-sm font-medium">Compartir perfil</button></div>

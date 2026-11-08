@@ -17,6 +17,7 @@ const steps = [
 export function BookingModal({
   catalogCategory = 'barberia',
   themeMode = 'dark',
+  themeAppearance,
   startStep = 1,
   selectedShop,
   selectedService,
@@ -157,6 +158,7 @@ export function BookingModal({
   return <div
     data-meryo-theme={catalogCategory === 'belleza' ? 'beauty' : 'barberia'}
     data-meryo-mode={themeMode}
+    data-meryo-appearance={themeAppearance}
     className={backdropClass}
     onMouseDown={event => { if (event.target === event.currentTarget) closeBookingModal(); }}
   >
@@ -168,6 +170,7 @@ export function BookingModal({
       tabIndex={-1}
       data-meryo-theme={catalogCategory === 'belleza' ? 'beauty' : 'barberia'}
       data-meryo-mode={themeMode}
+      data-meryo-appearance={themeAppearance}
       className={'meryo-booking-dialog ' + wrapperClass}
     >
       <header className="meryo-booking-dialog-header">

@@ -16,7 +16,7 @@ function WorkCard({item,onOpen}){
  </button>;
 }
 
-export default function InspirationGallery({api,category='barberia',themeMode='dark',onToggleTheme,onBack,onViewProfile,onBook,onNavigate,BottomNav,initialPublication=null,signedIn=false,loadingIdentity=false}){
+export default function InspirationGallery({api,category='barberia',themeMode='dark',themeAppearance,onToggleTheme,onBack,onViewProfile,onBook,onNavigate,BottomNav,initialPublication=null,signedIn=false,loadingIdentity=false}){
  const key=`meryo.inspiration.${category}.v1`;
  const initial=()=>{try{return typeof window!=='undefined'?JSON.parse(window.sessionStorage.getItem(key)||'{}'):{};}catch{return {};}};
  const [workCategory,setWorkCategory]=useState(()=>initial().workCategory||'');
@@ -49,7 +49,7 @@ export default function InspirationGallery({api,category='barberia',themeMode='d
  const checkProfile=async()=>{if(!selected)return;setActionBusy(true);setDetailError('');try{await onViewProfile(selected);}catch(e){setDetailError(e.message||'No se pudo abrir el perfil.');}finally{setActionBusy(false);}};
  const requestStyle=async()=>{if(!selected?.can_request)return;setActionBusy(true);setDetailError('');try{await onBook(selected);}catch(e){setDetailError(e.message||'No se pudo preparar la reserva. Revisa el perfil del negocio.');}finally{setActionBusy(false);}};
  const business=categoryLabel[category]||'negocio';
- return <div className="meryo-inspiration-page min-h-screen pb-24 text-white md:pb-0" data-meryo-theme={category==='belleza'?'beauty':'barberia'} data-meryo-mode={themeMode}>
+ return <div className="meryo-inspiration-page min-h-screen pb-24 text-white md:pb-0" data-meryo-theme={category==='belleza'?'beauty':'barberia'} data-meryo-mode={themeMode} data-meryo-appearance={themeAppearance}>
   <MeryoHeader variant={themeMode==='light'?'light':'dark'} themeMode={themeMode} onToggleTheme={onToggleTheme} signedIn={signedIn} loading={loadingIdentity} onHome={onBack} onProfessional={()=>onNavigate('account')} onAccount={()=>onNavigate('account')} onNotifications={()=>onNavigate('notifications')}/>
   <main className="mx-auto max-w-7xl px-4 pb-12 pt-7 sm:px-6 sm:pt-10">
    <div className="mb-6 flex flex-wrap items-end justify-between gap-4"><div><button className="meryo-inspiration-back" type="button" onClick={onBack}>Volver al catálogo</button><p className="meryo-inspiration-kicker">{category==='belleza'?'PELUQUERÍAS Y BELLEZA':'BARBERÍAS'}</p><h1>Encuentra tu próximo estilo</h1><p className="meryo-inspiration-intro">Trabajos publicados por {category==='belleza'?'peluquerías y salones':'barberías'} de MERYO.</p></div></div>

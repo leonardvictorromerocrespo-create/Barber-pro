@@ -16,7 +16,7 @@ function resultMessage(result) {
     : 'No encontramos turnos con esos filtros. Prueba otra hora, fecha o distrito.';
 }
 
-export default function TurnFinder({ shops, today, maxDate, slots, onReserve, themeMode = 'dark', category = 'barberia', disabled = false }) {
+export default function TurnFinder({ shops, today, maxDate, slots, onReserve, themeMode = 'dark', themeAppearance, category = 'barberia', disabled = false }) {
   const activeCategory = category === 'belleza' ? 'belleza' : 'barberia';
   const [district, setDistrict] = useState('');
   const [service, setService] = useState('');
@@ -118,6 +118,7 @@ export default function TurnFinder({ shops, today, maxDate, slots, onReserve, th
   return <section
     data-meryo-theme={activeCategory === 'belleza' ? 'beauty' : 'barberia'}
     data-meryo-mode={themeMode}
+    data-meryo-appearance={themeAppearance}
     className="meryo-turn-finder min-w-0 w-full"
   >
     <button ref={triggerRef} type="button" aria-haspopup="dialog" aria-expanded={open}
@@ -134,7 +135,7 @@ export default function TurnFinder({ shops, today, maxDate, slots, onReserve, th
     {open&&<div className="meryo-turn-finder__backdrop fixed inset-0 z-[60] flex items-center justify-center p-2 sm:p-5"
       onMouseDown={event=>{if(event.target===event.currentTarget)closeFinder();}}>
       <section id="meryo-turn-finder-dialog" role="dialog" aria-modal="true" aria-labelledby="meryo-turn-finder-title"
-        data-meryo-theme={activeCategory === 'belleza' ? 'beauty' : 'barberia'} data-meryo-mode={themeMode}
+        data-meryo-theme={activeCategory === 'belleza' ? 'beauty' : 'barberia'} data-meryo-mode={themeMode} data-meryo-appearance={themeAppearance}
         className="meryo-turn-finder__dialog max-h-[92dvh] w-full max-w-5xl overflow-y-auto overscroll-contain rounded-xl p-4 shadow-2xl sm:p-6">
         <header className="mb-4 flex items-start justify-between gap-4">
           <div className="min-w-0">
