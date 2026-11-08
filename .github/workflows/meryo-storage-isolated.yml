@@ -54,7 +54,7 @@ jobs:
           cd "$RUNNER_TEMP/meryo-official/storage"
           npm ci
           npm run build
-          curl -fL https://github.com/PostgREST/postgrest/releases/download/v16.5/postgrest-v16.5-linux-static-x86-64.tar.xz -o "$RUNNER_TEMP/meryo-official/rest.tar.xz"
+          curl -fL --retry 5 --retry-all-errors --retry-delay 2 --retry-max-time 180 --connect-timeout 20 https://github.com/PostgREST/postgrest/releases/download/v16.5/postgrest-v16.5-linux-static-x86-64.tar.xz -o "$RUNNER_TEMP/meryo-official/rest.tar.xz"
           tar -xJf "$RUNNER_TEMP/meryo-official/rest.tar.xz" -C "$RUNNER_TEMP/meryo-official"
       - name: Verify real Storage upload, read, replacement, withdrawal and tenant permissions
         env:
