@@ -26,7 +26,6 @@ import {clearPickupCart,readPickupCart} from './lib/pickup-cart';
 import LandingPage from './components/LandingPage';
 import {CutPromotions} from './components/CutPromotions';
 import {BeautyPromotions} from './components/BeautyPromotions';
-import {markLandingIntroSeen} from './lib/landing-intro';
 import {catalogCountLabel} from './lib/catalog-copy';
 import {createCatalogLoader} from './lib/catalog-loader';
 import {isPublicShopIndexable,isPublicShopPath,publicShopCanonical,publicShopIdFromPath,publicShopUrl} from './lib/public-shop-url.js';
@@ -102,8 +101,6 @@ function MeryoScreens({identity,view,setView}) {
   const [loginDestination,setLoginDestination]=useState('client');
   const [mobileExploreRequested,setMobileExploreRequested]=useState(false);
   const [locationPath,setLocationPath]=useState(()=>typeof window==='undefined'?'':window.location.pathname);
-  const initialView = useRef(view);
-  useEffect(()=>{if(initialView.current!=='landing')markLandingIntroSeen();},[]);
   useEffect(()=>{const url=new URL(window.location.href);if(view==='landing'&&isPublicShopPath(url.pathname))url.pathname='/';url.hash=view;window.history.replaceState(window.history.state,'',url.href);setLocationPath(url.pathname);},[view]);
   useEffect(()=>{
     if(view!=='client'||!mobileExploreRequested)return;

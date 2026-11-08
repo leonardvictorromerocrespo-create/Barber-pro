@@ -1,49 +1,20 @@
-import {useEffect, useLayoutEffect, useRef, useState} from 'react';
+import {useState} from 'react';
 import barberPhoto from '../assets/meryo-entry-barber-reference.png';
 import beautyPhoto from '../assets/meryo-entry-beauty-reference.png';
-import {consumeLandingIntro} from '../lib/landing-intro';
 import MeryoHeader from './MeryoHeader';
-import MeryoLogo from './MeryoLogo';
+import WelcomeOnboarding, {shouldShowWelcome} from './WelcomeOnboarding';
 import './LandingPage.css';
 
-const introDuration = 2700;
-
-function reducedMotionEnabled() {
-  try { return window.matchMedia('(prefers-reduced-motion: reduce)').matches; }
-  catch { return false; }
-}
-
 export default function LandingPage({setView, onExplore, profile=null, identityLoading=false, onSignIn, onAccount, onProfessionalAccess}) {
-  const [intro, setIntro] = useState(false);
-  const introDecision = useRef(null);
-  const brandRef = useRef(null);
-  const introLogoRef = useRef(null);
-  useLayoutEffect(() => {
-    if (introDecision.current !== null) return;
-    introDecision.current = consumeLandingIntro({reducedMotion: reducedMotionEnabled()});
-    setIntro(introDecision.current);
-  }, []);
-  useLayoutEffect(() => {
-    if (!intro || !brandRef.current || !introLogoRef.current) return;
-    const target = brandRef.current.getBoundingClientRect();
-    const logo = introLogoRef.current;
-    logo.style.setProperty('--meryo-intro-x', `${target.left + target.width / 2 - window.innerWidth / 2 - logo.offsetWidth / 2}px`);
-    logo.style.setProperty('--meryo-intro-y', `${target.top + target.height / 2 - window.innerHeight / 2 - logo.offsetHeight / 2}px`);
-    logo.style.setProperty('--meryo-intro-scale', `${target.width / logo.offsetWidth}`);
-  }, [intro]);
-  useEffect(() => {
-    if (!intro) return undefined;
-    const timeout = window.setTimeout(() => setIntro(false), introDuration);
-    return () => window.clearTimeout(timeout);
-  }, [intro]);
-  const skipIntro = () => setIntro(false);
-
+  const [showWelcome, setShowWelcome] = useState(shouldShowWelcome);
   const explore = category => onExplore ? onExplore(category) : setView('client');
   const enterAccount=()=>profile?onAccount?.():onSignIn?.();
 
+  if (showWelcome) return <WelcomeOnboarding onFinish={() => setShowWelcome(false)} />;
+
   return (
-    <div className="meryo-cover" data-intro={intro ? 'playing' : 'done'}>
-      <MeryoHeader cover brandRef={brandRef} onLogoError={skipIntro}
+    <div className="meryo-cover">
+      <MeryoHeader cover
         signedIn={Boolean(profile)} loading={identityLoading}
         onHome={()=>setView('landing')} onProfessional={onProfessionalAccess}
         onAccount={enterAccount} onNotifications={()=>setView('notifications')}
@@ -81,16 +52,6 @@ export default function LandingPage({setView, onExplore, profile=null, identityL
         <a href="/privacidad.html">Privacidad</a>
         <a href="/condiciones.html">Condiciones</a>
       </footer>
-
-      {intro && (
-        <div className="meryo-cover__intro" aria-label="Presentación de MERYO">
-          <div ref={introLogoRef} className="meryo-cover__intro-logo">
-            <MeryoLogo className="meryo-cover__intro-image" onError={skipIntro}/>
-            <span className="meryo-cover__intro-light" aria-hidden="true" />
-          </div>
-          <button type="button" className="meryo-cover__skip" onClick={skipIntro}>Saltar</button>
-        </div>
-      )}
     </div>
   );
 }

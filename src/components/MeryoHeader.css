@@ -59,7 +59,6 @@
   object-position: left center;
 }
 
-.meryo-cover[data-intro='playing'] .meryo-header-logo { opacity: 0; }
 
 .meryo-header-row > .meryo-header-professional {
   border: 1px solid var(--meryo-border, rgba(245, 241, 232, .18));

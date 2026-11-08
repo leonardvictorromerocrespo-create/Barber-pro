@@ -1,0 +1,218 @@
+.meryo-welcome {
+  --welcome-ink: #302824;
+  --welcome-muted: #6f665e;
+  --welcome-surface: #fffdf8;
+  --welcome-accent: #c78a38;
+  min-height: 100svh;
+  display: flex;
+  justify-content: center;
+  overflow-x: clip;
+  overflow-y: auto;
+  background: #f3eee6;
+  color: var(--welcome-ink);
+  font-family: "Quicksand", sans-serif;
+}
+
+.meryo-welcome--beauty {
+  --welcome-ink: #352832;
+  --welcome-muted: #71636a;
+  --welcome-surface: #fff9f7;
+  --welcome-accent: #b67885;
+}
+
+.meryo-welcome__shell {
+  width: min(100%, 78rem);
+  min-height: 100svh;
+  display: grid;
+  grid-template-rows: auto 1fr;
+  padding: clamp(.75rem, 2.3vw, 1.75rem);
+}
+
+.meryo-welcome__header {
+  min-height: 3.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0 .25rem 1rem;
+}
+
+.meryo-welcome__logo {
+  display: block;
+  width: clamp(7.5rem, 17vw, 10.5rem);
+  height: auto;
+  max-height: 2.75rem;
+  object-fit: contain;
+  object-position: left center;
+}
+
+.meryo-welcome__skip {
+  min-width: 2.75rem;
+  min-height: 2.75rem;
+  padding: .5rem .65rem;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--welcome-muted);
+  font: inherit;
+  font-size: .95rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.meryo-welcome__skip:hover { color: var(--welcome-ink); background: rgba(48, 40, 36, .06); }
+.meryo-welcome__skip:focus-visible,
+.meryo-welcome__steps button:focus-visible,
+.meryo-welcome__next:focus-visible { outline: 2px solid currentColor; outline-offset: 3px; }
+
+.meryo-welcome__stage {
+  min-height: min(48rem, calc(100svh - 5.25rem));
+  display: grid;
+  grid-template-columns: minmax(0, 1.05fr) minmax(22rem, .95fr);
+  overflow: hidden;
+  border-radius: 12px;
+  background: var(--welcome-surface);
+  box-shadow: 0 12px 32px rgba(62, 48, 35, .12);
+  animation: meryo-welcome-enter .32s ease both;
+}
+
+.meryo-welcome__visual {
+  min-width: 0;
+  min-height: 0;
+  margin: 0;
+  overflow: hidden;
+  background: #f7f0e7;
+}
+
+.meryo-welcome__visual img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center 32%;
+}
+
+.meryo-welcome__visual--map { background: #fffaf1; }
+.meryo-welcome__visual--map img { object-fit: contain; padding: .25rem; }
+
+.meryo-welcome__copy {
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: clamp(2rem, 5vw, 4.5rem);
+  background: var(--welcome-surface);
+}
+
+.meryo-welcome--beauty .meryo-welcome__copy { background: #f8ecec; }
+
+.meryo-welcome__copy-inner {
+  width: min(100%, 31rem);
+  display: grid;
+  justify-items: start;
+  gap: clamp(1rem, 2.2vw, 1.5rem);
+}
+
+.meryo-welcome__copy h1 {
+  max-width: 11ch;
+  margin: 0;
+  color: var(--welcome-ink);
+  font-size: clamp(2.25rem, 4.2vw, 4rem);
+  font-weight: 700;
+  line-height: 1.08;
+  letter-spacing: -.04em;
+}
+
+.meryo-welcome__copy p {
+  max-width: 30rem;
+  margin: 0;
+  color: var(--welcome-muted);
+  font-size: clamp(1rem, 1.55vw, 1.25rem);
+  font-weight: 500;
+  line-height: 1.55;
+}
+
+.meryo-welcome__steps {
+  display: flex;
+  align-items: center;
+  gap: .35rem;
+  margin-top: .5rem;
+}
+
+.meryo-welcome__steps button {
+  width: 2rem;
+  height: 2.5rem;
+  display: grid;
+  place-items: center;
+  padding: 0;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--welcome-accent);
+  cursor: pointer;
+}
+
+.meryo-welcome__steps button::before {
+  width: .55rem;
+  height: .55rem;
+  content: "";
+  border-radius: 50%;
+  background: #d8d0c5;
+  transition: width .18s ease, border-radius .18s ease, background-color .18s ease;
+}
+
+.meryo-welcome__steps button.is-active::before {
+  width: 1.2rem;
+  border-radius: 999px;
+  background: var(--welcome-accent);
+}
+
+.meryo-welcome__next {
+  width: min(100%, 24rem);
+  min-height: 3.25rem;
+  margin-top: .25rem;
+  padding: .75rem 1.25rem;
+  border: 0;
+  border-radius: 8px;
+  background: var(--welcome-accent);
+  color: #211a15;
+  box-shadow: 0 5px 14px rgba(52, 40, 30, .16);
+  font: inherit;
+  font-size: 1rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: transform .18s ease, box-shadow .18s ease, filter .18s ease;
+}
+
+.meryo-welcome--beauty .meryo-welcome__next { background: #b67885; color: #fffaf8; }
+.meryo-welcome__next:hover { transform: translateY(-1px); box-shadow: 0 7px 16px rgba(52, 40, 30, .19); filter: brightness(1.02); }
+.meryo-welcome__next:active { transform: translateY(0); }
+
+@keyframes meryo-welcome-enter {
+  from { opacity: .75; transform: translateY(5px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@media (max-width: 700px) {
+  .meryo-welcome__shell { width: 100%; min-height: 100svh; padding: max(.3rem, env(safe-area-inset-top)) 0 max(.3rem, env(safe-area-inset-bottom)); }
+  .meryo-welcome__header { min-height: 3.25rem; padding: 0 1rem .5rem; }
+  .meryo-welcome__logo { width: 7.6rem; max-height: 2.25rem; }
+  .meryo-welcome__stage { min-height: calc(100svh - 3.75rem); grid-template-columns: minmax(0, 1fr); grid-template-rows: minmax(18rem, 54svh) auto; border-radius: 0; box-shadow: none; }
+  .meryo-welcome__visual img { object-position: center 27%; }
+  .meryo-welcome__visual--map img { object-fit: cover; object-position: center 32%; padding: 0; }
+  .meryo-welcome__copy { align-items: start; justify-content: start; padding: 1.2rem 1.35rem max(1.25rem, env(safe-area-inset-bottom)); }
+  .meryo-welcome__copy-inner { gap: .8rem; }
+  .meryo-welcome__copy h1 { max-width: 17ch; font-size: clamp(1.9rem, 8.2vw, 2.6rem); line-height: 1.08; }
+  .meryo-welcome__copy p { max-width: 36ch; font-size: 1rem; line-height: 1.45; }
+  .meryo-welcome__steps { gap: .25rem; margin-top: .1rem; }
+  .meryo-welcome__next { width: 100%; min-height: 3.25rem; }
+}
+
+@media (max-width: 380px) {
+  .meryo-welcome__stage { grid-template-rows: minmax(16rem, 50svh) auto; }
+  .meryo-welcome__copy { padding-inline: 1.1rem; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .meryo-welcome *, .meryo-welcome *::before, .meryo-welcome *::after { animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; scroll-behavior: auto !important; }
+}
