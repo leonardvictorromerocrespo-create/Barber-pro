@@ -43,6 +43,8 @@ jobs:
           MERYO_CI_INSPIRATION_ONLY: ${{ inputs.scope == 'inspiration' && 'true' || 'false' }}
         run: node scripts/verify-storage-ci.mjs
       - name: Compile pinned official Supabase services, without Docker
+        env:
+          GH_TOKEN: ${{ github.token }}
         run: |
           mkdir -p "$RUNNER_TEMP/meryo-official"
           git clone --filter=blob:none --no-checkout https://github.com/supabase/auth.git "$RUNNER_TEMP/meryo-official/auth"
@@ -54,7 +56,10 @@ jobs:
           cd "$RUNNER_TEMP/meryo-official/storage"
           npm ci
           npm run build
-          curl -fL --retry 5 --retry-all-errors --retry-delay 2 --retry-max-time 180 --connect-timeout 20 https://github.com/PostgREST/postgrest/releases/download/v16.5/postgrest-v16.5-linux-static-x86-64.tar.xz -o "$RUNNER_TEMP/meryo-official/rest.tar.xz"
+          asset_id="$(gh api repos/PostgREST/postgrest/releases/tags/v16.5 --jq '.assets[] | select(.name == "postgrest-v16.5-linux-static-x86-64.tar.xz") | .id')"
+          test -n "$asset_id"
+          gh api -H 'Accept: application/octet-stream' "repos/PostgREST/postgrest/releases/assets/$asset_id" > "$RUNNER_TEMP/meryo-official/rest.tar.xz"
+          test -s "$RUNNER_TEMP/meryo-official/rest.tar.xz"
           tar -xJf "$RUNNER_TEMP/meryo-official/rest.tar.xz" -C "$RUNNER_TEMP/meryo-official"
       - name: Verify real Storage upload, read, replacement, withdrawal and tenant permissions
         env:
