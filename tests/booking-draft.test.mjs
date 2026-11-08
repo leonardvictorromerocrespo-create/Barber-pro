@@ -11,7 +11,7 @@ test('salon promotion selection survives Google/email login return without chang
  const session=storage();
  const saved=saveDraft(session,{shop:15,service:7,barber:'6e648bbb-b222-4ee0-a18d-3db1cb7e9da1',category:'belleza',date:'2026-11-08',time:'2026-11-08T15:00:00Z',salonPromotionId:'e3987269-8777-4b66-8b65-d9e3a2c9ef01',salonRegularPrice:80,salonPromoPrice:50},1000);
  assert.equal(saved.salonRegularPrice,80);assert.equal(saved.salonPromoPrice,50);
- assert.deepEqual(readDraft(session,2000),{shop:'15',service:'7',barber:'6e648bbb-b222-4ee0-a18d-3db1cb7e9da1',category:'belleza',date:'2026-11-08',time:'2026-11-08T15:00:00Z',name:'',phone:'',note:'',campaignId:null,regularPrice:null,salonPromotionId:'e3987269-8777-4b66-8b65-d9e3a2c9ef01',salonRegularPrice:80,salonPromoPrice:50,savedAt:1000});
+ assert.deepEqual(readDraft(session,2000),{shop:'15',service:'7',barber:'6e648bbb-b222-4ee0-a18d-3db1cb7e9da1',category:'belleza',date:'2026-11-08',time:'2026-11-08T15:00:00Z',name:'',phone:'',note:'',turnFinder:false,finderExpectedPrice:null,campaignId:null,regularPrice:null,salonPromotionId:'e3987269-8777-4b66-8b65-d9e3a2c9ef01',salonRegularPrice:80,salonPromoPrice:50,savedAt:1000});
 });
 
 test('malformed salon campaign identifiers are not restored as offer selections',()=>{
@@ -19,4 +19,20 @@ test('malformed salon campaign identifiers are not restored as offer selections'
  saveDraft(session,{shop:15,service:7,category:'belleza',date:'2026-11-08',salonPromotionId:'not-a-uuid',salonRegularPrice:80,salonPromoPrice:50},1000);
  const restored=readDraft(session,2000);assert.equal(restored.salonPromotionId,null);assert.equal(restored.salonPromoPrice,null);assert.equal(restored.salonRegularPrice,80);
  clearDraft(session);assert.equal(readDraft(session,2000),null);
+});
+
+test('finder selection returns after Google/email sign-in with its exact service, professional, slot and price snapshot',()=>{
+ const session=storage();
+ saveDraft(session,{shop:22,service:9,barber:'6e648bbb-b222-4ee0-a18d-3db1cb7e9da1',category:'barberia',date:'2026-11-10',time:'2026-11-10T22:30:00.000Z',turnFinder:true,finderExpectedPrice:35},1000);
+ const restored=readDraft(session,2000);
+ assert.equal(restored.turnFinder,true);assert.equal(restored.finderExpectedPrice,35);
+ assert.equal(restored.shop,'22');assert.equal(restored.service,'9');assert.equal(restored.barber,'6e648bbb-b222-4ee0-a18d-3db1cb7e9da1');
+ assert.equal(restored.date,'2026-11-10');assert.equal(restored.time,'2026-11-10T22:30:00.000Z');
+});
+
+test('beauty finder selection preserves the price snapshot across login for the server check',()=>{
+ const session=storage();
+ saveDraft(session,{shop:22,service:9,category:'belleza',date:'2026-11-10',turnFinder:true,finderExpectedPrice:35},1000);
+ const restored=readDraft(session,2000);
+ assert.equal(restored.category,'belleza');assert.equal(restored.turnFinder,true);assert.equal(restored.finderExpectedPrice,35);
 });

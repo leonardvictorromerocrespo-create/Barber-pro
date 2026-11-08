@@ -49,6 +49,12 @@ test('beauty regular-price fallback is still checked by the server without a cam
  const call=c.calls.find(x=>x.name==='meryo_solicitar_cita');
  assert.equal(call.args.p_beauty_campaign_id,null);assert.equal(call.args.p_beauty_regular_price,80);assert.equal(call.args.p_beauty_expected_price,null);
 });
+test('finder reservation uses the current server RPC with an expected regular-price snapshot',async()=>{
+ const c=clientFor({id:'real-subject',rol:'cliente',activo:true}),api=createMeryoApi(c);
+ await api.request({shop:15,service:7,barber:'6e648bbb-b222-4ee0-a18d-3db1cb7e9da1',start:'2026-11-10T22:30:00Z',name:'Ana',phone:'999999999',finderExpectedPrice:35});
+ const call=c.calls.find(x=>x.name==='meryo_solicitar_cita');
+ assert.deepEqual(call.args,{p_barberia_id:15,p_servicio_id:7,p_inicio:'2026-11-10T22:30:00Z',p_nombre:'Ana',p_telefono:'999999999',p_pedido:null,p_extra:0,p_barbero_id:'6e648bbb-b222-4ee0-a18d-3db1cb7e9da1',p_campaign_id:null,p_precio_habitual:null,p_beauty_campaign_id:null,p_beauty_regular_price:null,p_beauty_expected_price:null,p_precio_esperado:35});
+});
 test('catalog exposes an offer only when its price is below the regular service price',()=>{
  const shop=mapShop({id:9,nombre:'Salón',tipos_negocio:['belleza'],servicios:[
   {id:4,nombre:'Peinado',activo:true,categoria:'peinados',requiere_evaluacion:false,precio:80,duracion_min:60,promocion_belleza:{id:'offer-id',precio:50,desde:'2026-11-01',hasta:'2026-11-08'}},

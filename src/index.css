@@ -424,3 +424,318 @@ body {
 @media (min-width: 768px) {
   .meryo-mobile-bottom-nav { display: none; }
 }
+
+.meryo-turn-finder {
+  --turn-panel: #171512;
+  --turn-card: #211e19;
+  --turn-field: #211e19;
+  --turn-text: #f4efe6;
+  --turn-muted: #c2b9ab;
+  --turn-action: #d4af37;
+  --turn-action-text: #1c170d;
+  color: var(--turn-text);
+}
+.meryo-turn-finder__trigger,
+.meryo-turn-finder__close {
+  border: 0;
+  color: var(--turn-text);
+  background: var(--turn-card);
+  transition: background-color .16s ease, color .16s ease;
+}
+.meryo-turn-finder__trigger:hover,
+.meryo-turn-finder__close:hover { background: var(--turn-field); }
+.meryo-turn-finder__dialog {
+  background: var(--turn-panel);
+  color: var(--turn-text);
+  box-shadow: 0 16px 44px rgb(0 0 0 / 38%);
+}
+.meryo-turn-finder__backdrop {
+  background: rgb(9 8 7 / 76%);
+  backdrop-filter: blur(2px);
+}
+.meryo-turn-finder__field {
+  border: 0;
+  background: var(--turn-field);
+  color: var(--turn-text);
+  box-shadow: 0 2px 7px rgb(0 0 0 / 12%);
+}
+.meryo-turn-finder__field::placeholder { color: var(--turn-muted); opacity: 1; }
+.meryo-turn-finder__result { background: var(--turn-card); }
+.meryo-turn-finder__action {
+  background: var(--turn-action);
+  color: var(--turn-action-text);
+  box-shadow: 0 3px 8px rgb(0 0 0 / 14%);
+}
+.meryo-turn-finder__action:hover:not(:disabled) { filter: brightness(1.05); }
+.meryo-turn-finder__action:disabled { color: var(--turn-muted); background: var(--turn-card); box-shadow: none; }
+.meryo-turn-finder :where(button, input, select):focus-visible { outline: 3px solid #e8c766; outline-offset: 2px; }
+.meryo-turn-finder select option { background: var(--turn-field); color: var(--turn-text); }
+
+[data-meryo-theme="barberia"][data-meryo-mode="light"] .meryo-turn-finder {
+  --turn-panel: #ebe3d8;
+  --turn-card: #fffbf4;
+  --turn-field: #fffbf4;
+  --turn-text: #34291e;
+  --turn-muted: #6e6254;
+  --turn-action: #a77d49;
+  --turn-action-text: #21190f;
+}
+[data-meryo-theme="barberia"][data-meryo-mode="light"] .meryo-turn-finder__trigger,
+[data-meryo-theme="barberia"][data-meryo-mode="light"] .meryo-turn-finder__close {
+  color: #34291e;
+  background: #ebe3d8;
+  box-shadow: 0 3px 9px rgb(65 48 30 / 9%);
+}
+[data-meryo-theme="barberia"][data-meryo-mode="light"] .meryo-turn-finder__trigger:hover,
+[data-meryo-theme="barberia"][data-meryo-mode="light"] .meryo-turn-finder__close:hover { background: #e4d8c8; }
+[data-meryo-theme="barberia"][data-meryo-mode="light"] .meryo-turn-finder__dialog {
+  box-shadow: 0 16px 44px rgb(45 33 20 / 26%);
+}
+[data-meryo-theme="barberia"][data-meryo-mode="light"] .meryo-turn-finder :where(button, input, select):focus-visible { outline-color: #795b37; }
+[data-meryo-theme="barberia"][data-meryo-mode="light"] .meryo-turn-finder__field,
+[data-meryo-theme="barberia"][data-meryo-mode="light"] .meryo-turn-finder__result { box-shadow: 0 2px 7px rgb(65 48 30 / 9%); }
+
+/* Beauty catalog keeps its own smoked-plum and rose palette in both modes. */
+.meryo-catalog-page[data-meryo-theme="beauty"][data-meryo-mode="light"] {
+  --beauty-page: #faf7f4;
+  --beauty-surface: #fffefc;
+  --beauty-card: #eedde2;
+  --beauty-field: #fffaf8;
+  --beauty-text: #352832;
+  --beauty-muted: #655761;
+  --beauty-accent: #955568;
+  --beauty-accent-text: #fffaf8;
+  --beauty-focus: #955568;
+  --meryo-text: #352832;
+  --meryo-text-muted: #655761;
+  color-scheme: light;
+  background-color: var(--beauty-page) !important;
+  color: var(--beauty-text);
+}
+.meryo-catalog-page[data-meryo-theme="beauty"][data-meryo-mode="dark"] {
+  --beauty-page: #392f38;
+  --beauty-surface: #463944;
+  --beauty-card: #51414e;
+  --beauty-field: #41343f;
+  --beauty-text: #f7eff2;
+  --beauty-muted: #d2c2ca;
+  --beauty-accent: #b87589;
+  --beauty-accent-text: #281e25;
+  --beauty-focus: #e8b3c0;
+  --meryo-text: #f7eff2;
+  --meryo-text-muted: #d2c2ca;
+  color-scheme: dark;
+  background-color: var(--beauty-page) !important;
+  color: var(--beauty-text);
+}
+.meryo-catalog-page[data-meryo-theme="beauty"] .meryo-site-header {
+  border-color: color-mix(in srgb, var(--beauty-accent) 24%, transparent) !important;
+  background-color: var(--beauty-surface) !important;
+  color: var(--beauty-text);
+}
+.meryo-catalog-page[data-meryo-theme="beauty"] .meryo-site-header button { color: var(--beauty-text); }
+.meryo-catalog-page[data-meryo-theme="beauty"] .meryo-site-header button:hover { background-color: var(--beauty-card); }
+.meryo-catalog-page[data-meryo-theme="beauty"] .meryo-catalog-section { color: var(--beauty-text); }
+.meryo-catalog-page[data-meryo-theme="beauty"] .meryo-catalog-section .text-neutral-400,
+.meryo-catalog-page[data-meryo-theme="beauty"] .meryo-catalog-section .text-neutral-300 { color: var(--beauty-muted) !important; }
+.meryo-catalog-page[data-meryo-theme="beauty"] .meryo-catalog-section .text-amber-200,
+.meryo-catalog-page[data-meryo-theme="beauty"] .meryo-catalog-section .text-amber-300,
+.meryo-catalog-page[data-meryo-theme="beauty"] .meryo-catalog-section .text-amber-400 { color: var(--beauty-accent) !important; }
+.meryo-catalog-page[data-meryo-theme="beauty"] .meryo-beauty-hero-overlay { background: linear-gradient(90deg, rgb(34 24 31 / 74%), rgb(34 24 31 / 20%) 72%, transparent); }
+.meryo-catalog-page[data-meryo-theme="beauty"] .meryo-beauty-hero .text-white { color: #fffaf8 !important; }
+.meryo-catalog-page[data-meryo-theme="beauty"] .meryo-beauty-hero .text-neutral-300 { color: #fffaf8 !important; text-shadow: 0 1px 4px rgb(24 17 22 / 65%); }
+.meryo-catalog-page[data-meryo-theme="beauty"] .meryo-beauty-hero .text-amber-400 { color: #f0bdc8 !important; }
+.meryo-catalog-page[data-meryo-theme="beauty"] .meryo-beauty-hero .bg-amber-400 { background-color: #e4aab8 !important; }
+.meryo-catalog-page[data-meryo-theme="beauty"] .meryo-beauty-offer-link {
+  border: 0 !important;
+  border-radius: 7px;
+  background: var(--beauty-card) !important;
+  color: var(--beauty-text) !important;
+  box-shadow: 0 4px 12px rgb(53 40 50 / 9%);
+}
+.meryo-catalog-page[data-meryo-theme="beauty"][data-meryo-mode="dark"] .meryo-beauty-offer-link { color: var(--beauty-text) !important; box-shadow: 0 4px 12px rgb(15 10 14 / 20%); }
+.meryo-catalog-page[data-meryo-theme="beauty"] .meryo-catalog-count {
+  border: 0 !important;
+  border-radius: 10px;
+  background: var(--beauty-card) !important;
+  color: var(--beauty-muted) !important;
+  box-shadow: 0 4px 12px rgb(53 40 50 / 8%);
+}
+.meryo-catalog-page[data-meryo-theme="beauty"] .meryo-catalog-filters {
+  border: 0 !important;
+  border-radius: 11px;
+  background: var(--beauty-card) !important;
+  box-shadow: 0 5px 14px rgb(53 40 50 / 9%);
+}
+.meryo-catalog-page[data-meryo-theme="beauty"] .meryo-catalog-filters :where(input, select) {
+  border: 0 !important;
+  border-radius: 7px;
+  background: var(--beauty-field) !important;
+  color: var(--beauty-text) !important;
+  box-shadow: 0 2px 7px rgb(53 40 50 / 8%);
+}
+.meryo-catalog-page[data-meryo-theme="beauty"] .meryo-catalog-filters input::placeholder { color: var(--beauty-muted) !important; opacity: 1; }
+.meryo-catalog-page[data-meryo-theme="beauty"] .meryo-catalog-filters button {
+  border: 0 !important;
+  border-radius: 7px;
+  background: var(--beauty-accent) !important;
+  color: #fffaf8 !important;
+  box-shadow: 0 3px 8px rgb(53 40 50 / 12%);
+}
+.meryo-catalog-page[data-meryo-theme="beauty"] .meryo-shop-card {
+  border: 0 !important;
+  border-radius: 11px;
+  background: var(--beauty-surface) !important;
+  box-shadow: 0 6px 16px rgb(53 40 50 / 10%);
+  color: var(--beauty-text);
+}
+.meryo-catalog-page[data-meryo-theme="beauty"] .meryo-shop-card__services {
+  border: 0 !important;
+  border-radius: 7px;
+  background: var(--beauty-card) !important;
+  color: var(--beauty-text) !important;
+  box-shadow: 0 3px 9px rgb(53 40 50 / 7%);
+}
+.meryo-catalog-page[data-meryo-theme="beauty"] .meryo-shop-card__services .text-white { color: var(--beauty-text) !important; }
+.meryo-catalog-page[data-meryo-theme="beauty"] .meryo-shop-card button {
+  border-radius: 7px;
+  box-shadow: 0 3px 8px rgb(53 40 50 / 9%);
+}
+.meryo-catalog-page[data-meryo-theme="beauty"] .meryo-shop-card button:first-child {
+  border: 0 !important;
+  background: var(--beauty-card) !important;
+  color: var(--beauty-text) !important;
+}
+.meryo-catalog-page[data-meryo-theme="beauty"] .meryo-shop-card button:last-child {
+  background: var(--beauty-accent) !important;
+  color: #fffaf8 !important;
+}
+.meryo-catalog-page[data-meryo-theme="beauty"] .meryo-shop-card button:disabled { background: var(--beauty-card) !important; color: var(--beauty-muted) !important; box-shadow: none; }
+.meryo-catalog-page[data-meryo-theme="beauty"] .meryo-catalog-info-section { border-color: color-mix(in srgb, var(--beauty-accent) 20%, transparent) !important; }
+.meryo-catalog-page[data-meryo-theme="beauty"] .meryo-catalog-info-section { background: var(--beauty-page) !important; }
+.meryo-catalog-page[data-meryo-theme="beauty"] .meryo-info-block {
+  border: 0 !important;
+  border-radius: 11px;
+  background: var(--beauty-surface) !important;
+  color: var(--beauty-text);
+  box-shadow: 0 7px 18px rgb(53 40 50 / 9%);
+}
+.meryo-catalog-page[data-meryo-theme="beauty"] .meryo-info-block .text-neutral-400 { color: var(--beauty-muted) !important; }
+.meryo-catalog-page[data-meryo-theme="beauty"] .meryo-info-block > .rounded-2xl {
+  border: 0 !important;
+  border-radius: 7px;
+  background: var(--beauty-card) !important;
+  color: var(--beauty-muted) !important;
+  box-shadow: 0 3px 9px rgb(53 40 50 / 7%);
+}
+.meryo-catalog-page[data-meryo-theme="beauty"] .meryo-info-block button {
+  border: 0 !important;
+  border-radius: 7px;
+  background: var(--beauty-accent) !important;
+  color: #fffaf8 !important;
+  box-shadow: 0 3px 8px rgb(53 40 50 / 10%);
+}
+.meryo-catalog-page[data-meryo-theme="beauty"] .meryo-mobile-bottom-nav {
+  border-color: color-mix(in srgb, var(--beauty-accent) 24%, transparent);
+  background: color-mix(in srgb, var(--beauty-surface) 97%, transparent);
+  color: var(--beauty-text);
+}
+.meryo-catalog-page[data-meryo-theme="beauty"] .meryo-mobile-bottom-nav button { color: var(--beauty-muted); }
+.meryo-catalog-page[data-meryo-theme="beauty"] .meryo-mobile-bottom-nav button.is-active { background: var(--beauty-card); color: var(--beauty-accent); }
+.meryo-catalog-page[data-meryo-theme="beauty"] :where(button, a, input, select, textarea, [tabindex]):focus-visible { outline-color: var(--beauty-focus); }
+.meryo-catalog-page[data-meryo-theme="beauty"][data-meryo-mode="dark"] .meryo-catalog-info-section { border-color: rgb(247 239 242 / 10%) !important; }
+
+.meryo-turn-finder[data-meryo-theme="beauty"][data-meryo-mode="light"] {
+  --turn-panel: #fffefc;
+  --turn-card: #eedde2;
+  --turn-field: #fffaf8;
+  --turn-text: #352832;
+  --turn-muted: #655761;
+  --turn-action: #955568;
+  --turn-action-text: #fffaf8;
+  color-scheme: light;
+}
+.meryo-turn-finder[data-meryo-theme="beauty"][data-meryo-mode="dark"] {
+  --turn-panel: #463944;
+  --turn-card: #51414e;
+  --turn-field: #41343f;
+  --turn-text: #f7eff2;
+  --turn-muted: #d2c2ca;
+  --turn-action: #b87589;
+  --turn-action-text: #281e25;
+  color-scheme: dark;
+}
+.meryo-turn-finder[data-meryo-theme="beauty"] .meryo-turn-finder__trigger,
+.meryo-turn-finder[data-meryo-theme="beauty"] .meryo-turn-finder__close {
+  border: 0;
+  border-radius: 7px;
+  background: var(--turn-card);
+  color: var(--turn-text);
+  box-shadow: 0 3px 9px rgb(53 40 50 / 9%);
+}
+.meryo-turn-finder[data-meryo-theme="beauty"] .meryo-turn-finder__trigger:hover,
+.meryo-turn-finder[data-meryo-theme="beauty"] .meryo-turn-finder__close:hover { background: var(--turn-field); }
+.meryo-turn-finder[data-meryo-theme="beauty"] .meryo-turn-finder__dialog { box-shadow: 0 16px 44px rgb(53 40 50 / 22%); }
+.meryo-turn-finder[data-meryo-theme="beauty"][data-meryo-mode="light"] .meryo-turn-finder__backdrop { background: rgb(53 40 50 / 48%); }
+.meryo-turn-finder[data-meryo-theme="beauty"][data-meryo-mode="dark"] .meryo-turn-finder__backdrop { background: rgb(22 15 22 / 76%); }
+.meryo-turn-finder[data-meryo-theme="beauty"] .meryo-turn-finder__field {
+  border: 0;
+  border-radius: 7px;
+  box-shadow: 0 2px 7px rgb(53 40 50 / 9%);
+}
+.meryo-turn-finder[data-meryo-theme="beauty"] .meryo-turn-finder__result { border-radius: 10px; box-shadow: 0 3px 10px rgb(53 40 50 / 9%); }
+.meryo-turn-finder[data-meryo-theme="beauty"] .meryo-turn-finder__action { border: 0; border-radius: 7px; box-shadow: 0 3px 8px rgb(53 40 50 / 12%); }
+.meryo-turn-finder[data-meryo-theme="beauty"] .meryo-turn-finder__action:disabled { color: var(--turn-muted); background: var(--turn-card); box-shadow: none; }
+.meryo-turn-finder[data-meryo-theme="beauty"] :where(button, input, select):focus-visible { outline-color: var(--beauty-focus, #955568); }
+
+.meryo-booking-backdrop[data-meryo-theme="beauty"][data-meryo-mode="light"] { background: rgb(53 40 50 / 46%) !important; }
+.meryo-booking-backdrop[data-meryo-theme="beauty"][data-meryo-mode="dark"] { background: rgb(22 15 22 / 78%) !important; }
+.meryo-beauty-booking[data-meryo-theme="beauty"][data-meryo-mode="light"] {
+  --beauty-booking-bg: #fffefc;
+  --beauty-booking-panel: #faf3f5;
+  --beauty-booking-card: #eedde2;
+  --beauty-booking-text: #352832;
+  --beauty-booking-muted: #655761;
+  --beauty-booking-accent: #955568;
+  --beauty-booking-selected-text: #fffaf8;
+  --beauty-booking-focus: #955568;
+  color-scheme: light;
+}
+.meryo-beauty-booking[data-meryo-theme="beauty"][data-meryo-mode="dark"] {
+  --beauty-booking-bg: #463944;
+  --beauty-booking-panel: #3f333e;
+  --beauty-booking-card: #51414e;
+  --beauty-booking-text: #f7eff2;
+  --beauty-booking-muted: #d2c2ca;
+  --beauty-booking-accent: #b87589;
+  --beauty-booking-selected-text: #281e25;
+  --beauty-booking-focus: #e8b3c0;
+  color-scheme: dark;
+}
+.meryo-beauty-booking {
+  border: 0 !important;
+  border-radius: 12px !important;
+  background: var(--beauty-booking-bg) !important;
+  color: var(--beauty-booking-text) !important;
+  box-shadow: 0 12px 32px rgb(53 40 50 / 23%);
+}
+.meryo-beauty-booking .text-neutral-400,
+.meryo-beauty-booking .text-neutral-300 { color: var(--beauty-booking-muted) !important; }
+.meryo-beauty-booking :is(.text-amber-200, .text-amber-300, .text-amber-400) { color: var(--beauty-booking-accent) !important; }
+.meryo-beauty-booking :is(.bg-amber-400, .bg-amber-300) { background: var(--beauty-booking-accent) !important; color: var(--beauty-booking-selected-text) !important; }
+.meryo-beauty-booking :is(.border-white\/10, .border-white\/20, .border-amber-400\/25) { border-color: transparent !important; }
+.meryo-beauty-booking :is(.meryo-booking-close, .meryo-booking-option, .meryo-booking-field, .meryo-booking-submit) {
+  border: 0 !important;
+  border-radius: 7px !important;
+  box-shadow: 0 3px 9px rgb(53 40 50 / 9%);
+}
+.meryo-beauty-booking .meryo-booking-close,
+.meryo-beauty-booking .meryo-booking-field { background: var(--beauty-booking-panel) !important; color: var(--beauty-booking-text) !important; }
+.meryo-beauty-booking .meryo-booking-option { background: var(--beauty-booking-card); color: var(--beauty-booking-text); }
+.meryo-beauty-booking .meryo-booking-option:hover:not(:disabled) { background: color-mix(in srgb, var(--beauty-booking-card) 78%, var(--beauty-booking-accent)); }
+.meryo-beauty-booking .meryo-booking-option.is-selected { background: var(--beauty-booking-accent) !important; color: var(--beauty-booking-selected-text) !important; }
+.meryo-beauty-booking .meryo-booking-option.is-selected .meryo-booking-price { color: inherit !important; }
+.meryo-beauty-booking .meryo-booking-option.is-unavailable,
+.meryo-beauty-booking .meryo-booking-option:disabled { background: var(--beauty-booking-panel) !important; color: var(--beauty-booking-muted) !important; opacity: .7; box-shadow: none; }
+.meryo-beauty-booking .meryo-booking-panel { border-color: transparent !important; border-radius: 10px; background: var(--beauty-booking-panel) !important; box-shadow: 0 4px 12px rgb(53 40 50 / 8%); }
+.meryo-beauty-booking :where(button, input, select, textarea):focus-visible { outline: 3px solid var(--beauty-booking-focus); outline-offset: 2px; }

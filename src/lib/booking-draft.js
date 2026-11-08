@@ -12,7 +12,8 @@ function salonPromotion(draft){
  return {salonPromotionId:salonPromotionId&&salonRegularPrice&&salonPromoPrice?salonPromotionId:null,salonRegularPrice,salonPromoPrice:salonPromotionId?salonPromoPrice:null};
 }
 export function saveDraft(storage,draft,now=Date.now()){
- const clean={shop:String(draft.shop),service:String(draft.service),barber:uuid(draft.barber)?draft.barber:'',category:draft.category==='belleza'?'belleza':'barberia',date:String(draft.date),time:String(draft.time||''),name:String(draft.name||'').slice(0,80),phone:String(draft.phone||'').slice(0,20),note:String(draft.note||'').slice(0,300),...promotion(draft),...salonPromotion(draft),savedAt:now};
+ const finderExpectedPrice=draft.turnFinder===true&&Number.isFinite(Number(draft.finderExpectedPrice))&&Number(draft.finderExpectedPrice)>0?Number(draft.finderExpectedPrice):null;
+ const clean={shop:String(draft.shop),service:String(draft.service),barber:uuid(draft.barber)?draft.barber:'',category:draft.category==='belleza'?'belleza':'barberia',date:String(draft.date),time:String(draft.time||''),name:String(draft.name||'').slice(0,80),phone:String(draft.phone||'').slice(0,20),note:String(draft.note||'').slice(0,300),turnFinder:finderExpectedPrice!==null,finderExpectedPrice,...promotion(draft),...salonPromotion(draft),savedAt:now};
  if(!/^\d+$/.test(clean.shop)||!/^\d+$/.test(clean.service)||!/^\d{4}-\d{2}-\d{2}$/.test(clean.date))throw Error('Reserva incompleta');
  storage.setItem(KEY,JSON.stringify(clean));return clean;
 }
@@ -20,7 +21,8 @@ export function readDraft(storage,now=Date.now()){
  try{
   const d=JSON.parse(storage.getItem(KEY));
   if(!d||!Number.isFinite(d.savedAt)||now-d.savedAt>TTL||d.savedAt>now||!/^\d+$/.test(d.shop)||!/^\d+$/.test(d.service)||!/^\d{4}-\d{2}-\d{2}$/.test(d.date))return clearDraft(storage);
-  return {shop:String(d.shop),service:String(d.service),barber:uuid(d.barber)?d.barber:'',category:d.category==='belleza'?'belleza':'barberia',date:d.date,time:String(d.time||''),name:String(d.name||'').slice(0,80),phone:String(d.phone||'').slice(0,20),note:String(d.note||'').slice(0,300),...promotion(d),...salonPromotion(d),savedAt:d.savedAt};
+  const finderExpectedPrice=d.turnFinder===true&&Number.isFinite(Number(d.finderExpectedPrice))&&Number(d.finderExpectedPrice)>0?Number(d.finderExpectedPrice):null;
+  return {shop:String(d.shop),service:String(d.service),barber:uuid(d.barber)?d.barber:'',category:d.category==='belleza'?'belleza':'barberia',date:d.date,time:String(d.time||''),name:String(d.name||'').slice(0,80),phone:String(d.phone||'').slice(0,20),note:String(d.note||'').slice(0,300),turnFinder:finderExpectedPrice!==null,finderExpectedPrice,...promotion(d),...salonPromotion(d),savedAt:d.savedAt};
  }catch{return clearDraft(storage);}
 }
 export function clearDraft(storage){storage.removeItem(KEY);return null;}
