@@ -104,9 +104,10 @@ try{
   const afterWithdrawal=await anonymous.rpc('meryo_inspiracion',{p_catalog_category:'barberia',p_work_category:null,p_limit:24,p_offset:0});assert.ifError(afterWithdrawal.error);
   assert.ok(!afterWithdrawal.data.some(row=>row.id===publicationId),'Withdrawn photo no longer appears in public gallery');
   const detail=await anonymous.rpc('meryo_inspiracion_publicacion',{p_id:publicationId});assert.ifError(detail.error);assert.equal(detail.data,null,'Withdrawn publication is unavailable by direct detail URL');
-  assert.ok((await anonymous.storage.from(CONTENT_BUCKET).createSignedUrl(asset.object_path,300)).error,'Storage no longer issues new public access for the withdrawn photo');
-  assert.ok((await serviceClient.storage.from(CONTENT_BUCKET).download(asset.object_path)).data,'Withdrawal preserves the original private Storage bytes');
-  proof={verifiedAt:new Date().toISOString(),scope:'inspiration-only',officialAuth:true,officialStorage:true,officialPostgrest:true,dockerUsed:false,productionAccess:false,syntheticBusinessesOnly:true,realUploadThroughOfficialStorage:true,ownerExactByteRead:true,publicGalleryAndExactByteRead:true,otherBusinessReadDenied:true,otherBusinessEditAndWithdrawalDenied:true,withdrawalHidesGalleryAndDetail:true,withdrawalPreservesPrivateStorageObject:true};
+  const retainedAssets=await ownerApi.shopAssets(shop),retainedAsset=retainedAssets.find(row=>row.id===assetId);assert.ok(retainedAsset?.active,'Withdrawing from Inspiration preserves the original active portfolio photo');
+  assert.deepEqual(Buffer.from(await(await fetch(retainedAsset.url)).arrayBuffer()),png,'The owner can still read the original portfolio photo after withdrawal');
+  assert.ok((await serviceClient.storage.from(CONTENT_BUCKET).download(asset.object_path)).data,'Withdrawal preserves the original Storage bytes');
+  proof={verifiedAt:new Date().toISOString(),scope:'inspiration-only',officialAuth:true,officialStorage:true,officialPostgrest:true,dockerUsed:false,productionAccess:false,syntheticBusinessesOnly:true,realUploadThroughOfficialStorage:true,ownerExactByteRead:true,publicGalleryAndExactByteRead:true,otherBusinessReadDenied:true,otherBusinessEditAndWithdrawalDenied:true,withdrawalHidesGalleryAndDetail:true,withdrawalPreservesOriginalPortfolioPhoto:true};
   await fs.writeFile(path.join(process.env.RUNNER_TEMP,'meryo-storage-proof.json'),JSON.stringify(proof,null,2));console.log(JSON.stringify(proof));
  }else{
  phase='owner profile, services and private upload';
