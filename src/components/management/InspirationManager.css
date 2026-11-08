@@ -1,0 +1,8 @@
+.meryo-inspiration-owner-preview { width: 100%; max-height: 260px; border-radius: 9px; object-fit: contain; background: rgb(0 0 0 / 14%); }
+.meryo-inspiration-owner-record { display: grid; min-width: 0; grid-template-columns: 64px minmax(0,1fr); align-items: center; gap: .75rem; border-radius: 10px; background: rgb(0 0 0 / 12%); padding: .65rem; }
+.meryo-inspiration-owner-record > img { width: 64px; height: 64px; border-radius: 7px; object-fit: cover; }
+.meryo-inspiration-owner-record > div:nth-child(2) { min-width: 0; }
+.meryo-inspiration-owner-record h4 { overflow: hidden; font-weight: 700; text-overflow: ellipsis; white-space: nowrap; }
+.meryo-inspiration-owner-record p { margin-top: .15rem; color: #a9a29a; font-size: .78rem; }
+.meryo-inspiration-owner-record > div:last-child { grid-column: 1/-1; display: flex; flex-wrap: wrap; gap: .5rem; }
+@media (min-width: 640px) { .meryo-inspiration-owner-record { grid-template-columns: 76px minmax(0,1fr) auto; } .meryo-inspiration-owner-record > img { width: 76px; height: 76px; } .meryo-inspiration-owner-record > div:last-child { grid-column: auto; } }

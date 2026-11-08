@@ -46,6 +46,7 @@ export default function Reservations({api,profile,onLogin,onSearch,onRetrySessio
     <div><dt>Profesional</dt><dd>{row.barbero_nombre||'Profesional sin asignación registrada'}</dd></div>
     <div><dt>Fecha</dt><dd>{when.date}{when.time&&<> · {when.time}</>}</dd></div>
    </dl>
+   {profile.rol==='barbero'&&row.inspiration_publication_id&&<p className="meryo-booking-note"><strong>Referencia de estilo:</strong> {row.inspiration_title_snapshot||'Trabajo seleccionado'} <span className="block break-all text-xs opacity-70">ID de publicación: {row.inspiration_publication_id}</span></p>}
    <div className="meryo-booking-status-row"><span className="meryo-booking-status" role="status">{bookingLabel(row)}</span></div>
    <dl className="meryo-booking-amounts">
     <div><dt>Total</dt><dd>{bookingMoney(row.precio_total)}</dd></div>

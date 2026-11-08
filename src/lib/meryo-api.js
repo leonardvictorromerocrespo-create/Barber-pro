@@ -52,6 +52,24 @@ export function createMeryoApi(client) {
         return shop;
       }));
     },
+    inspirations:async(category='barberia',{workCategory=null,limit=24,offset=0}={})=>{
+      const rows=await readResult(client.rpc('meryo_inspiracion',{p_catalog_category:category,p_work_category:workCategory,p_limit:limit,p_offset:offset}));
+      const signed=await signContent(client,rows.map(row=>({...row,object_path:row.object_path})));
+      const urls=new Map(signed.map(row=>[row.id,row.url]));
+      return rows.map(row=>({...row,url:urls.get(row.id)||null}));
+    },
+    inspirationById:async(id)=>{
+      const {data:row,error}=await client.rpc('meryo_inspiracion_publicacion',{p_id:id});
+      if(error)throw new Error(error.message||'No se pudo consultar la publicación');
+      if(!row)return null;
+      const [signed]=await signContent(client,[{...row,object_path:row.object_path}]);
+      return {...row,url:signed?.url||null};
+    },
+    ownerInspirations:async()=>{await requireRole(['barbero']);return readResult(client.rpc('meryo_inspiracion_propietario'));},
+    saveInspiration:async({id=null,assetId,catalogCategory,workCategory,title,description,memberId=null,serviceId=null,published})=>{
+      await requireRole(['barbero']);
+      return savedOperation(()=>client.rpc('meryo_guardar_inspiracion',{p_id:id,p_asset_id:assetId,p_catalog_category:catalogCategory,p_work_category:workCategory,p_title:title,p_description:description,p_member_id:memberId||null,p_service_id:serviceId?Number(serviceId):null,p_published:published}));
+    },
     slots:async(shop,service,date,barber)=>(await readResult(barber?client.rpc('meryo_horarios_barbero',{p_shop:shop,p_service:service,p_date:date,p_member:barber}):client.rpc('horarios_disponibles',{p_barberia_id:shop,p_servicio_id:service,p_fecha:date}))).map(s=>({id:s.hora_inicio,time:s.hora_inicio,label:new Date(s.hora_inicio).toLocaleTimeString('es-PE',{timeZone:'America/Lima',hour:'2-digit',minute:'2-digit',hour12:false}),occupied:false})),
     cutPromotions:async()=>readResult(client.rpc('meryo_cortes_50_disponibles')),
     cutPromotionSlots:async(shop,service,date,barber,campaign)=>readResult(client.rpc('meryo_cortes_50_horarios',{p_shop:shop,p_service:service,p_date:date,p_member:barber,p_campaign:campaign})).then(rows=>rows.map(s=>({id:s.hora_inicio,time:s.hora_inicio,label:new Date(s.hora_inicio).toLocaleTimeString('es-PE',{timeZone:'America/Lima',hour:'2-digit',minute:'2-digit',hour12:false}),occupied:false}))),
@@ -61,12 +79,18 @@ export function createMeryoApi(client) {
     saveCutCampaign:async({startsOn,endsOn,windows,active})=>{await requireRole(['barbero']);return savedOperation(()=>client.rpc('meryo_guardar_campania_cortes',{p_inicio:startsOn,p_fin:endsOn,p_horarios:windows,p_activa:active}));},
     ownerBeautyPromotions:async()=>{await requireRole(['barbero']);return readResult(client.rpc('meryo_promociones_belleza_propietario'));},
     saveBeautyPromotion:async({serviceId,promoPrice,startsOn,endsOn,active})=>{await requireRole(['barbero']);return savedOperation(()=>client.rpc('meryo_guardar_promocion_belleza',{p_service_id:Number(serviceId),p_promo_price:Number(promoPrice),p_starts_on:startsOn,p_ends_on:endsOn,p_active:active}));},
-    request:async({shop,service,barber,start,name,phone,note,campaignId=null,regularPrice=null,salonPromotionId=null,salonRegularPrice=null,salonPromoPrice=null,finderExpectedPrice=null})=>{
+    request:async({shop,service,barber,start,name,phone,note,campaignId=null,regularPrice=null,salonPromotionId=null,salonRegularPrice=null,salonPromoPrice=null,finderExpectedPrice=null,inspirationPublicationId=null,inspirationExpectedPrice=null})=>{
       await requireRole(['cliente']);
       const config=await readResult(client.rpc('meryo_reservas_config'));
       if(config.respuesta_segundos!==900||config.modelo_comercial!=='mensualidad')throw new Error('El servidor todavía no tiene el flujo de solicitudes de MERYO actualizado.');
       if((campaignId||salonPromotionId)&&!barber)throw new Error('La promoción requiere elegir un profesional con agenda habilitada.');
       const args={p_barberia_id:shop,p_servicio_id:service,p_inicio:start,p_nombre:name.trim(),p_telefono:phone.trim(),p_pedido:note||null,p_extra:0,...(barber?{p_barbero_id:barber}:{})};
+      if(inspirationPublicationId){
+        if(campaignId||salonPromotionId)throw new Error('Las promociones se reservan desde su propio recorrido.');
+        if(!Number.isFinite(Number(inspirationExpectedPrice))||Number(inspirationExpectedPrice)<=0)throw new Error('El precio de referencia falta; revisa el servicio antes de continuar.');
+        Object.assign(args,{p_campaign_id:null,p_precio_habitual:null,p_beauty_campaign_id:null,p_beauty_regular_price:null,p_beauty_expected_price:null,p_precio_esperado:Number(inspirationExpectedPrice),p_inspiration_publication_id:inspirationPublicationId});
+        return savedOperation(()=>client.rpc('meryo_solicitar_cita',args));
+      }
       if(finderExpectedPrice!==null&&finderExpectedPrice!==undefined){
         if(campaignId||salonPromotionId)throw new Error('La búsqueda de turnos no combina precios promocionales.');
         Object.assign(args,{p_campaign_id:null,p_precio_habitual:null,p_beauty_campaign_id:null,p_beauty_regular_price:null,p_beauty_expected_price:null,p_precio_esperado:finderExpectedPrice});
