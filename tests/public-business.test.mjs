@@ -157,3 +157,10 @@ test('sitemap is generated from active public catalogs and excludes duplicates a
   assert.match(response.body,/salon-serena\?catalogo=belleza/);
   assert.doesNotMatch(response.body,/Pendiente/);
 }));
+
+test('a renamed location preserves the Google booking link and discards unrecognized query data',async()=>withCatalogFetch({barberia:[barber]},async()=>{
+ const response=responseRecorder();
+ await publicShopHandler({method:'GET',query:{id:'42',slug:'anterior',reservar:'1',origen:'ficha_google',secret:'ignored'}},response);
+ assert.equal(response.statusCode,308);
+ assert.equal(response.headers.location,origin+'/negocio/42/barberia-aurea?reservar=1&origen=ficha_google');
+}));

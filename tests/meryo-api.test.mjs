@@ -140,3 +140,17 @@ test('evaluation-only services stay visible without a fabricated price and are n
 test('simulation receipts never receive a real-payment confirmation label',()=>{
  assert.equal(bookingLabel({estado:'aceptada'}),'Aceptada · pendiente de pago');assert.match(bookingLabel({estado:'confirmada',pagos:[{proveedor:'localhost-fixture'}]}),/no acredita un cobro/);
 });
+
+test('a tagged booking saves origin and price snapshot in one request and does not downgrade on error',async()=>{
+ const profile={id:'real-subject',rol:'cliente',activo:true};
+ const request={shop:15,service:7,barber:'6e648bbb-b222-4ee0-a18d-3db1cb7e9da1',start:'2026-11-10T22:30:00Z',name:'Ana',phone:'999999999',finderExpectedPrice:35,origin:'turnos_hoy'};
+ const c=clientFor(profile);
+ assert.equal(await createMeryoApi(c).request(request),'saved-id');
+ const call=c.calls.find(item=>item.name==='meryo_solicitar_cita_con_origen');
+ assert.equal(call.args.p_origen,'turnos_hoy');
+ assert.equal(call.args.p_precio_esperado,35);
+ assert.equal(c.calls.some(item=>item.name==='meryo_solicitar_cita'),false);
+ const failing=clientFor(profile,{data:null,error:{message:'Schema unavailable'}});
+ await assert.rejects(createMeryoApi(failing).request(request),/Schema unavailable/);
+ assert.equal(failing.calls.some(item=>item.name==='meryo_solicitar_cita'),false);
+});

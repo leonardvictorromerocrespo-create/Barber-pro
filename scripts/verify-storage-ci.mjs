@@ -38,11 +38,15 @@ try{
  await db.query("insert into meryo_private.launch_settings(id,reservas_habilitadas,plazo_pago_segundos,entorno,modelo_comercial) values(1,true,600,'staging','mensualidad');insert into meryo_private.shop_content_settings values(1,true)");
  await db.query(await fs.readFile('db/incremental/021_product_pickup_store.sql','utf8'));
  await db.query(await fs.readFile('db/incremental/022_beauty_business_catalog.sql','utf8'));
+ // Reuse the same disposable schema to exercise the reservation contracts in
+ // order, through the exact migration under review; never connect to Supabase.
+ for(const version of ['023_cut50_campaigns.sql','024_beauty_service_promotions.sql','025_weekly_business_promotions.sql','026_turn_finder_price_check.sql','027_inspiration_publications.sql','028_no_show_guard.sql','029_booking_origins.sql'])
+  await db.query(await fs.readFile(`db/incremental/${version}`,'utf8'));
  const clean=(await db.query('select (select count(*) from auth.users)::int users,(select count(*) from public.barberias)::int shops')).rows[0];assert.deepEqual(clean,{users:0,shops:0});
  console.log('Disposable isolated schema and store migration prepared; no services started');
  }else{
- const ready=(await db.query("select to_regclass('public.meryo_products') is not null as products,to_regclass('public.meryo_pickup_orders') is not null as orders,to_regprocedure('public.meryo_catalogo_categoria(text)') is not null as beauty_catalog,(select count(*) from auth.users)::int users,(select count(*) from public.barberias)::int shops")).rows[0];
- assert.deepEqual(ready,{products:true,orders:true,beauty_catalog:true,users:0,shops:0},'The second isolated runner phase requires the clean prepared schema');
+ const ready=(await db.query("select to_regclass('public.meryo_products') is not null as products,to_regclass('public.meryo_pickup_orders') is not null as orders,to_regprocedure('public.meryo_catalogo_categoria(text)') is not null as beauty_catalog,to_regclass('meryo_private.booking_origins') is not null as booking_origins,to_regprocedure('public.meryo_solicitar_cita_con_origen(bigint,bigint,timestamptz,text,text,text,numeric,uuid,text,uuid,numeric,uuid,numeric,numeric,numeric,uuid)') is not null as booking_writer,to_regprocedure('public.meryo_resultados_reservas(bigint,date)') is not null as booking_results,(select count(*) from auth.users)::int users,(select count(*) from public.barberias)::int shops")).rows[0];
+ assert.deepEqual(ready,{products:true,orders:true,beauty_catalog:true,booking_origins:true,booking_writer:true,booking_results:true,users:0,shops:0},'The second isolated runner phase requires the clean schema including migration 029');
  }
  if(!setupOnly){
  // Match the existing native Auth role's search_path: Pop's migration ledger is
@@ -115,8 +119,11 @@ try{
  const salonMember=salonListed.equipo.find(member=>member.servicios?.some(id=>String(id)===String(reservable.id)));
  assert.ok(salonMember,'Approved salon owner is assigned to the priced service');
  const salonSlots=await publicApi.slots(salon,salonListed.services.find(s=>s.bookable).id,salonDate,salonMember.id);assert.ok(salonSlots.length>1,'A full 60-minute service exposes actual owner availability');
- const salonStart=salonSlots[0].time,salonBooking=await buyerApi.request({shop:salon,service:reservable.id,barber:salonMember.id,start:salonStart,name:'Cliente CI Belleza',phone:'999999999',note:''});
+ const salonStart=salonSlots[0].time,salonBooking=await buyerApi.request({shop:salon,service:reservable.id,barber:salonMember.id,start:salonStart,name:'Cliente CI Belleza',phone:'999999999',note:'',origin:'ficha_google'});
  const salonBookingRow=await db.query('select estado,extract(epoch from expira_respuesta_en-created_at)::int as response_seconds from public.reservas where id=$1',[salonBooking]);assert.equal(salonBookingRow.rows[0].estado,'solicitada');assert.equal(salonBookingRow.rows[0].response_seconds,900,'Salon request uses the existing 15-minute server response deadline');
+ phase='tagged booking appears in authorized owner results';
+ const taggedResults=await beautyApi.bookingResults(salon,`${salonDate.slice(0,7)}-01`);
+ assert.ok(taggedResults.some(row=>row.origen==='ficha_google'&&Number(row.solicitadas)>=1),'Authorized salon owner sees the tagged request in Mi negocio → Resultados');
  const nextOverlappingSlot=new Date(Date.parse(salonStart)+30*60000).toISOString();const afterRequest=await publicApi.slots(salon,reservable.id,salonDate,salonMember.id);assert.ok(!afterRequest.some(slot=>Date.parse(slot.time)===Date.parse(nextOverlappingSlot)),'A 60-minute reservation blocks overlapping slots for the same professional');
  assert.equal(await beautyApi.respond(salonBooking,true),'aceptada');
  const acceptedSalonRow=await db.query('select estado,extract(epoch from expira_pago_en-aceptada_en)::int as payment_seconds from public.reservas where id=$1',[salonBooking]);assert.equal(acceptedSalonRow.rows[0].estado,'aceptada');assert.equal(acceptedSalonRow.rows[0].payment_seconds,600,'Acceptance starts the existing 10-minute payment deadline');
@@ -190,7 +197,7 @@ try{
  assert.ok(orderEvents.some(e=>e.event==='pedido_solicitado'&&e.user_id===ownerId));assert.ok(orderEvents.some(e=>e.event==='pedido_aceptado'&&e.user_id===strangerId));
  assert.ok((await db.query('select count(*)::int n from meryo_private.push_outbox where pedido_id=$1 and event in (\'pedido_solicitado\',\'pedido_aceptado\')',[acceptedOrder])).rows[0].n>=2);
  await db.query('delete from meryo_private.push_subscriptions where endpoint=any($1::text[])',[[ownerEndpoint,buyerEndpoint]]);
- proof={verifiedAt:new Date().toISOString(),officialAuth:true,officialStorage:true,officialPostgrest:true,dockerUsed:false,productionAccess:false,syntheticAccountsOnly:true,uploadAndByteExactDownload:true,privateBeforeApproval:true,crossTenantDenied:true,formatAndSizeDenied:true,replacementAndRetirementPreserveFiles:true,serverMfaApproval:true,publicCatalogueAndVideoVerified:true,availabilityQueried:true,pickupProductsRls:true,pickupPrivatePhotos:true,ordersSnapshotPricesAndIdempotency:true,concurrentAcceptanceNoOversell:true,acceptanceNoPartialStock:true,priceChangeRejectedWithoutMutation:true,serverExpiryReleasesOnce:true,cancelReleasesOnce:true,deliveryConsumesStock:true,orderPushRecipientsVerified:true,legacySignedURLsLifetimeSeconds:300};
+ proof={verifiedAt:new Date().toISOString(),officialAuth:true,officialStorage:true,officialPostgrest:true,dockerUsed:false,productionAccess:false,syntheticAccountsOnly:true,bookingOriginsMigration029Applied:true,taggedBookingCreated:true,authorizedOwnerResultsVerified:true,bookingOrigin:'ficha_google',uploadAndByteExactDownload:true,privateBeforeApproval:true,crossTenantDenied:true,formatAndSizeDenied:true,replacementAndRetirementPreserveFiles:true,serverMfaApproval:true,publicCatalogueAndVideoVerified:true,availabilityQueried:true,pickupProductsRls:true,pickupPrivatePhotos:true,ordersSnapshotPricesAndIdempotency:true,concurrentAcceptanceNoOversell:true,acceptanceNoPartialStock:true,priceChangeRejectedWithoutMutation:true,serverExpiryReleasesOnce:true,cancelReleasesOnce:true,deliveryConsumesStock:true,orderPushRecipientsVerified:true,legacySignedURLsLifetimeSeconds:300};
  await fs.writeFile(path.join(process.env.RUNNER_TEMP,'meryo-storage-proof.json'),JSON.stringify(proof,null,2));console.log(JSON.stringify(proof));
  }
 }catch(error){console.error('Isolated Storage verification failed during '+phase+': '+error.message);for(const file of logs){let log=await fs.readFile(file,'utf8').catch(()=>'');for(const value of [jwtSecret,password,anon,service])log=log.replaceAll(value,'[redacted]');console.error(path.basename(file)+'\n'+log.slice(-6000));}process.exitCode=1;}

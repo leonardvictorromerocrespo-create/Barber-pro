@@ -45,3 +45,13 @@ test('inspiration publication reference and reviewed price survive login without
  assert.equal(restored.shop,'15');assert.equal(restored.service,'7');assert.equal(restored.barber,member);assert.equal(restored.category,'belleza');assert.equal(restored.date,'2026-11-12');assert.equal(restored.time,'2026-11-12T20:00:00Z');
  assert.equal(restored.finderExpectedPrice,null);assert.equal(restored.turnFinder,false);
 });
+
+test('a tagged Google booking keeps its origin after the login draft is reloaded',()=>{
+ const data=new Map();
+ const session={setItem:(key,value)=>data.set(key,value),getItem:key=>data.get(key),removeItem:key=>data.delete(key)};
+ const draft={shop:22,service:9,date:'2026-11-10',origin:'ficha_google'};
+ saveDraft(session,draft,1000);
+ assert.equal(readDraft(session,2000).origin,'ficha_google');
+ saveDraft(session,{...draft,origin:'fake_campaign'},1000);
+ assert.equal(readDraft(session,2000).origin,undefined);
+});

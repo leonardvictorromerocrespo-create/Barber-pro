@@ -1,3 +1,4 @@
+import { bookingLinkIntent, taggedBookingUrl } from '../src/lib/booking-origin.js';
 import {
   businessSlug,
   businessIsIndexable,
@@ -55,7 +56,13 @@ export default async function publicShop(req, res) {
     if (requestedSlug !== expectedSlug || shouldAddBeautyCategory) {
       const redirectCategory = explicitCategory || category;
       res.statusCode = 308;
-      res.setHeader('Location', shopUrl({ id: shop.id, name: shop.nombre }, redirectCategory, origin));
+      const profile={ id: shop.id, name: shop.nombre };
+      const intent=bookingLinkIntent('/negocio/'+id,new URLSearchParams({
+        reservar:String(req.query?.reservar??''),origen:String(req.query?.origen??''),
+      }));
+      res.setHeader('Location', intent
+        ? taggedBookingUrl(profile,redirectCategory,intent.source,origin)
+        : shopUrl(profile,redirectCategory,origin));
       res.setHeader('Cache-Control', 'no-store, max-age=0');
       return res.end();
     }
