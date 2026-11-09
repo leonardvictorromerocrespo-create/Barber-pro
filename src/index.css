@@ -320,6 +320,100 @@ body {
 .meryo-mobile-bottom-nav button.is-active { background: rgb(212 175 55 / 12%); color: var(--meryo-gold-light); }
 .meryo-time-grid { width: 100%; }
 
+/* Pickup storefront: full-screen, compact product catalog with details kept off the cards. */
+.meryo-storefront {
+  --store-page: var(--meryo-carbon);
+  --store-card: var(--meryo-surface);
+  --store-raised: var(--meryo-surface-raised);
+  --store-text: var(--meryo-text);
+  --store-muted: var(--meryo-text-muted);
+  --store-accent: var(--meryo-gold);
+  --store-accent-text: var(--meryo-carbon);
+  --store-focus: var(--meryo-gold-light);
+  display: flex;
+  height: 100dvh;
+  width: 100%;
+  overflow: hidden;
+  flex-direction: column;
+  background: var(--store-page);
+  color: var(--store-text);
+  color-scheme: inherit;
+  font-family: "Quicksand", sans-serif;
+}
+.meryo-store-dialog { display: flex; min-width: 0; width: 100%; height: 100%; flex-direction: column; overflow: hidden; background: var(--store-page); }
+.meryo-store-header { display: flex; flex: 0 0 auto; align-items: center; justify-content: space-between; gap: .75rem; padding: max(.65rem, env(safe-area-inset-top)) max(.75rem, env(safe-area-inset-right)) .6rem max(.75rem, env(safe-area-inset-left)); background: var(--store-page); }
+.meryo-store-heading { min-width: 0; }
+.meryo-store-heading p { margin: 0; color: var(--store-accent); font-size: .72rem; font-weight: 600; line-height: 1.15; }
+.meryo-store-heading h2 { margin: .12rem 0 0; overflow: hidden; color: var(--store-text); font-size: clamp(1.1rem, 4.4vw, 1.45rem); font-weight: 700; line-height: 1.2; text-overflow: ellipsis; white-space: nowrap; }
+.meryo-store-heading span { display: block; margin-top: .14rem; overflow: hidden; color: var(--store-muted); font-size: .68rem; line-height: 1.2; text-overflow: ellipsis; white-space: nowrap; }
+.meryo-store-close,.meryo-store-back { display: inline-flex; min-height: 2.5rem; flex: 0 0 auto; align-items: center; justify-content: center; border: 0; border-radius: 7px; background: var(--store-raised); padding: .45rem .8rem; color: var(--store-text); box-shadow: 0 2px 7px rgb(0 0 0 / 10%); font: inherit; font-size: .85rem; font-weight: 600; }
+.meryo-store-alert,.meryo-store-success { flex: 0 0 auto; margin: 0 .75rem .45rem; border-radius: 8px; background: var(--store-card); padding: .5rem .65rem; color: var(--store-text); font-size: .78rem; line-height: 1.35; }
+.meryo-store-alert button,.meryo-store-success button { margin-left: .45rem; color: var(--store-accent); font-weight: 700; text-decoration: underline; text-underline-offset: .15em; }
+.meryo-store-success p { margin: 0; }
+.meryo-store-scroll { min-height: 0; flex: 1 1 auto; overflow-y: auto; overscroll-behavior: contain; padding: .1rem .65rem .55rem; scrollbar-gutter: stable; }
+.meryo-store-state { margin: .5rem 0; border-radius: 9px; background: var(--store-card); padding: 1rem; color: var(--store-muted); text-align: center; }
+.meryo-store-grid { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: .55rem; align-content: start; }
+.meryo-store-product { min-width: 0; overflow: hidden; border-radius: 9px; background: var(--store-card); box-shadow: 0 3px 10px rgb(0 0 0 / 12%); }
+.meryo-store-product-open { position: relative; display: flex; width: 100%; min-width: 0; flex-direction: column; border: 0; background: transparent; padding: 0; color: var(--store-text); text-align: left; }
+.meryo-store-product-photo { display: block; width: 100%; aspect-ratio: 1; flex: 0 0 auto; background: #f6f5f2; object-fit: contain; padding: .15rem; }
+.meryo-store-product-placeholder { display: grid; place-items: center; color: #68645d; font-size: .7rem; text-align: center; }
+.meryo-store-product-copy { display: grid; width: 100%; min-width: 0; gap: .08rem; padding: .38rem .5rem .48rem; }
+.meryo-store-product-name { overflow: hidden; color: var(--store-text); font-size: .79rem; font-weight: 650; line-height: 1.2; text-overflow: ellipsis; white-space: nowrap; }
+.meryo-store-product-price { color: var(--store-accent); font-size: .82rem; font-weight: 700; font-variant-numeric: tabular-nums; line-height: 1.15; }
+.meryo-store-product-count { position: absolute; top: .35rem; right: .35rem; display: grid; min-width: 1.45rem; height: 1.45rem; place-items: center; border-radius: 50%; background: var(--store-accent); color: var(--store-accent-text); font-size: .72rem; font-weight: 800; box-shadow: 0 2px 6px rgb(0 0 0 / 18%); }
+.meryo-store-product.is-selected { box-shadow: 0 0 0 2px var(--store-accent), 0 3px 10px rgb(0 0 0 / 12%); }
+.meryo-store-detail { min-width: 0; padding: .25rem 0 .5rem; }
+.meryo-store-back { margin-bottom: .65rem; color: var(--store-accent); }
+.meryo-store-detail-content { display: grid; min-width: 0; gap: .85rem; }
+.meryo-store-detail-photo { display: block; width: min(100%, 22rem); max-height: 38vh; aspect-ratio: 1; justify-self: center; border-radius: 10px; background: #f6f5f2; object-fit: contain; padding: .25rem; }
+.meryo-store-detail-copy { min-width: 0; border-radius: 10px; background: var(--store-card); padding: .75rem; }
+.meryo-store-detail-copy h3 { margin: 0; color: var(--store-text); font-size: 1.2rem; font-weight: 700; overflow-wrap: anywhere; }
+.meryo-store-detail-price { margin: .2rem 0 0; color: var(--store-accent); font-size: 1.05rem; font-weight: 750; font-variant-numeric: tabular-nums; }
+.meryo-store-detail-description { margin: .6rem 0; color: var(--store-muted); font-size: .9rem; line-height: 1.45; }
+.meryo-store-availability { margin: .65rem 0; color: var(--store-muted); font-size: .78rem; line-height: 1.35; }
+.meryo-store-quantity { display: inline-flex; align-items: center; gap: .8rem; border-radius: 8px; background: var(--store-raised); padding: .25rem; }
+.meryo-store-quantity button { display: grid; width: 2.75rem; height: 2.75rem; place-items: center; border: 0; border-radius: 7px; background: var(--store-card); color: var(--store-text); font-size: 1.2rem; font-weight: 700; }
+.meryo-store-quantity button:disabled { color: var(--store-muted); opacity: .55; }
+.meryo-store-quantity output { min-width: 1.6rem; color: var(--store-text); font-variant-numeric: tabular-nums; text-align: center; }
+.meryo-store-detail-done { display: block; width: 100%; min-height: 2.75rem; margin-top: .7rem; border: 0; border-radius: 7px; background: var(--store-raised); color: var(--store-text); font: inherit; font-weight: 650; }
+.meryo-store-footer { display: flex; flex: 0 0 auto; align-items: center; justify-content: space-between; gap: .6rem; padding: .55rem max(.75rem, env(safe-area-inset-right)) max(.55rem, env(safe-area-inset-bottom)) max(.75rem, env(safe-area-inset-left)); background: var(--store-page); box-shadow: 0 -4px 12px rgb(0 0 0 / 10%); }
+.meryo-store-footer p { display: grid; min-width: 0; margin: 0; color: var(--store-muted); font-size: .68rem; line-height: 1.25; }
+.meryo-store-footer strong { color: var(--store-text); font-size: .95rem; font-variant-numeric: tabular-nums; }
+.meryo-store-footer > button { min-height: 2.8rem; flex: 0 0 auto; border: 0; border-radius: 7px; background: var(--store-accent); padding: .5rem .75rem; color: var(--store-accent-text); font: inherit; font-size: .82rem; font-weight: 750; box-shadow: 0 3px 9px rgb(0 0 0 / 12%); }
+.meryo-store-footer > button:disabled { background: var(--store-raised); color: var(--store-muted); box-shadow: none; }
+.meryo-storefront :where(button,[tabindex]):focus-visible { outline: 3px solid var(--store-focus); outline-offset: 2px; }
+
+@media (min-width: 640px) {
+  .meryo-store-header { padding: 1rem 1.25rem .8rem; }
+  .meryo-store-heading h2 { font-size: 1.55rem; }
+  .meryo-store-heading span { font-size: .75rem; }
+  .meryo-store-scroll { padding: .25rem 1.25rem .75rem; }
+  .meryo-store-grid { gap: .8rem; }
+  .meryo-store-product-name { font-size: .9rem; }
+  .meryo-store-product-copy { padding: .5rem .65rem .6rem; }
+  .meryo-store-detail-content { grid-template-columns: minmax(0,1fr) minmax(0,1fr); align-items: start; gap: 1.25rem; max-width: 64rem; margin-inline: auto; }
+  .meryo-store-detail-photo { width: 100%; max-height: min(62vh, 34rem); }
+  .meryo-store-detail-copy { padding: 1.1rem; }
+  .meryo-store-footer { padding: .7rem 1.25rem max(.7rem,env(safe-area-inset-bottom)); }
+  .meryo-store-footer p { font-size: .78rem; }
+  .meryo-store-footer > button { min-width: 13rem; }
+}
+@media (min-width: 1024px) { .meryo-store-grid { grid-template-columns: repeat(4,minmax(0,1fr)); gap: 1rem; } }
+@media (max-width: 359px) {
+  .meryo-store-header { gap: .4rem; padding-inline: .55rem; }
+  .meryo-store-heading span { max-width: 14rem; }
+  .meryo-store-scroll { padding-inline: .5rem; }
+  .meryo-store-footer { gap: .35rem; padding-inline: .55rem; }
+  .meryo-store-footer > button { padding-inline: .55rem; font-size: .76rem; }
+}
+
+/* Keep the storefront aligned with the active Beauty palettes. */
+.meryo-storefront[data-meryo-theme="beauty"][data-meryo-mode="light"] { --store-page:#faf7f4; --store-card:#fffefc; --store-raised:#eedde2; --store-text:#352832; --store-muted:#655761; --store-accent:#955568; --store-accent-text:#fffaf8; --store-focus:#955568; color-scheme:light; }
+.meryo-storefront[data-meryo-theme="beauty"][data-meryo-mode="dark"] { --store-page:#342c33; --store-card:#413740; --store-raised:#554650; --store-text:#f7f0e9; --store-muted:#d0c1c9; --store-accent:#955568; --store-accent-text:#fff8f6; --store-focus:#e3b1bf; color-scheme:dark; }
+.meryo-storefront[data-meryo-theme="beauty"][data-meryo-mode="light"][data-meryo-appearance="malva-lino"] { --store-page:#f3eef0; --store-card:#fffcfd; --store-raised:#e8dce1; --store-text:#352832; --store-muted:#675761; --store-accent:#916475; --store-accent-text:#fff; --store-focus:#916475; }
+.meryo-storefront[data-meryo-theme="barberia"][data-meryo-mode="light"] { --store-accent-text:#21190f; }
+.meryo-storefront[data-meryo-theme="barberia"][data-meryo-mode="dark"][data-meryo-appearance="negro-gris"] { --store-accent-text:#111; --store-focus:#e1e1e1; }
+
 /* Barber catalog's optional warm-light mode. The default remains the published charcoal/gold theme. */
 [data-meryo-theme="barberia"][data-meryo-mode="light"] {
   color-scheme: light;
