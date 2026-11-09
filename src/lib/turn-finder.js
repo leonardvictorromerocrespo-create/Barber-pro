@@ -1,3 +1,5 @@
+import { fechaLima } from './dates.js';
+
 export const turnKey = value => String(value ?? '')
   .normalize('NFD')
   .replace(/[\u0300-\u036f]/g, '')
@@ -8,13 +10,17 @@ const limaClock = new Intl.DateTimeFormat('en-GB', {
   timeZone: 'America/Lima', hour: '2-digit', minute: '2-digit', hourCycle: 'h23',
 });
 
+function priceCeiling(value) {
+  return value == null || String(value).trim() === '' ? Infinity : Number(value);
+}
+
 function validFilters(filters) {
-  const max = Number(filters?.max);
+  const max = priceCeiling(filters?.max);
   return Boolean(
     turnKey(filters?.district) && turnKey(filters?.service) &&
     /^\d{4}-\d{2}-\d{2}$/.test(String(filters?.date ?? '')) &&
     /^\d{2}:\d{2}$/.test(String(filters?.after ?? '')) &&
-    Number.isFinite(max) && max > 0,
+    max > 0 && (Number.isFinite(max) || filters?.max == null || String(filters.max).trim() === ''),
   );
 }
 
@@ -22,6 +28,7 @@ export async function findTurns(shops, filters, slots, isCurrent = () => true) {
   if (!validFilters(filters)) return { matches: [], checked: 0, failed: 0, limited: false, allFailed: false };
 
   const candidates = [];
+  const max = priceCeiling(filters.max);
   const category = filters.category === 'belleza' ? 'belleza' : 'barberia';
   for (const shop of shops ?? []) {
     const businessTypes = Array.isArray(shop.businessTypes) && shop.businessTypes.length ? shop.businessTypes : ['barberia'];
@@ -31,7 +38,7 @@ export async function findTurns(shops, filters, slots, isCurrent = () => true) {
       const price = Number(service.price);
       const duration = Number(service.durationMinutes);
       if (!service.bookable || service.requiresEvaluation === true || turnKey(service.name) !== turnKey(filters.service) ||
-          !Number.isFinite(price) || price <= 0 || price > Number(filters.max) ||
+          !Number.isFinite(price) || price <= 0 || price > max ||
           !Number.isInteger(duration) || duration <= 0) continue;
       for (const member of shop.equipo ?? []) {
         if (member?.id && member.servicios?.some(id => String(id) === String(service.id))) {
@@ -57,11 +64,16 @@ export async function findTurns(shops, filters, slots, isCurrent = () => true) {
         const rows = await slots(candidate.shop.id, candidate.service.id, filters.date, candidate.member.id);
         checked += 1;
         if (!isCurrent()) continue;
-        const match = (rows ?? [])
-          .filter(row => !row.occupied && Number.isFinite(Date.parse(row.time)) &&
-            limaClock.format(new Date(row.time)) >= filters.after)
-          .sort((a, b) => Date.parse(a.time) - Date.parse(b.time))[0];
-        if (match) matches.push({ ...candidate, date: filters.date, slot: match });
+        const available = new Map();
+        for (const row of rows ?? []) {
+          const timestamp = Date.parse(row.time);
+          if (!row.occupied && Number.isFinite(timestamp) && timestamp >= (filters.notBefore ?? -Infinity) &&
+              fechaLima(timestamp) === filters.date && limaClock.format(timestamp) >= filters.after) {
+            available.set(timestamp, row);
+          }
+        }
+        const options = [...available.keys()].sort((a, b) => a - b).slice(0, 3).map(time => available.get(time));
+        if (options.length) matches.push({ ...candidate, date: filters.date, slot: options[0], options });
       } catch {
         checked += 1;
         failed += 1;

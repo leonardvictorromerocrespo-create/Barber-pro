@@ -799,6 +799,40 @@ body {
 .meryo-turn-finder :where(button, input, select):focus-visible { outline: 3px solid #e8c766; outline-offset: 2px; }
 .meryo-turn-finder select option { background: var(--turn-field); color: var(--turn-text); }
 
+.meryo-turn-finder .turn-dialog { max-height: min(92dvh, 55rem); }
+.meryo-turn-finder .turn-muted { color: var(--turn-muted); }
+.meryo-turn-finder .turn-hero {
+  padding: clamp(1rem, 3vw, 1.75rem);
+  background: radial-gradient(ellipse at top right, color-mix(in srgb, var(--turn-action) 18%, transparent), transparent 72%), var(--turn-card);
+}
+.meryo-turn-finder .turn-hero__top { display: flex; align-items: center; justify-content: space-between; gap: .65rem; }
+.meryo-turn-finder .turn-hero__eyebrow { display: flex; align-items: center; gap: .5rem; color: var(--turn-muted); font-size: .72rem; font-weight: 600; }
+.meryo-turn-finder .turn-hero__eyebrow > span { width: .52rem; height: .52rem; flex: 0 0 auto; border-radius: 50%; background: var(--turn-action); }
+.meryo-turn-finder .turn-hero__close { display: grid; width: 2.75rem; height: 2.75rem; flex: 0 0 auto; place-items: center; }
+.meryo-turn-finder .turn-hero__title { margin: .15rem 0 .3rem; font-size: clamp(1.65rem, 5vw, 2.5rem); font-weight: 650; line-height: 1.12; }
+.meryo-turn-finder .turn-body { display: grid; gap: 1rem; padding: clamp(1rem, 3vw, 1.75rem); }
+.meryo-turn-finder .turn-form { display: grid; gap: .75rem; font-size: .9rem; }
+.meryo-turn-finder .turn-form__days, .meryo-turn-finder .turn-card__slots { display: flex; flex-wrap: wrap; gap: .45rem; }
+.meryo-turn-finder .turn-pill { background: var(--turn-field); color: var(--turn-text); }
+.meryo-turn-finder .turn-pill[aria-pressed="true"] { background: var(--turn-action); color: var(--turn-action-text); }
+.meryo-turn-finder .turn-form__main { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .75rem; }
+.meryo-turn-finder .turn-form__main :is(input, select) { width: 100%; }
+.meryo-turn-finder .turn-filter-toggle { display: inline-flex; align-items: center; gap: .4rem; justify-self: start; color: var(--turn-text); }
+.meryo-turn-finder .turn-results:empty { display: none; }
+.meryo-turn-finder .turn-results > div[role="status"]:empty { display: none; }
+.meryo-turn-finder .turn-results__sort { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: .45rem; margin: .5rem 0 .65rem; }
+.meryo-turn-finder .turn-results__grid { display: grid; gap: .75rem; grid-template-columns: repeat(auto-fit, minmax(min(100%, 18rem), 1fr)); }
+.meryo-turn-finder .turn-card { display: flex; flex-direction: column; gap: .65rem; }
+.meryo-turn-finder .turn-card__heading, .meryo-turn-finder .turn-card__service { display: flex; align-items: center; gap: .65rem; }
+.meryo-turn-finder .turn-card__service { justify-content: space-between; }
+.meryo-turn-finder .turn-card__avatar { display: grid; width: 2.5rem; height: 2.5rem; flex: 0 0 auto; place-items: center; border-radius: .65rem; background: var(--turn-action); color: var(--turn-action-text); font-size: .78rem; font-weight: 650; }
+.meryo-turn-finder .turn-card > button:last-child { margin-top: auto; }
+.meryo-turn-finder .turn-result-note { margin-top: .45rem; padding: .65rem .8rem; border-radius: .6rem; background: var(--turn-card); color: var(--turn-muted); font-size: .85rem; }
+@media (max-width: 379px) {
+  .meryo-turn-finder .turn-form__main { grid-template-columns: minmax(0, 1fr); }
+  .meryo-turn-finder .turn-hero__title { font-size: 1.6rem; }
+}
+
 [data-meryo-theme="barberia"][data-meryo-mode="light"] .meryo-turn-finder {
   --turn-panel: #ebe3d8;
   --turn-card: #fffbf4;

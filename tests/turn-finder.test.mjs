@@ -53,6 +53,25 @@ test('an occupied slot returned by the server can never be a finder result',asyn
   assert.equal(result.matches.length,0);assert.equal(result.failed,0);
 });
 
+test('today without a budget returns the first three distinct future slots from the Lima date',async()=>{
+  const time=(iso,occupied=false)=>({time:iso,occupied});
+  const expected=[
+    time('2026-11-10T21:00:00Z'), time('2026-11-10T23:00:00Z'), time('2026-11-11T00:00:00Z'),
+  ];
+  const result=await findTurns([shop()],{...filters,max:'',notBefore:Date.parse('2026-11-10T20:45:00Z')},async()=>[
+    time('2026-11-11T05:00:00Z'), time('2026-11-10T20:30:00Z'), time('2026-11-10T20:50:00Z',true),
+    time('2026-11-11T01:00:00Z'), expected[2], expected[0], expected[1], expected[0],
+  ]);
+  assert.deepEqual(result.matches[0].options,expected);
+  assert.equal(result.matches[0].slot,expected[0]);
+});
+
+test('an explicit budget still excludes expensive services',async()=>{
+  const result=await findTurns([shop()],{...filters,max:'34.99'},async()=>assert.fail('over-budget agenda queried'));
+  assert.equal(result.checked,0);
+  assert.equal(result.matches.length,0);
+});
+
 test('beauty finder excludes barberies and services needing evaluation or missing price/duration',async()=>{
   const beauty=shop(21,{name:'Salón sintético A',businessTypes:['belleza'],services:[
     {id:31,name:'Corte de cabello',price:120,durationMinutes:90,bookable:true},
