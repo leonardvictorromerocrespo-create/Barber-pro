@@ -67,8 +67,8 @@ export function BookingModal({
   const dialogRef = useRef(null);
   const closeHandler = useRef(closeBookingModal);
   closeHandler.current = closeBookingModal;
-  const professional = catalogCategory === 'belleza' ? 'profesional' : 'barbero';
-  const categoryName = catalogCategory === 'belleza' ? 'salón' : 'barbería';
+  const isBeauty = catalogCategory === 'belleza';
+  const professional = isBeauty ? 'profesional' : 'barbero';
   const team = selectedShop?.equipo ?? [];
   const bookableServices = useMemo(
     () => (selectedShop?.services ?? []).filter(service => service.bookable &&
@@ -166,7 +166,8 @@ export function BookingModal({
       ref={dialogRef}
       role="dialog"
       aria-modal="true"
-      aria-labelledby="meryo-booking-title"
+      aria-labelledby={isBeauty ? 'meryo-booking-title' : undefined}
+      aria-label={isBeauty ? undefined : 'Reserva de cita'}
       tabIndex={-1}
       data-meryo-theme={catalogCategory === 'belleza' ? 'beauty' : 'barberia'}
       data-meryo-mode={themeMode}
@@ -174,13 +175,15 @@ export function BookingModal({
       className={'meryo-booking-dialog ' + wrapperClass}
     >
       <header className="meryo-booking-dialog-header">
-        <div className="min-w-0">
-          <p className="meryo-booking-eyebrow">Reserva tu cita · {categoryName}</p>
-          <h2 id="meryo-booking-title" className="meryo-booking-title">{selectedShop.name}</h2>
-          <p className="meryo-booking-subtitle">No se cobra al enviar la solicitud.</p>
+        {(isBeauty || accessMessage) && <div className="min-w-0">
+          {isBeauty && <>
+            <p className="meryo-booking-eyebrow">Reserva tu cita · salón</p>
+            <h2 id="meryo-booking-title" className="meryo-booking-title">{selectedShop.name}</h2>
+            <p className="meryo-booking-subtitle">No se cobra al enviar la solicitud.</p>
+          </>}
           {accessMessage && <p role="status" className="meryo-booking-message">{accessMessage}</p>}
-        </div>
-        <button ref={closeRef} type="button" onClick={closeBookingModal} className="meryo-booking-close min-h-11 shrink-0 rounded-md px-3 py-2 text-sm font-semibold">Cerrar</button>
+        </div>}
+        <button ref={closeRef} type="button" onClick={closeBookingModal} className="meryo-booking-close ml-auto min-h-11 shrink-0 rounded-md px-3 py-2 text-sm font-semibold">Cerrar</button>
       </header>
 
       <ol className="meryo-booking-steps" aria-label="Pasos de la reserva">
