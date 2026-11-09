@@ -40,6 +40,7 @@ export function mapShop(item) {
 }
 export function createMeryoApi(client) {
   async function requireRole(roles){const p=await verifiedProfile(client);if(!p||!roles.includes(p.rol))throw new Error(client.authUnavailable?'Falta conectar Supabase Auth de pruebas. No se creará una sesión ficticia.':'Inicia sesión con el rol correspondiente');return p;}
+  async function markAttendance(id,attended){await requireRole(['barbero']);const {error}=await client.rpc('marcar_asistencia',{p_reserva_id:id,p_asistio:attended});if(error)throw new Error(error.message||(attended?'No se pudo finalizar la cita':'No se pudo registrar la inasistencia'));return true;}
   return {
     profile:()=>verifiedProfile(client),
     catalog:async(category='barberia',{signal}={})=>{
@@ -114,6 +115,9 @@ export function createMeryoApi(client) {
     registerPush:async(subscription)=>{await requireRole(['cliente','barbero','admin']);return savedOperation(()=>client.rpc('meryo_registrar_push',{p_subscription:subscription}));},
     removePush:async(endpoint)=>{const {error}=await client.rpc('meryo_quitar_push',{p_endpoint:endpoint});if(error)throw error;},
     respond:async(id,accept)=>{await requireRole(['barbero']);const result=await savedOperation(()=>client.rpc('responder_reserva',{p_reserva_id:id,p_aceptar:accept}));if(!['aceptada','rechazada','expirada'].includes(result))throw new Error('Respuesta de reserva inesperada');return result;},
+    markNoShow:async(id)=>markAttendance(id,false),
+    finishBooking:async(id)=>markAttendance(id,true),
+    markArrival:async(id)=>{await requireRole(['barbero']);const {data,error}=await client.rpc('marcar_llegada',{p_reserva_id:id});if(error)throw new Error(error.message||'No se pudo registrar la llegada');return data??true;},
     registerShop:async(form)=>{
       await requireRole(['cliente']);
       const type=['barberia','belleza','ambos'].includes(form.tipo_negocio)?form.tipo_negocio:'barberia';

@@ -85,6 +85,33 @@ test('barber response preserves expired result; client cannot respond',async()=>
  const api=createMeryoApi(clientFor({id:'real-subject',rol:'barbero',barberia_id:42,activo:true},{data:'expirada',error:null}));assert.equal(await api.respond('booking',true),'expirada');
  const c=clientFor({id:'real-subject',rol:'cliente',activo:true});await assert.rejects(createMeryoApi(c).respond('booking',true));assert.ok(!c.calls.some(x=>x.name));
 });
+test('no-show uses the existing attendance RPC and is restricted to an active barber account',async()=>{
+ const c=clientFor({id:'real-subject',rol:'barbero',barberia_id:42,activo:true},{data:null,error:null}),api=createMeryoApi(c);
+ assert.equal(await api.markNoShow('booking-id'),true);
+ assert.deepEqual(c.calls.find(x=>x.name==='marcar_asistencia'),{name:'marcar_asistencia',args:{p_reserva_id:'booking-id',p_asistio:false}});
+ const failure=clientFor({id:'real-subject',rol:'barbero',barberia_id:42,activo:true},{data:null,error:{message:'Esperar 15 minutos'}});
+ await assert.rejects(createMeryoApi(failure).markNoShow('booking-id'),/Esperar 15 minutos/);
+ const customer=clientFor({id:'real-subject',rol:'cliente',activo:true});
+ await assert.rejects(createMeryoApi(customer).markNoShow('booking-id'),/rol correspondiente/);
+ assert.ok(!customer.calls.some(x=>x.name==='marcar_asistencia'));
+});
+test('arrival registration reuses the authenticated appointment API and rejects other roles',async()=>{
+ const c=clientFor({id:'real-subject',rol:'barbero',barberia_id:42,activo:true},{data:'2026-11-08T10:00:00Z',error:null}),api=createMeryoApi(c);
+ assert.equal(await api.markArrival('booking-id'),'2026-11-08T10:00:00Z');
+ assert.deepEqual(c.calls.find(x=>x.name==='marcar_llegada'),{name:'marcar_llegada',args:{p_reserva_id:'booking-id'}});
+ const failure=clientFor({id:'real-subject',rol:'cliente',activo:true});
+ await assert.rejects(createMeryoApi(failure).markArrival('booking-id'),/rol correspondiente/);
+ assert.ok(!failure.calls.some(x=>x.name==='marcar_llegada'));
+});
+test('finalizing a booking reuses marcar_asistencia with attended=true and never calls payment APIs',async()=>{
+ const c=clientFor({id:'real-subject',rol:'barbero',barberia_id:42,activo:true}),api=createMeryoApi(c);
+ assert.equal(await api.finishBooking('booking-id'),true);
+ assert.deepEqual(c.calls.find(x=>x.name==='marcar_asistencia'),{name:'marcar_asistencia',args:{p_reserva_id:'booking-id',p_asistio:true}});
+ assert.ok(!c.calls.some(x=>/pago|charge|checkout/i.test(x.name||'')));
+ const customer=clientFor({id:'real-subject',rol:'cliente',activo:true});
+ await assert.rejects(createMeryoApi(customer).finishBooking('booking-id'),/rol correspondiente/);
+ assert.ok(!customer.calls.some(x=>x.name==='marcar_asistencia'));
+});
 test('Mis citas filters by authenticated customer or assigned shop',async()=>{
  for(const p of [{id:'real-subject',rol:'cliente',activo:true},{id:'real-subject',rol:'barbero',barberia_id:42,activo:true}]){
  const c=clientFor(p);await createMeryoApi(c).bookings();assert.deepEqual(c.calls.find(x=>x.table==='reservas').filters,[[p.rol==='barbero'?'barberia_id':'cliente_id',p.rol==='barbero'?42:'real-subject']]);}

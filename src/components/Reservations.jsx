@@ -4,6 +4,7 @@ import {remainingSeconds,countdown} from '../lib/booking-time';
 import {bookingIdFromSearch,bookingDeadline} from '../lib/booking-link';
 import {visiblePolling} from '../lib/visible-polling';
 import {bookingMoney,readableBookingDate,splitBookingRows} from '../lib/reservation-presentation';
+import {noShowEligibility,showArrivalControl,showFinishControl,showNoShowControl} from '../lib/no-show';
 
 export default function Reservations({api,profile,onLogin,onSearch,onRetrySession,memberId,identityLoading=false,identityError=''}){
  const [focus,setFocus]=useState(()=>typeof window!=='undefined'?bookingIdFromSearch(window.location.search):null);
@@ -30,6 +31,26 @@ export default function Reservations({api,profile,onLogin,onSearch,onRetrySessio
   try{const state=await api.respond(id,accept);setMessage(state==='expirada'?'La solicitud venció; el horario se liberó.':state==='aceptada'?'Aceptada. Pendiente de pago; todavía no está confirmada.':'Rechazada. El horario se liberó.');await refresh();}
   catch(e){setError(e.message);}finally{setBusy(false);}
  }
+ async function markNoShow(id){
+  if(busy||!window.confirm('¿Confirmas que el cliente no asistió? Solo se cerrará la cita después de 15 minutos y si el adelanto figura pagado. El adelanto queda para la barbería y no se generará otro cobro.'))return;
+  setBusy(true);setMessage('');setError('');
+  try{await api.markNoShow(id);setMessage('Inasistencia registrada. El adelanto pagado queda para la barbería; no se generó otro cobro.');await refresh();}
+  catch(e){setError(e.message);}
+  finally{setBusy(false);}
+ }
+ async function markArrival(id){
+  if(busy)return;setBusy(true);setMessage('');setError('');
+  try{await api.markArrival(id);setMessage('Llegada registrada. La cita puede finalizarse cuando termine el servicio.');await refresh();}
+  catch(e){setError(e.message);}
+  finally{setBusy(false);}
+ }
+ async function finishBooking(id){
+  if(busy||!window.confirm('¿Confirmas que terminó el servicio y que el saldo se cobró en el local? Esta acción solo marcará la cita como completada; no procesa un pago ni modifica el adelanto.'))return;
+  setBusy(true);setMessage('');setError('');
+  try{await api.finishBooking(id);setMessage('Cita completada. No se generó otro cobro y el adelanto permanece intacto.');await refresh();}
+  catch(e){setError(e.message);}
+  finally{setBusy(false);}
+ }
  if(identityLoading)return <p role="status">Comprobando sesión para abrir tu cita…</p>;
  if(identityError)return <div role="alert" className="rounded-2xl border border-white/10 bg-neutral-900 p-6"><p>No pudimos comprobar tu sesión. Reintenta antes de iniciar sesión nuevamente.</p><button type="button" className="mt-3 rounded-xl border border-white/20 px-4 py-2" onClick={onRetrySession}>Reintentar</button></div>;
  if(!profile)return <div className="rounded-2xl border border-white/10 bg-neutral-900 p-6"><p>Inicia sesión para consultar tus citas.</p>{focus&&<p className="mt-2">Volverás a esta misma cita después de iniciar sesión.</p>}<button className="mt-3 rounded-xl bg-amber-400 px-4 py-2 font-bold text-black" onClick={onLogin}>Iniciar sesión</button></div>;
@@ -39,6 +60,7 @@ export default function Reservations({api,profile,onLogin,onSearch,onRetrySessio
  const {upcoming,history}=focus?{upcoming:[],history:[]}:splitBookingRows(visibleRows,serverNow);
  const renderBooking=row=>{
   const seconds=remainingSeconds(bookingDeadline(row),anchor?.serverMs,elapsed),when=readableBookingDate(row.inicio);
+  const noShow=noShowEligibility(row,anchor?serverNow:null);
   return <article id={'cita-'+row.id} key={row.id} className="meryo-booking-card">
    <h3 className="meryo-booking-business">{row.barberias?.nombre||'Negocio'}</h3>
    <dl className="meryo-booking-details">
@@ -57,6 +79,10 @@ export default function Reservations({api,profile,onLogin,onSearch,onRetrySessio
    {profile.rol==='barbero'&&<p className="meryo-booking-note">Cliente: {row.cliente_nombre} · {row.cliente_telefono}</p>}
    {['solicitada','aceptada'].includes(row.estado)&&seconds!==null&&<p className="meryo-booking-timer">{row.estado==='solicitada'?'Tiempo para responder':'Tiempo para pagar'}: <span role="timer">{countdown(seconds)}</span></p>}
    {profile.rol==='barbero'&&row.puede_responder===true&&row.estado==='solicitada'&&<div className="meryo-booking-actions"><button disabled={busy||seconds===0} className="rounded-xl bg-amber-400 px-4 py-3 font-bold text-black disabled:opacity-40" onClick={()=>respond(row.id,true)}>Aceptar</button><button disabled={busy||seconds===0} className="rounded-xl border border-red-400 px-4 py-3 disabled:opacity-40" onClick={()=>respond(row.id,false)}>Rechazar</button></div>}
+   {showArrivalControl(row,profile,memberId)&&<div className="meryo-booking-actions"><button type="button" disabled={busy} className="rounded-xl bg-neutral-200 px-4 py-3 font-semibold text-neutral-900 disabled:opacity-50" onClick={()=>markArrival(row.id)}>Registrar llegada</button></div>}
+   {profile.rol==='barbero'&&row.barbero_id===memberId&&row.estado==='confirmada'&&row.llegada_en&&<p role="status" className="meryo-booking-note">Llegada registrada: {new Date(row.llegada_en).toLocaleTimeString('es-PE',{hour:'2-digit',minute:'2-digit'})}. La cita sigue abierta hasta que finalice el servicio.</p>}
+   {showFinishControl(row,profile,memberId)&&<div className="meryo-booking-actions"><button type="button" disabled={busy} className="rounded-xl bg-neutral-200 px-4 py-3 font-semibold text-neutral-900 disabled:opacity-50" onClick={()=>finishBooking(row.id)}>Finalizar cita</button><p className="meryo-booking-note">Después del servicio y del cobro del saldo en el local. Este botón no procesa pagos.</p></div>}
+   {showNoShowControl(row,profile,memberId)&&<div className="meryo-booking-actions"><button type="button" disabled={busy||!noShow.eligible} className="rounded-xl bg-neutral-200 px-4 py-3 font-semibold text-neutral-900 disabled:opacity-50" onClick={()=>markNoShow(row.id)}>Marcar como no asistió</button>{!noShow.eligible&&<p className="meryo-booking-note">{noShow.reason==='adelanto'?'Disponible solo cuando el adelanto pagado figure confirmado.':noShow.reason==='plazo'?'Disponible 15 minutos después de la hora de la cita.':noShow.reason==='llegada'?'No disponible: la llegada del cliente ya fue registrada.':'Comprobando hora del servidor…'}</p>}</div>}
    {row.estado==='aceptada'&&<div className="meryo-booking-payment"><p>{row.expira_pago_en?'El profesional aceptó la cita. Tienes 10 minutos para pagar el adelanto y confirmarla.':'El profesional aceptó esta cita previamente.'}</p>{!row.expira_pago_en&&<p>Esta cita es anterior al plazo actual de 10 minutos y no tiene vencimiento registrado. Requiere revisión de soporte.</p>}<p>Pago bloqueado: falta integrar la pasarela. No se ha cobrado ni confirmado la cita.</p>{profile.rol==='cliente'&&<button disabled className="mt-2 rounded-xl bg-neutral-700 px-4 py-3 text-neutral-400">Pagar adelanto del 50 % · {bookingMoney(row.monto_adelanto)} · no disponible</button>}</div>}
    {profile.rol==='cliente'&&['rechazada','expirada'].includes(row.estado)&&<div className="meryo-booking-actions"><button onClick={onSearch} className="rounded-xl bg-amber-400 px-4 py-3 font-bold text-black">Buscar otro negocio</button></div>}
   </article>;
