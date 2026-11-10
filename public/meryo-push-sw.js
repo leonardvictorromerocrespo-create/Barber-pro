@@ -14,6 +14,7 @@ self.addEventListener('push',event=>event.waitUntil((async()=>{
  if(!await alreadyShown(delivery).catch(()=>false)){
   await self.registration.showNotification(typeof data.title==='string'?data.title.slice(0,70):'MERYO · Tu cita',{
    body:typeof data.body==='string'?data.body.slice(0,250):'Hay una actualización en tus solicitudes.',
+   ...(data.event==='reserva_recordatorio'&&id?{actions:[{action:'open_booking',title:'Abrir cita'}]}:{}),
    tag:`meryo-${orderId||id||notification||'reserva'}`,data:{url,receipt:data.receipt},silent:false,vibrate:[150,100,150],renotify:true,
   });await rememberShown(delivery).catch(()=>{});
  }

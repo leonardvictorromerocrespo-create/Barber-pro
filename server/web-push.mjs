@@ -7,11 +7,13 @@ export function validatePushEndpoint(endpoint){
  if(u.protocol!=='https:'||u.username||u.password||u.port||!(hosts.some(h=>u.hostname===h)||/^[a-z0-9-]+\.notify\.windows\.com$/.test(u.hostname))||u.hash)throw Error('Unsupported push endpoint');
  return u.href;
 }
+const reminderRecipient=`(o.user_id=r.cliente_id or exists(select 1 from public.meryo_team_members m where m.id=r.barbero_id and m.barberia_id=r.barberia_id and m.user_id=o.user_id and m.active))`;
+const reminderCurrent=`(r.estado='confirmada' and r.llegada_en is null and r.inicio=o.reminder_starts_at and r.inicio>clock_timestamp())`;
 export async function deliverBookingPush(pool,config,{send=webpush.sendNotification.bind(webpush)}={}){
  if(!config?.publicKey||!config.privateKey||!config.subject)return 'not_configured';
  webpush.setVapidDetails(config.subject,config.publicKey,config.privateKey);
  const token=randomUUID();
- await pool.query(`update meryo_private.push_outbox o set status='expired',lease_until=null where status in ('pending_provider','queued','leased') and (lease_until is null or lease_until<clock_timestamp()) and ((event='reserva_solicitada' and not exists(select 1 from public.reservas r where r.id=o.reserva_id and r.estado='solicitada' and r.expira_respuesta_en>clock_timestamp())) or (event='reserva_aceptada' and not exists(select 1 from public.reservas r where r.id=o.reserva_id and r.estado='aceptada' and r.expira_pago_en>clock_timestamp())) or (event='pedido_solicitado' and not exists(select 1 from public.meryo_pickup_orders p where p.id=o.pedido_id and p.estado='pendiente')) or (event='pedido_aceptado' and not exists(select 1 from public.meryo_pickup_orders p where p.id=o.pedido_id and p.estado='aceptado')) or created_at<clock_timestamp()-interval '1 day')`);
+ await pool.query(`update meryo_private.push_outbox o set status='expired',lease_until=null where status in ('pending_provider','queued','leased') and (lease_until is null or lease_until<clock_timestamp()) and ((event='reserva_solicitada' and not exists(select 1 from public.reservas r where r.id=o.reserva_id and r.estado='solicitada' and r.expira_respuesta_en>clock_timestamp())) or (event='reserva_aceptada' and not exists(select 1 from public.reservas r where r.id=o.reserva_id and r.estado='aceptada' and r.expira_pago_en>clock_timestamp())) or (event='pedido_solicitado' and not exists(select 1 from public.meryo_pickup_orders p where p.id=o.pedido_id and p.estado='pendiente')) or (event='pedido_aceptado' and not exists(select 1 from public.meryo_pickup_orders p where p.id=o.pedido_id and p.estado='aceptado')) or (event='reserva_recordatorio' and not exists(select 1 from public.reservas r where r.id=o.reserva_id and ${reminderCurrent} and ${reminderRecipient})) or created_at<clock_timestamp()-interval '1 day')`);
  const {rows}=await pool.query(`with picked as (
  select o.id from meryo_private.push_outbox o
  left join public.reservas r on r.id=o.reserva_id
@@ -23,11 +25,13 @@ export async function deliverBookingPush(pool,config,{send=webpush.sendNotificat
  and (o.event='push_diagnostico'
   or (o.event='reserva_solicitada' and (exists(select 1 from public.meryo_team_members m where m.id=r.barbero_id and m.user_id=o.user_id and m.active) or exists(select 1 from meryo_private.shop_owners own where own.barberia_id=r.barberia_id and own.user_id=o.user_id)))
   or (o.event in ('reserva_aceptada','reserva_rechazada','reserva_expirada','reserva_confirmada','reserva_no_asistio') and o.user_id=r.cliente_id)
+  or (o.event='reserva_recordatorio' and ${reminderRecipient})
   or (o.event='pedido_solicitado' and exists(select 1 from meryo_private.shop_owners own where own.barberia_id=po.barberia_id and own.user_id=o.user_id))
   or (o.event in ('pedido_aceptado','pedido_rechazado','pedido_cancelado','pedido_vencido') and o.user_id=po.cliente_id))
  and (o.event='push_diagnostico' or (o.event='reserva_solicitada' and r.estado='solicitada' and r.expira_respuesta_en>clock_timestamp())
  or (o.event='reserva_aceptada' and r.estado='aceptada' and r.expira_pago_en>clock_timestamp())
  or (o.event in ('reserva_rechazada','reserva_expirada','reserva_confirmada','reserva_no_asistio') and o.created_at>clock_timestamp()-interval '1 day')
+ or (o.event='reserva_recordatorio' and ${reminderCurrent})
  or (o.event='pedido_solicitado' and po.estado='pendiente' and po.created_at>clock_timestamp()-interval '1 day')
  or (o.event='pedido_aceptado' and po.estado='aceptado' and po.recogida_hasta>clock_timestamp())
  or (o.event in ('pedido_rechazado','pedido_cancelado','pedido_vencido') and o.created_at>clock_timestamp()-interval '1 day'))
@@ -35,7 +39,14 @@ export async function deliverBookingPush(pool,config,{send=webpush.sendNotificat
  update meryo_private.push_outbox o set status='leased',lease_token=$1,lease_until=clock_timestamp()+interval '40 seconds',attempts=attempts+1
  from picked where o.id=picked.id returning o.*`,[token]);
  const job=rows[0];if(!job)return 'idle';
- const validity=job.pedido_id
+ const reminder=job.event==='reserva_recordatorio';
+ const validity=reminder
+  ?(await pool.query(`select extract(epoch from r.inicio-clock_timestamp()) as seconds,n.mensaje as message
+    from meryo_private.push_outbox o join public.reservas r on r.id=o.reserva_id
+    join public.notificaciones n on n.id=o.notification_id
+    join public.profiles p on p.id=o.user_id and p.activo
+    where o.id=$1 and o.lease_token=$2 and ${reminderCurrent} and ${reminderRecipient}`,[job.id,token])).rows[0]
+  :job.pedido_id
   ?(await pool.query(`select case when $2='pedido_aceptado' then extract(epoch from recogida_hasta-clock_timestamp()) else 900 end as seconds from public.meryo_pickup_orders where id=$1`,[job.pedido_id,job.event])).rows[0]
   :(await pool.query(`select case when $2='reserva_solicitada' then extract(epoch from expira_respuesta_en-clock_timestamp()) when $2='reserva_aceptada' then extract(epoch from expira_pago_en-clock_timestamp()) else 900 end as seconds from public.reservas where id=$1`,[job.reserva_id,job.event])).rows[0];
  const ttl=job.event==='push_diagnostico'?300:Math.max(0,Math.floor(Number(validity?.seconds??0)));
@@ -51,7 +62,7 @@ export async function deliverBookingPush(pool,config,{send=webpush.sendNotificat
   try{
    validatePushEndpoint(s.endpoint);
    const bodies={reserva_solicitada:'Tienes una nueva solicitud. Dispones de hasta 15 minutos para aceptarla o rechazarla.',reserva_aceptada:'Tu barbero aceptó la cita. Tienes 10 minutos para pagar el adelanto y confirmarla.',reserva_rechazada:'El barbero rechazó tu solicitud. El horario se liberó. Busca otra barbería.',reserva_expirada:'La solicitud venció y el horario fue liberado. Busca otra barbería.',reserva_no_asistio:'El barbero registró que no asististe. El adelanto pagado queda para la barbería; no se generó otro cobro.',pedido_solicitado:'Hay una nueva solicitud de productos pendiente de disponibilidad.',pedido_aceptado:'Tu solicitud fue aceptada. Pagas al recoger en la barbería.',pedido_rechazado:'La barbería no pudo aceptar tu solicitud. No se reservó stock.',pedido_cancelado:'La barbería canceló el pedido. Abre MERYO para consultar su estado actual.',pedido_vencido:'El plazo de recojo terminó y las unidades volvieron al stock.',push_diagnostico:'Comprobación solicitada por ti. No es una cita ni un cobro.'};
-   await send({endpoint:s.endpoint,keys:{p256dh:s.p256dh,auth:s.auth}},JSON.stringify({bookingId:job.reserva_id,orderId:job.pedido_id,notificationId:job.notification_id,event:job.event,title:['reserva_solicitada','pedido_solicitado'].includes(job.event)?'MERYO · Nueva solicitud':'MERYO · Actualización',body:bodies[job.event]||'Hay una actualización en MERYO.',receipt:{id:delivery.id,token:ack}}),{TTL:Math.min(ttl,900),urgency:'high',topic:digest(String(job.id)+s.endpoint).slice(0,32),timeout:7000});
+   await send({endpoint:s.endpoint,keys:{p256dh:s.p256dh,auth:s.auth}},JSON.stringify({bookingId:job.reserva_id,orderId:job.pedido_id,notificationId:job.notification_id,event:job.event,title:reminder?'MERYO · Tu cita se acerca':['reserva_solicitada','pedido_solicitado'].includes(job.event)?'MERYO · Nueva solicitud':'MERYO · Actualización',body:reminder?validity.message:bodies[job.event]||'Hay una actualización en MERYO.',receipt:{id:delivery.id,token:ack}}),{TTL:Math.min(ttl,900),urgency:'high',topic:digest(String(job.id)+s.endpoint).slice(0,32),timeout:7000});
    accepted++;await pool.query('update meryo_private.push_deliveries set provider_accepted_at=clock_timestamp() where id=$1',[delivery.id]);
   }catch(error){
    if([404,410].includes(error.statusCode))await pool.query('delete from meryo_private.push_subscriptions where endpoint=$1 and user_id=$2',[s.endpoint,job.user_id]);
