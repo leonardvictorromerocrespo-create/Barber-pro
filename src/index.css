@@ -1398,16 +1398,16 @@ body {
   gap: .8rem;
   min-width: 8rem;
   padding: .7rem 1.1rem;
-  border: 1px solid #c9a05b;
+  border: 1px solid #ded8cd;
   border-radius: .8rem;
-  background: #f1dfba;
-  color: #352914;
+  background: #f3eee5;
+  color: #51483c;
   font-weight: 700;
   box-shadow: 0 4px 12px #00000018;
   transition: background .15s ease, box-shadow .15s ease;
 }
 .meryo-profile-modal .meryo-profile-store-action:hover {
-  background: #f8eacf;
+  background: #f8f5ee;
   box-shadow: 0 6px 15px #00000022;
 }
 .meryo-profile-modal .meryo-profile-store-action:focus-visible {
