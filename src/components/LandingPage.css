@@ -3,7 +3,6 @@
   --meryo-cover-gold: var(--meryo-gold, #d4af37);
   --meryo-cover-gold-light: var(--meryo-gold-light, #e8c766);
   --meryo-entry-navy: #001433;
-  --meryo-entry-rose: #d1908e;
   min-height: 100svh;
   overflow-x: clip;
   overflow-y: visible;
@@ -30,49 +29,102 @@
 }
 
 .meryo-cover__entry-grid {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
   display: grid;
   width: 100%;
-  min-height: clamp(34rem, calc(100svh - 8rem), 58rem);
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+  min-height: max(36rem, calc(100svh - 8rem));
+  align-content: center;
+  padding: clamp(.75rem, 2vh, 2rem) clamp(1rem, 5vw, 4rem);
+  background: #fcf4e7;
+  color: #302421;
+}
+
+.meryo-cover__entry-grid::before {
+  position: absolute;
+  z-index: -1;
+  content: '';
+  pointer-events: none;
+  inset: 0;
+  background:
+    radial-gradient(ellipse at 8% 4%, #fffaf055 0%, transparent 69%),
+    linear-gradient(162deg, #fcf4e7 4%, #f5e7d2 32%, #ebd1b3 59%, #dcb592 81%, #c69976 100%);
 }
 
 .meryo-cover__entry {
   display: grid;
+  width: min(100%, 62rem);
   min-width: 0;
-  min-height: 0;
-  grid-template-rows: minmax(0, 1fr) auto;
-  overflow: hidden;
-  transition: filter .25s ease;
+  min-height: clamp(17.5rem, 40svh, 23rem);
+  margin-inline: auto;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-areas: "portrait copy";
+  align-items: center;
+  gap: clamp(1rem, 5vw, 5rem);
 }
 
-.meryo-cover__entry--barber { background: var(--meryo-entry-navy); color: #f5eee3; }
-.meryo-cover__entry--beauty { background: var(--meryo-entry-rose); color: var(--meryo-entry-navy); }
-.meryo-cover__entry:hover { filter: saturate(1.06); }
+.meryo-cover__entry--barber { grid-template-areas: "copy portrait"; }
 
 .meryo-cover__portrait {
-  display: flex;
-  min-height: clamp(15rem, 50svh, 32rem);
-  align-items: center;
-  justify-content: center;
-  overflow: hidden;
+  grid-area: portrait;
+  position: relative;
+  display: grid;
+  height: clamp(17rem, 37svh, 22rem);
+  min-width: 0;
+  place-items: center;
+}
+
+.meryo-cover__portrait::before {
+  position: absolute;
+  content: '';
+  width: min(90%, 20rem);
+  aspect-ratio: 1;
+  border: 1px solid #a36d493f;
+  border-radius: 50%;
+  pointer-events: none;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .meryo-cover__entry-grid::before,
+  .meryo-cover__portrait::before {
+    animation: meryo-cover-light-in 1s ease-out both;
+  }
+  .meryo-cover__entry--beauty .meryo-cover__portrait::before { animation-delay: .14s; }
+}
+
+@keyframes meryo-cover-light-in {
+  from { opacity: .28; }
+  to { opacity: 1; }
 }
 
 .meryo-cover__portrait img {
+  position: relative;
   display: block;
-  width: auto;
+  width: min(100%, 19rem);
   height: 100%;
-  max-width: min(100%, 34rem);
   object-fit: contain;
-  object-position: center;
-  transform: scale(.82);
+  mix-blend-mode: multiply;
+  transform: scaleX(-1);
+}
+
+/* Lift the two original line drawings off their baked-in solid backgrounds. */
+.meryo-cover__entry--barber .meryo-cover__portrait img {
+  filter: grayscale(1) invert(1) contrast(1.45);
+}
+
+.meryo-cover__entry--beauty .meryo-cover__portrait img {
+  filter: grayscale(1) contrast(5.6);
 }
 
 .meryo-cover__entry-copy {
+  grid-area: copy;
+  min-width: 0;
   display: grid;
-  justify-items: center;
-  gap: 1rem;
-  padding: 0 1.5rem clamp(1.75rem, 4vh, 3rem);
-  text-align: center;
+  justify-items: start;
+  gap: .8rem;
+  padding-inline: clamp(0rem, 2vw, 1.75rem);
+  text-align: start;
 }
 
 .meryo-cover__entry-copy h2 {
@@ -134,21 +186,15 @@
 .meryo-cover__footer a:hover { color: var(--meryo-cover-gold); }
 
 @media (max-width: 47.999rem) {
-  .meryo-cover__entry-grid { min-height: clamp(34rem, calc(100svh - 7rem), 50rem); }
-  .meryo-cover__portrait { min-height: clamp(10rem, 44vw, 16rem); }
-  .meryo-cover__portrait img { width: auto; max-width: 100%; }
-  .meryo-cover__entry-copy { gap: .65rem; padding: 0 .65rem 1.5rem; }
-  .meryo-cover__entry-copy h2 { font-size: clamp(.92rem, 4.4vw, 1.45rem); line-height: 1.12; }
-  .meryo-cover__entry-copy p { min-height: 3.1em; font-size: clamp(.68rem, 3.1vw, .82rem); line-height: 1.4; }
-  .meryo-cover__entry-copy button { width: 100%; min-width: 0; min-height: 3rem; margin-top: .2rem; padding: .5rem .3rem; font-size: clamp(.68rem, 3vw, .82rem); line-height: 1.2; }
+  .meryo-cover__entry-grid { padding: .45rem clamp(.8rem, 5.5vw, 1.7rem); }
+  .meryo-cover__entry { min-height: clamp(15rem, 39svh, 21rem); gap: clamp(.55rem, 3vw, 1.4rem); }
+  .meryo-cover__portrait { height: clamp(12rem, 52vw, 17.5rem); }
+  .meryo-cover__portrait::before { width: 108%; }
+  .meryo-cover__entry-copy { gap: .55rem; padding: 0; }
+  .meryo-cover__entry-copy h2 { font-size: clamp(1.28rem, 6.1vw, 2.65rem); line-height: 1.06; text-wrap: balance; }
+  .meryo-cover__entry-copy p { font-size: clamp(.75rem, 3.35vw, .95rem); line-height: 1.45; }
+  .meryo-cover__entry-copy button { width: max-content; max-width: 100%; min-width: 0; min-height: 3rem; margin-top: .2rem; padding: .5rem .65rem; font-size: clamp(.68rem, 3vw, .82rem); line-height: 1.2; }
   .meryo-cover__footer { width: min(100% - 2rem, 36rem); justify-content: center; padding-block: .8rem; }
-}
-
-@media (max-width: 370px) {
-  .meryo-cover__footer { width: calc(100% - 1.5rem); }
-  .meryo-cover__entry-copy { padding-inline: .45rem; }
-  .meryo-cover__entry-copy h2 { font-size: .9rem; }
-  .meryo-cover__entry-copy button { font-size: .65rem; }
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -158,4 +204,96 @@
     animation-iteration-count: 1 !important;
     transition-duration: .01ms !important;
   }
+}
+
+/* The landing is a single, uninterrupted paper surface. */
+.meryo-cover__entry-grid {
+  background: #fffefa;
+  color: #302b27;
+  padding-block: clamp(2rem, 5vw, 5rem);
+  gap: clamp(1.5rem, 5vw, 4rem);
+}
+.meryo-cover__entry-grid::before {
+  background: repeating-linear-gradient(130deg, transparent 0 35px, #786a5010 36px, transparent 37px), linear-gradient(150deg, #fff 10%, #fffefa 60%, #f8f4ed);
+}
+.meryo-cover__entry { min-height: clamp(20rem, 42vw, 29rem); }
+.meryo-cover__entry-copy { font-family: 'Quicksand', sans-serif; }
+.meryo-cover__entry-copy h2 {
+  font-family: 'Quicksand', sans-serif;
+  font-weight: 550;
+  font-size: clamp(2rem, 3.8vw, 3.4rem);
+  letter-spacing: -.045em;
+  line-height: 1.13;
+}
+.meryo-cover__entry-copy p { font-weight: 500; }
+.meryo-cover__entry-copy button,
+.meryo-cover__entry--barber .meryo-cover__entry-copy button,
+.meryo-cover__entry--beauty .meryo-cover__entry-copy button {
+  background: #fff;
+  color: #292520;
+  border: 0;
+  border-radius: 1rem;
+  box-shadow: 0 9px 22px #40331b24, 0 2px 5px #40331b0a;
+  font-weight: 700;
+  letter-spacing: 0;
+}
+.meryo-cover__entry-copy button:disabled { cursor: progress; }
+.meryo-cover__entry-copy button:hover { box-shadow: 0 12px 26px #40331b2e; }
+.meryo-cover__portrait { --entry-direction: 80px; }
+.meryo-cover__entry--beauty .meryo-cover__portrait { --entry-direction: -80px; }
+.meryo-cover__light {
+  position: absolute;
+  z-index: 2;
+  width: min(100%, 19rem);
+  height: 100%;
+  overflow: visible;
+  transform: scaleX(-1);
+  pointer-events: none;
+  opacity: 0;
+}
+.meryo-cover__light path {
+  fill: none;
+  stroke: #ca982b;
+  stroke-width: 2.4;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-dasharray: 16 84;
+  stroke-dashoffset: 16;
+  filter: drop-shadow(0 0 3px #edc16a);
+}
+.meryo-cover__entry.is-selected .meryo-cover__light { opacity: 1; }
+.meryo-cover__entry.is-selected .meryo-cover__light path {
+  animation: meryo-line-travel .62s ease-in-out var(--trace-delay) both;
+}
+@keyframes meryo-line-travel {
+  0% { stroke-dashoffset: 16; opacity: 0; }
+  12% { opacity: 1; }
+  85% { opacity: 1; }
+  100% { stroke-dashoffset: -100; opacity: 0; }
+}
+@media (prefers-reduced-motion: no-preference) {
+  .meryo-cover__portrait { animation: meryo-portrait-arrive .85s cubic-bezier(.2,.7,.2,1) both; }
+  .meryo-cover__entry--beauty .meryo-cover__portrait { animation-delay: .13s; }
+  .meryo-cover__entry-copy > * { animation: meryo-copy-arrive .65s ease-out both; }
+  .meryo-cover__entry-copy h2 { animation-delay: .22s; }
+  .meryo-cover__entry-copy p { animation-delay: .32s; }
+  .meryo-cover__entry-copy button { animation-delay: .42s; }
+}
+@keyframes meryo-portrait-arrive {
+  from { transform: translateX(var(--entry-direction)); opacity: 0; }
+  to { transform: translateX(0); opacity: 1; }
+}
+@keyframes meryo-copy-arrive {
+  from { transform: translateY(14px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+@media (max-width: 47.999rem) {
+  .meryo-cover__entry-grid { padding: 2rem clamp(1rem, 5.5vw, 2.5rem); gap: 1rem; }
+  .meryo-cover__entry { min-height: clamp(20rem, 85vw, 37rem); gap: .75rem; }
+  .meryo-cover__entry-copy h2 { font-size: clamp(1.3rem, 5.3vw, 2.65rem); }
+  .meryo-cover__entry-copy p { font-size: clamp(.8rem, 3.35vw, 1.1rem); }
+  .meryo-cover__entry-copy button { min-height: 3.4rem; padding: .65rem .8rem; font-size: clamp(.72rem, 3vw, 1rem); border-radius: .85rem; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .meryo-cover__light { display: none; }
 }
