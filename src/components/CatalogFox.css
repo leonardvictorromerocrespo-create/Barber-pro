@@ -7,8 +7,10 @@
   pointer-events: none;
 }
 .meryo-catalog-fox__sprite {
+  position: relative;
   width: 58px;
   height: 58px;
+  background-image: var(--fox-sheet);
   background-size: 200% 200%;
   background-repeat: no-repeat;
   background-position: 100% 100%;
@@ -18,22 +20,54 @@
   bottom: calc(100% + 3px);
   left: 0;
   width: max-content;
-  max-width: 145px;
+  max-width: 196px;
   border-radius: .7rem;
-  padding: .35rem .5rem;
+  padding: .45rem .65rem;
   background: #fffbf5;
   color: #3b2c22;
   box-shadow: 0 2px 8px #0002;
-  font-size: .69rem;
+  font-size: .875rem;
   line-height: 1.3;
 }
+/* Walk using separate limb layers from the same frame, with opposite swings. */
+.meryo-catalog-fox__leg,
+.meryo-catalog-fox__body { display: none; }
 .meryo-catalog-fox[data-pose="walk"] .meryo-catalog-fox__sprite {
-  animation: meryo-fox-steps .35s step-end infinite;
+  background-image: none;
+  transform: scale(1.1);
+  transform-origin: center bottom;
+}
+.meryo-catalog-fox[data-pose="walk"] :is(.meryo-catalog-fox__leg, .meryo-catalog-fox__body) {
+  position: absolute;
+  inset: 0;
+  display: block;
+  background: var(--fox-sheet) 0 0 / 200% 200% no-repeat;
+}
+.meryo-catalog-fox__body {
+  clip-path: polygon(0 0, 100% 0, 100% 72%, 68% 76%, 56% 79%, 43% 77%, 36% 81%, 33% 85%, 0 85%);
+}
+.meryo-catalog-fox__leg--back {
+  clip-path: polygon(43% 74%, 56% 77%, 53% 82%, 45% 87%, 48% 94%, 33% 94%, 31% 87%, 35% 80%);
+  transform-origin: 46% 76%;
+  animation: meryo-fox-back-step 1.12s ease-in-out infinite;
+}
+.meryo-catalog-fox__leg--front {
+  clip-path: polygon(54% 75%, 67% 75%, 70% 83%, 78% 80%, 81% 87%, 70% 95%, 61% 96%, 56% 87%, 51% 80%);
+  transform-origin: 57% 77%;
+  animation: meryo-fox-front-step 1.12s ease-in-out infinite;
+}
+@keyframes meryo-fox-front-step {
+  0%, 100% { transform: rotate(0deg); }
+  26% { transform: rotate(28deg); }
+  52% { transform: rotate(64deg); }
+  76% { transform: translateY(-1px) rotate(31deg); }
+}
+@keyframes meryo-fox-back-step {
+  0%, 100% { transform: rotate(0deg); }
+  26% { transform: translateY(-1px) rotate(-27deg); }
+  52% { transform: rotate(-62deg); }
+  76% { transform: rotate(-30deg); }
 }
 .meryo-catalog-fox[data-pose="jump"] .meryo-catalog-fox__sprite { background-position: 0 100%; }
 .meryo-catalog-fox[data-pose="jump"] .meryo-catalog-fox__speech,
 .meryo-catalog-fox[data-pose="wave"] .meryo-catalog-fox__speech { left: auto; right: 0; }
-@keyframes meryo-fox-steps {
-  from { background-position: 0 0; transform: translateY(0); }
-  50% { background-position: 100% 0; transform: translateY(-2px); }
-}

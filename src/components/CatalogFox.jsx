@@ -2,7 +2,7 @@ import {useEffect, useRef} from 'react';
 import sprite from '../assets/catalog-fox.webp';
 import './CatalogFox.css';
 
-const seenKey = 'meryo.catalog-fox.seen.v1';
+const seenKey = 'meryo.catalog-fox.seen.v2';
 let seenHere = false;
 
 export default function CatalogFox() {
@@ -50,21 +50,25 @@ export default function CatalogFox() {
         return;
       }
       node.dataset.pose = 'walk';
+      const walkMs = 3550;
+      const hopMs = 1080;
+      const duration = walkMs + hopMs + 1270;
+      const landed = (walkMs + hopMs) / duration;
       animation = node.animate([
         {transform: place(x, y), offset: 0},
-        {transform: place(Math.max(x, Math.min(mx - 48, areaBox.width - 145)), y), offset: .50},
-        {transform: place(mx - 22, Math.min(y, my) - 24), offset: .62},
-        {transform: place(mx, my), offset: .73},
-        {transform: place(mx, my), opacity: 1, offset: .89},
+        {transform: place(Math.max(x, Math.min(mx - 48, areaBox.width - 196)), y), offset: walkMs / duration},
+        {transform: place(mx - 22, Math.min(y, my) - 24), offset: (walkMs + hopMs * .52) / duration},
+        {transform: place(mx, my), offset: landed},
+        {transform: place(mx, my), opacity: 1, offset: (walkMs + hopMs + 750) / duration},
         {transform: place(clamp(areaBox.width - size), my - 8), opacity: 0, offset: 1},
-      ], {duration: 4700, fill: 'forwards'});
+      ], {duration, fill: 'forwards'});
       timer = window.setTimeout(() => {
         node.dataset.pose = 'jump';
         timer = window.setTimeout(() => {
           node.dataset.pose = 'wave';
           words.current.textContent = '¡Nos vemos!';
-        }, 1080);
-      }, 2350);
+        }, hopMs);
+      }, walkMs);
       animation.onfinish = stop;
     }
     void start();
@@ -79,6 +83,10 @@ export default function CatalogFox() {
 
   return <div ref={actor} className="meryo-catalog-fox" hidden aria-hidden="true">
     <div ref={words} className="meryo-catalog-fox__speech">Bienvenido a MERYO, plataforma de barberías.</div>
-    <div className="meryo-catalog-fox__sprite" style={{backgroundImage: `url(${sprite})`}} />
+    <div className="meryo-catalog-fox__sprite" style={{'--fox-sheet': `url(${sprite})`}}>
+      <span className="meryo-catalog-fox__leg meryo-catalog-fox__leg--back" />
+      <span className="meryo-catalog-fox__leg meryo-catalog-fox__leg--front" />
+      <span className="meryo-catalog-fox__body" />
+    </div>
   </div>;
 }
