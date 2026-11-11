@@ -3,7 +3,7 @@ import sprite from '../assets/catalog-fox.webp';
 import walkFrames from '../assets/catalog-fox-walk.webp';
 import './CatalogFox.css';
 
-const seenKey = 'meryo.catalog-fox.seen.v3';
+const seenKey = 'meryo.catalog-fox.seen.v4';
 let seenHere = false;
 
 export default function CatalogFox() {
