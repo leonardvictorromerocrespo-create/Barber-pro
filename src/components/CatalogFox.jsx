@@ -1,8 +1,9 @@
 import {useEffect, useRef} from 'react';
 import sprite from '../assets/catalog-fox.webp';
+import walkFrames from '../assets/catalog-fox-walk.webp';
 import './CatalogFox.css';
 
-const seenKey = 'meryo.catalog-fox.seen.v2';
+const seenKey = 'meryo.catalog-fox.seen.v3';
 let seenHere = false;
 
 export default function CatalogFox() {
@@ -23,9 +24,13 @@ export default function CatalogFox() {
       window.clearTimeout(timer);
     };
     async function start() {
-      const image = new Image();
-      image.src = sprite;
-      try { await image.decode(); } catch { return; }
+      try {
+        await Promise.all([sprite, walkFrames].map(src => {
+          const image = new Image();
+          image.src = src;
+          return image.decode();
+        }));
+      } catch { return; }
       if (stopped || seenHere) return;
       const turn = area.querySelector('.meryo-turn-finder__trigger');
       const map = area.querySelector('.meryo-catalog-map-control > button');
@@ -83,10 +88,6 @@ export default function CatalogFox() {
 
   return <div ref={actor} className="meryo-catalog-fox" hidden aria-hidden="true">
     <div ref={words} className="meryo-catalog-fox__speech">Bienvenido a MERYO, plataforma de barberías.</div>
-    <div className="meryo-catalog-fox__sprite" style={{'--fox-sheet': `url(${sprite})`}}>
-      <span className="meryo-catalog-fox__leg meryo-catalog-fox__leg--back" />
-      <span className="meryo-catalog-fox__leg meryo-catalog-fox__leg--front" />
-      <span className="meryo-catalog-fox__body" />
-    </div>
+    <div className="meryo-catalog-fox__sprite" style={{'--fox-sheet': `url(${sprite})`, '--fox-walk': `url(${walkFrames})`}} />
   </div>;
 }
