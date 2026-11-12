@@ -36,7 +36,7 @@ export function OwnerBookingNotice({notice,onDismiss}){
  </aside>;
 }
 
-export default function NotificationAccess({api,profile,loading,showNavigation=true}){
+export default function NotificationAccess({api,profile,loading,showNavigation=true,adminMode=false}){
  const [offer,setOffer]=useState(null),[dismissed,setDismissed]=useState(null),[busy,setBusy]=useState(false),[feedback,setFeedback]=useState(null),[offerTop,setOfferTop]=useState(72),[bookingNotice,setBookingNotice]=useState(null),[requestOfferFor,setRequestOfferFor]=useState(null),[blockedHint,setBlockedHint]=useState(null),id=profile?.id;
  const shownNoticeIds=useRef(new Set());
  const chime=useRef(null);
@@ -114,7 +114,7 @@ export default function NotificationAccess({api,profile,loading,showNavigation=t
  }
  const hasFeedback=feedback && feedback.id===id;
  return <>
-  {showNavigation&&<header className="meryo-notification-access-header border-b border-white/10 bg-neutral-950 text-white"><div className="mx-auto max-w-7xl px-6 py-2"><nav aria-label="Mi cuenta y avisos" className="flex items-center justify-end gap-3"><a className="text-sm text-neutral-300" href="/#account">Mi cuenta</a><NotificationBell/></nav></div></header>}
+  {showNavigation&&<header className={`meryo-notification-access-header border-b border-white/10 bg-neutral-950 text-white${adminMode?' meryo-notification-access-header--admin':''}`}><div className="mx-auto max-w-7xl px-6 py-2"><nav aria-label="Mi cuenta y avisos" className="flex items-center justify-end gap-3"><a className="text-sm text-neutral-300" href="/#account">Mi cuenta</a><NotificationBell/></nav></div></header>}
   {visible&&<NotificationOffer busy={busy} top={offerTop} onAccept={activate} onReject={reject}/>}
   {blockedVisible&&<NotificationBlocked top={offerTop}/>}
   <OwnerBookingNotice notice={bookingNotice} onDismiss={dismissBookingNotice}/>
