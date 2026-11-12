@@ -297,8 +297,8 @@ function MeryoScreens({identity,view,setView}) {
 
 useEffect(() => { cargarBarberiasActivas(); }, [cargarBarberiasActivas,catalogLoadRevision]);
   const ranking = useMemo(
-    () => selectShops(catalogRows, { query, district, order, location }),
-    [catalogRows, query, district, order, location]
+    () => selectShops(catalogRows, { query:catalogCategory==='barberia'?'':query, district, order, location }),
+    [catalogRows, catalogCategory, query, district, order, location]
   );
 
   const markers = useMemo(() => catalogMarkers(ranking), [ranking]);
@@ -860,6 +860,8 @@ if (view === "client-login") {
   );
 }
 if (view === "admin" && adminAccess) return <AdminShops api={api} profile={identity.profile} onSecurity={()=>setAdminSecurityOpen(true)} onLogout={handleLogout} onBack={()=>setView('client')} onChanged={cargarBarberiasActivas}/>;
+  const catalogControls=<><CatalogFilters showSearch={catalogCategory!=='barberia'} query={query} district={district} order={order} hasLocation={!!location} onQuery={setQuery} onDistrict={setDistrict} onOrder={setOrder} onUseLocation={enableLocation} onClearFilters={clearCatalogFilters} districtPrompt={catalogCategory==='barberia'?'Escoge tu distrito':undefined} businessLabel={catalogCategory==='belleza'?'salón':'barbería'} businessPlural={catalogCategory==='belleza'?'peluquerías y salones':'barberías'} />
+    {locationError&&<p role="alert" className="mt-2 text-sm text-amber-300">{locationError}</p>}</>;
   return (
     <div data-meryo-theme={catalogCategory==='belleza'?'beauty':'barberia'} data-meryo-mode={themeMode} data-meryo-appearance={themeAppearance} className="meryo-catalog-page min-h-screen bg-neutral-950 pb-24 text-white md:pb-0">
       <MeryoHeader
@@ -881,14 +883,14 @@ if (view === "admin" && adminAccess) return <AdminShops api={api} profile={ident
             <div className="min-w-0"><h1 className="meryo-catalog-heading">{catalogCategory==='belleza'?'Encuentra tu salón':'Encuentra tu barbería'}</h1>{district&&<p className="mt-1 text-sm text-neutral-400">Distrito: {district}</p>}</div>
             <div className="meryo-catalog-top-actions"><p className="meryo-catalog-count" aria-live="polite">{catalogLoading||!catalogMatchesCategory?'Cargando…':catalogError?'Catálogo no disponible':catalogCountLabel(catalogCategory,ranking.length)}</p>{catalogCategory==='belleza'&&<ThemeAppearancePicker category={catalogCategory} appearance={themeAppearance} onSelect={selectThemeAppearance}/>}</div>
           </div>
-          <CatalogFilters query={query} district={district} order={order} hasLocation={!!location} onQuery={setQuery} onDistrict={setDistrict} onOrder={setOrder} onUseLocation={enableLocation} onClearFilters={clearCatalogFilters} districtPrompt={catalogCategory==='barberia'?'Escoge tu distrito':undefined} businessLabel={catalogCategory==='belleza'?'salón':'barbería'} businessPlural={catalogCategory==='belleza'?'peluquerías y salones':'barberías'} />
-          {locationError&&<p role="alert" className="mt-2 text-sm text-amber-300">{locationError}</p>}
+          {catalogCategory==='belleza'&&catalogControls}
           <div className="meryo-catalog-fox-stage">
           <div className="meryo-catalog-shortcuts" aria-label="Accesos rápidos">
             <TurnFinder key={`turn-finder-${catalogCategory}`} category={catalogCategory} shops={catalogMatchesCategory&&!catalogLoading&&!catalogError?catalogRows:[]} disabled={!catalogMatchesCategory||catalogLoading||Boolean(catalogError)||catalogRows.length===0} slots={api.slots} themeMode={themeMode} themeAppearance={themeAppearance} onReserve={turn=>openBookingModal(turn.shop,turn,{startStep:3})}/>
             <button type="button" onClick={()=>{setSelectedInspiration(null);setInspirationIssue('');setView('inspiration');}}><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="m21 15-5-5L5 21"/></svg><span>Inspiración</span></button>
             <button type="button" className="meryo-catalog-promotion-shortcut" onClick={catalogCategory==='belleza'?openBeautyPromotions:()=>setView('promotions')}><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round"><path d="M20.6 13.4 13.4 20.6a2 2 0 0 1-2.8 0L3.4 13.4a2 2 0 0 1 0-2.8l7.2-7.2H19a2 2 0 0 1 2 2v8z"/><circle cx="16.5" cy="7.5" r="1"/></svg><span>Promociones</span></button>
           </div>
+          {catalogCategory==='barberia'&&catalogControls}
           <div className="meryo-catalog-map-control"><button type="button" onClick={()=>setShowMap(value=>!value)} aria-expanded={showMap}><span>{showMap?'Ocultar mapa':catalogCategory==='barberia'?'Ver en el mapa':'Ver mapa'}</span><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="m3 6 6-3 6 3 6-3v15l-6 3-6-3-6 3z"/><path d="M9 3v15m6-12v15"/></svg></button></div>
           {catalogCategory==='barberia'&&!showMap&&!showProfileModal&&!showBookingModal&&<CatalogFox />}
           </div>

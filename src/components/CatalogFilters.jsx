@@ -4,21 +4,21 @@ const fieldClass='meryo-catalog-field min-h-11 min-w-0 rounded-lg px-3 py-2 text
 
 export default function CatalogFilters({
   query,district,order,hasLocation,onQuery,onDistrict,onOrder,onUseLocation,
-  onClearFilters=()=>{},districtPrompt='Todos los distritos',businessLabel='barbería',businessPlural='barberías',
+  onClearFilters=()=>{},showSearch=true,districtPrompt='Todos los distritos',businessLabel='barbería',businessPlural='barberías',
 }) {
   const secondaryCount=Number(Boolean(hasLocation))+Number(order!=='name');
   const active=[
-    query&&{key:'query',label:`Texto: ${query}`},
+    showSearch&&query&&{key:'query',label:`Texto: ${query}`},
     district&&{key:'district',label:district},
     hasLocation&&{key:'location',label:'Ubicación activa'},
     order!=='name'&&{key:'order',label:order==='price'?'Menor precio':'Más cercanas'},
   ].filter(Boolean);
 
   return <section className="meryo-catalog-controls" aria-label={`Buscar ${businessPlural}`}>
-    <label className="sr-only" htmlFor="meryo-catalog-search">Buscar {businessLabel} por nombre o distrito</label>
+    {showSearch&&<><label className="sr-only" htmlFor="meryo-catalog-search">Buscar {businessLabel} por nombre o distrito</label>
     <input id="meryo-catalog-search" type="search" autoComplete="off" value={query}
       onChange={event=>onQuery(event.target.value)} placeholder="Nombre del negocio o distrito"
-      className={`${fieldClass} meryo-catalog-search w-full`}/>
+      className={`${fieldClass} meryo-catalog-search w-full`}/></>}
     <div className="meryo-catalog-filter-row mt-2">
       <label className="min-w-0 flex-1">
         <span className="sr-only">Distrito</span>

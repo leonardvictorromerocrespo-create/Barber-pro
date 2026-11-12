@@ -1424,3 +1424,14 @@ body {
 .meryo-cut-promotions[data-meryo-theme="barberia"][data-meryo-mode="dark"][data-meryo-appearance="negro-gris"] {
   background-color: #000;
 }
+
+/* A faint diagonal watermark gives the shortcuts shape without a border. */
+.meryo-catalog-page[data-meryo-theme="barberia"] .meryo-catalog-shortcuts > button,
+.meryo-catalog-page[data-meryo-theme="barberia"] .meryo-catalog-shortcuts .meryo-turn-finder__trigger {
+  border-radius: .65rem;
+  background-image: repeating-linear-gradient(
+    135deg,
+    color-mix(in srgb, var(--meryo-text) 8%, transparent) 0 1px,
+    transparent 1px 8px
+  ) !important;
+}
