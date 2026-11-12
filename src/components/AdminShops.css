@@ -86,8 +86,8 @@
 .meryo-admin-filters > button:hover { background: #1d354b; }
 .meryo-admin-filters > button span { margin-left: .5rem; color: var(--admin-gold); font-size: 1.1rem; }
 .meryo-admin-businesses { display: grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap: 1rem; }
-.meryo-admin .meryo-admin-businesses > article { position: relative; min-height: 208px; overflow: hidden; border: 0; border-radius: 15px; padding: 1.35rem; background: linear-gradient(135deg, #171613 0%, #12110f 70%); box-shadow: 0 14px 35px rgba(0,0,0,.18); }
-.meryo-admin .meryo-admin-businesses > article::after { position: absolute; right: -35px; bottom: -70px; width: 180px; height: 180px; border-radius: 50%; background: radial-gradient(circle, rgba(215,180,75,.075), transparent 70%); content: ""; pointer-events: none; }
+.meryo-admin .meryo-admin-businesses > article { position: relative; min-height: 208px; overflow: hidden; border: 0; border-radius: 15px; padding: 1.35rem; background: linear-gradient(135deg, #2b435c 0%, #23384e 74%, #203348 100%); box-shadow: 0 16px 36px rgba(0,0,0,.28), 0 8px 24px rgba(42,83,119,.16); }
+.meryo-admin .meryo-admin-businesses > article::after { position: absolute; right: -35px; bottom: -70px; width: 180px; height: 180px; border-radius: 50%; background: radial-gradient(circle, rgba(111,182,232,.13), transparent 70%); content: ""; pointer-events: none; }
 .meryo-admin-business-top { display: flex; align-items: center; gap: .65rem; }
 .meryo-admin-status { color: #ddd5c5; font-size: .65rem; font-weight: 700; letter-spacing: .09em; text-transform: uppercase; }
 .meryo-admin-status.activa { color: #7fcfad; }
@@ -102,7 +102,7 @@
 .meryo-admin-back { margin-bottom: 1rem; border: 0; background: transparent; color: var(--admin-gold); font: inherit; cursor: pointer; }
 
 /* Unifies existing admin subviews with the borderless visual system. */
-.meryo-admin .rounded-2xl.border { border-color: transparent; background-color: #141310; box-shadow: 0 12px 28px rgba(0,0,0,.14); }
+.meryo-admin .rounded-2xl.border { border-color: transparent; background-color: #263c53; box-shadow: 0 14px 30px rgba(0,0,0,.23), 0 6px 20px rgba(42,83,119,.12); }
 .meryo-admin .border-t { border-color: rgba(255,255,255,.08); }
 .meryo-admin .border-l { border-color: rgba(111,182,232,.45); }
 .meryo-admin input:focus, .meryo-admin select:focus, .meryo-admin textarea:focus { border-color: var(--admin-gold); outline: none; }

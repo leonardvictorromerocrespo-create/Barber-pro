@@ -94,7 +94,7 @@ const todayInLima=()=>{
 export default function BarberProApp() {
  const identity=useIdentity(supabase);
   const [view, setView] = useState(()=>{const raw=typeof window==='undefined'?'':window.location.hash.slice(1);const hash=raw.startsWith('team-invite/')?'team-invite':raw;const search=typeof window==='undefined'?'':window.location.search,access=new URLSearchParams(search).get('access');const fallback=isPublicShopPath(typeof window==='undefined'?'':window.location.pathname)?'client':ALLOWED_VIEWS.includes(hash)?hash:'landing';return bookingDestination(search,access==='barber'?'barber-login':access==='shop-register'?'shop-register':fallback);});
- return <><NotificationAccess api={api} profile={identity.profile} loading={identity.loading} showNavigation={view!=='landing'&&view!=='client'}/><MeryoScreens identity={identity} view={view} setView={setView}/></>;
+ return <><NotificationAccess api={api} profile={identity.profile} loading={identity.loading} showNavigation={view!=='landing'&&view!=='client'} adminMode={view==='admin'}/><MeryoScreens identity={identity} view={view} setView={setView}/></>;
 }
 function MeryoScreens({identity,view,setView}) {
   const [location, setLocation] = useState(null);
