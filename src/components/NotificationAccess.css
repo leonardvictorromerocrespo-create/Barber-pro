@@ -1,3 +1,12 @@
+.meryo-notification-access-header.meryo-notification-access-header--admin {
+  border: 0 !important;
+  background: #1d3349 !important;
+  color: #e8f2fb;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, .2);
+}
+
+.meryo-notification-access-header--admin a { color: #d7e8f6 !important; }
+
 .meryo-notification-offer {
   position: fixed;
   z-index: 55;
