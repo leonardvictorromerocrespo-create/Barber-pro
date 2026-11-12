@@ -16,8 +16,9 @@ export default function CatalogShopGrid({shops,category='barberia',onView,onRese
         <div className="meryo-shop-card__image">
           {shop.image?<img src={shop.image} alt={`Portada de ${shop.name}`} loading="lazy"/>:<div className="meryo-shop-card__placeholder" role="img" aria-label="Sin fotografía de portada publicada"/>}
         </div>
-        <div className="meryo-shop-card__content min-w-0">
-          {renderLike?<div className="meryo-shop-card__title-row"><p className="meryo-shop-card__category">{label}</p>{renderLike(shop)}</div>:<p className="meryo-shop-card__category">{label}</p>}
+        <div className={`meryo-shop-card__content min-w-0${renderLike?' meryo-shop-card__content--likes':''}`}>
+          <p className="meryo-shop-card__category">{label}</p>
+          {renderLike&&renderLike(shop)}
           <h2 className="meryo-shop-card__name">{shop.name}</h2>
           <p className="meryo-shop-card__district">{shop.district||'Distrito no publicado'}</p>
           <div className="meryo-shop-card__facts">

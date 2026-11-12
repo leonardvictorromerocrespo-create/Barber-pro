@@ -63,7 +63,7 @@ export default function BarberCatalogHighlights({api,shops,identity,onLogin,onVi
     }catch{setMessage('No pudimos actualizar tu Me gusta. Inténtalo de nuevo.');}
     finally{mutation.current=false;setBusy(false);}
   };
-  const renderLike=data!==null&&(!identity||identity.rol==='cliente')?shop=>{
+  const renderLike=(!identity||identity.rol==='cliente')?shop=>{
     const info=stats.get(String(shop.id));
     return <button type="button" className="meryo-catalog-like" disabled={busy} aria-pressed={!!info?.liked} aria-label={`Me gusta: ${shop.name}`} onClick={()=>void vote(shop)}><span aria-hidden="true">{info?.liked?'♥':'♡'}</span> {Number(info?.likes||0)}</button>;
   }:undefined;
