@@ -2,7 +2,7 @@ begin;
 
 do $preflight$
 begin
-  if to_regclass('meryo_private') is null
+  if not exists(select 1 from pg_namespace where nspname='meryo_private')
      or to_regclass('public.barberias') is null
      or to_regclass('public.profiles') is null
      or to_regprocedure('public.mi_barberia_id()') is null
