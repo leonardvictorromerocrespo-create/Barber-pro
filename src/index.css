@@ -573,7 +573,7 @@ body {
 .meryo-catalog-shortcuts .meryo-turn-finder__trigger:hover:not(:disabled) { background: transparent !important; color: var(--meryo-gold-light); }
 .meryo-catalog-shortcuts :where(button):disabled { color: var(--meryo-text-muted); opacity: .65; box-shadow: none; }
 .meryo-catalog-shortcuts :where(button):focus-visible { outline: 2px solid var(--meryo-gold-light); outline-offset: 2px; }
-.meryo-catalog-promotion-shortcut { color: var(--meryo-gold-light) !important; }
+.meryo-catalog-promotion-shortcut { color: #a87837 !important; }
 .meryo-catalog-promotion-shortcut > span { color: var(--meryo-text) !important; }
 .meryo-shop-grid { display: grid; grid-template-columns: minmax(0,1fr); gap: .7rem; }
 .meryo-shop-card { display: flex; min-height: 164px; border: 0; border-radius: 10px; background: var(--meryo-surface); color: var(--meryo-text); box-shadow: 0 4px 12px rgb(0 0 0 / 12%); }
@@ -1431,7 +1431,7 @@ body {
   width: 1.45rem;
   height: 1.45rem;
   display: block;
-  color: #95672d;
+  color: #a87837;
 }
 .meryo-shortcut-reference-image { filter: none; }
 .meryo-catalog-page[data-meryo-theme="barberia"][data-meryo-mode="dark"][data-meryo-appearance="negro-gris"] .meryo-catalog-shortcuts svg.meryo-barber-shortcut-icon {
