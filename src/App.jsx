@@ -9,6 +9,7 @@ import { createMeryoApi } from './lib/meryo-api';
 import MeryoLogo from './components/MeryoLogo';
 import { DEFAULT_THEME_APPEARANCE, themeAppearanceOption } from './lib/theme-appearances';
 import { useIdentity } from './lib/useIdentity';
+import { PROFILE_PHOTO_TITLE } from './lib/shop-content';
 import {disableBookingPush} from './lib/push';
 import {bookingLinkIntent} from './lib/booking-origin';
 import {saveDraft,readDraft,clearDraft,beginGoogle} from './lib/booking-draft';
@@ -195,6 +196,8 @@ function MeryoScreens({identity,view,setView}) {
   const [showBookingModal, setShowBookingModal] = useState(false);
   const [bookingStartStep,setBookingStartStep]=useState(1);
   const [showProfileModal, setShowProfileModal] = useState(false);
+  const [profileAssetsLoading,setProfileAssetsLoading]=useState(false);
+  const [profileAssetsError,setProfileAssetsError]=useState('');
   const [profileUnavailable,setProfileUnavailable]=useState(false);
   const profileRouteId=publicShopIdFromPath(locationPath);
   useEffect(()=>{
@@ -204,6 +207,21 @@ function MeryoScreens({identity,view,setView}) {
     if(shop){setSelectedShop(shop);setShowProfileModal(true);setProfileUnavailable(false);}
     else{setSelectedShop(null);setShowProfileModal(false);setProfileUnavailable(true);}
   },[profileRouteId,catalogMatchesCategory,catalogLoading,catalogRows]);
+  useEffect(()=>{
+    if(!showProfileModal||!selectedShop){setProfileAssetsLoading(false);setProfileAssetsError('');return;}
+    let active=true;
+    const shopId=String(selectedShop.id);
+    setProfileAssetsLoading(true);setProfileAssetsError('');
+    api.shopAssets(shopId).then(assets=>{
+      if(!active)return;
+      const cover=assets.find(asset=>asset.kind==='portada'&&asset.url);
+      const profile=assets.filter(asset=>asset.kind==='foto'&&asset.title===PROFILE_PHOTO_TITLE&&asset.url).at(-1);
+      setSelectedShop(current=>!current||String(current.id)!==shopId?current:{...current,assets,coverImage:cover?.url||current.coverImage,image:cover?.url||current.image,profileImage:profile?.url||null,contentError:''});
+    }).catch(error=>{
+      if(active)setProfileAssetsError(error.message||'No se pudo cargar el contenido del perfil.');
+    }).finally(()=>{if(active)setProfileAssetsLoading(false);});
+    return()=>{active=false;};
+  },[api,showProfileModal,selectedShop?.id]);
   useEffect(()=>{
     if(profileRouteId&&!showProfileModal&&!profileUnavailable)return;
     const shop=showProfileModal?selectedShop:null;
@@ -908,6 +926,8 @@ if (view === "admin" && adminAccess) return <Suspense fallback={lazyFallback}><A
         catalogCategory={catalogCategory}
         themeMode={themeMode}
         themeAppearance={themeAppearance}
+        contentLoading={profileAssetsLoading}
+        contentError={profileAssetsError}
         onClose={closeProfileModal}
         onStore={openStoreModal}
         onReserve={service => {
