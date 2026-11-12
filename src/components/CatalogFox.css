@@ -24,7 +24,8 @@
   border-radius: .7rem;
   padding: .45rem .65rem;
   background: #fffbf5;
-  color: #3b2c22;
+  color: #000;
+  font-weight: 600;
   box-shadow: 0 2px 8px #0002;
   font-size: .875rem;
   line-height: 1.3;
@@ -70,15 +71,17 @@
   inset: 0 auto 0 0;
   width: 140px;
   background: var(--fox-wave) 0 0 / 300% 100% no-repeat;
-  transform: scaleX(-1);
+  transform: rotate(-17deg) scaleX(-1);
+  transform-origin: 65% 62%;
+  mask-image: linear-gradient(to bottom, #000 0 79%, transparent 99%);
   animation: meryo-fox-peek 3.5s ease both, meryo-fox-return-wave 1.05s step-end 3;
 }
 .meryo-catalog-fox[data-pose="return"] .meryo-catalog-fox__speech {
   inset: 23px calc(100% + 4px) auto auto;
 }
 @keyframes meryo-fox-peek {
-  0%, 100% { transform: translateX(100px) scaleX(-1); }
-  12%, 87% { transform: translateX(0) scaleX(-1); }
+  0%, 100% { transform: translateX(100px) rotate(-17deg) scaleX(-1); }
+  12%, 87% { transform: translateX(0) rotate(-17deg) scaleX(-1); }
 }
 @keyframes meryo-fox-return-opacity {
   0%, 100% { opacity: 0; }
