@@ -106,13 +106,13 @@ function MeryoScreens({identity,view,setView}) {
   const [district, setDistrict] = useState("");
   const [order, setOrder] = useState("name");
   const [catalogCategory,setCatalogCategory]=useState(()=>new URLSearchParams(typeof window==='undefined'?'':window.location.search).get('catalogo')==='belleza'?'belleza':'barberia');
-  const [themeModes,setThemeModes]=useState(()=>({barberia:readThemeMode('barberia','dark'),belleza:readThemeMode('belleza','light')}));
-  const [themePalettes,setThemePalettes]=useState(()=>({barberia:readThemeAppearance('barberia',readThemeMode('barberia','dark')),belleza:readThemeAppearance('belleza',readThemeMode('belleza','light'))}));
+  const [themeModes,setThemeModes]=useState(()=>({barberia:readThemeMode('barberia','light'),belleza:readThemeMode('belleza','light')}));
+  const [themePalettes,setThemePalettes]=useState(()=>({barberia:readThemeAppearance('barberia',readThemeMode('barberia','light')),belleza:readThemeAppearance('belleza',readThemeMode('belleza','light'))}));
   const [themePalettePreferences,setThemePalettePreferences]=useState(()=>({
     barberia:{light:readThemeAppearance('barberia','light'),dark:readThemeAppearance('barberia','dark')},
     belleza:{light:readThemeAppearance('belleza','light'),dark:readThemeAppearance('belleza','dark')},
   }));
-  const themeMode=themeModes[catalogCategory]|| (catalogCategory==='belleza'?'light':'dark');
+  const themeMode=themeModes[catalogCategory]||'light';
   const themeAppearance=themePalettes[catalogCategory]||DEFAULT_THEME_APPEARANCE[catalogCategory]?.[themeMode];
   const persistThemeSelection=(category,mode,appearance)=>{
     try{
@@ -130,7 +130,7 @@ function MeryoScreens({identity,view,setView}) {
     persistThemeSelection(catalogCategory,option.mode,appearance);
   };
   const toggleThemeMode=(category=catalogCategory)=>{
-    const currentMode=themeModes[category]||(category==='belleza'?'light':'dark');
+    const currentMode=themeModes[category]||'light';
     const nextMode=currentMode==='dark'?'light':'dark';
     const nextAppearance=themePalettePreferences[category]?.[nextMode]||DEFAULT_THEME_APPEARANCE[category]?.[nextMode];
     if(!nextAppearance)return;
@@ -917,7 +917,7 @@ if (view === "admin" && adminAccess) return <AdminShops api={api} profile={ident
         onInspiration={()=>{const url=new URL(window.location.href);url.pathname='/';url.search='';url.searchParams.set('catalogo',catalogCategory);url.hash='inspiration';window.history.replaceState(window.history.state,'',url.href);setLocationPath('/');setShowProfileModal(false);setSelectedInspiration(null);setInspirationIssue('');setView('inspiration');}}
       />
 
-      {showStoreModal&&storeShop&&<Suspense fallback={null}><StoreModal key={`${storeShop.id}-${Boolean(restoredPickupCart)}`} api={api} shop={storeShop} profile={identity.profile} category={storeCategory} themeMode={themeModes[storeCategory]|| (storeCategory==='belleza'?'light':'dark')} themeAppearance={themePalettes[storeCategory]||DEFAULT_THEME_APPEARANCE[storeCategory]?.[themeModes[storeCategory]||'dark']} initialCart={restoredPickupCart} onLogin={destination=>openLogin(destination)} onClose={()=>{setShowStoreModal(false);setRestoredPickupCart(null);}} onOpenOrders={orderId=>{setShowStoreModal(false);const url=new URL(window.location.href);url.searchParams.set('pedido',orderId);window.history.replaceState(null,'',url.pathname+url.search+'#my-orders');setView('my-orders');}}/></Suspense>}
+      {showStoreModal&&storeShop&&<Suspense fallback={null}><StoreModal key={`${storeShop.id}-${Boolean(restoredPickupCart)}`} api={api} shop={storeShop} profile={identity.profile} category={storeCategory} themeMode={themeModes[storeCategory]||'light'} themeAppearance={themePalettes[storeCategory]||DEFAULT_THEME_APPEARANCE[storeCategory]?.[themeModes[storeCategory]||'light']} initialCart={restoredPickupCart} onLogin={destination=>openLogin(destination)} onClose={()=>{setShowStoreModal(false);setRestoredPickupCart(null);}} onOpenOrders={orderId=>{setShowStoreModal(false);const url=new URL(window.location.href);url.searchParams.set('pedido',orderId);window.history.replaceState(null,'',url.pathname+url.search+'#my-orders');setView('my-orders');}}/></Suspense>}
 
       {renderBookingModal()}
 
