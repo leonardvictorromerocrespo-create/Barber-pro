@@ -1,21 +1,23 @@
 const artwork = {
   today: <>
-    <circle cx="15" cy="17" r="10.3"/>
-    <path d="M15 10.8v6.4l4.2 2.3M8.2 4.5l-3.5 3.2m20.7-3.2 3.4 3.2"/>
-    <path className="meryo-shortcut-accent" d="M24.3 3.4v5.2m-2.6-2.6h5.2"/>
-    <path d="M8.1 2.9h6.1"/>
+    {/* Open clock arcs and hands based on Leo's first reference. */}
+    <path d="M6.8 12.1A10.6 10.6 0 0 1 24.9 7M26.2 13.8A10.6 10.6 0 1 1 8.1 8.2" />
+    <path d="M15.8 10.2v7.1l5.1 2.5M12.5 3.2a13 13 0 0 1 8.6 1.7" />
+    <path className="meryo-shortcut-accent" d="M25.9 2.5v5.4m-2.7-2.7h5.4" />
+    <path d="M10.3 3.8a13.6 13.6 0 0 0-4.2 3.4" />
   </>,
   inspiration: <>
-    <path d="m7.2 15.8 9.3-10.5 9.1 10.4-9.3 10.1-9.1-10Z"/>
-    <path d="m11.5 15.7 4.9-5.5 4.8 5.4-4.9 5.3-4.8-5.2Z"/>
-    <path className="meryo-shortcut-accent" d="M25.6 3v5.1m-2.5-2.55h5"/>
-    <path d="m5.5 6.5 2 2m-2-2-2 2"/>
+    {/* Diamond and curved orbit strokes based on Leo's first reference. */}
+    <path d="M7.1 12.8A10.3 10.3 0 0 1 20.2 5.1M24.2 10.2a10.3 10.3 0 0 1-13.1 16" />
+    <path d="m11.5 15.9 4.8-5.2 4.9 5.2-4.9 5.3-4.8-5.3Z" />
+    <path d="m14.3 15.9 2-2.1 2.1 2.1-2.1 2.2-2-2.2Z" />
+    <path className="meryo-shortcut-accent" d="M25.8 2.4v5.4m-2.7-2.7h5.4" />
   </>,
   promotions: <>
+    {/* Original price-tag silhouette, slightly longer and tilted. */}
     <g transform="rotate(-43 16 16)">
-      <path d="M6 10.5h17.5l3 3v5l-3 3H6a2.5 2.5 0 0 1-2.5-2.5v-6A2.5 2.5 0 0 1 6 10.5Z"/>
-      <circle cx="21.4" cy="16" r="1.1"/>
-      <text className="meryo-shortcut-percent" x="10.1" y="18.1">%</text>
+      <path d="M4.4 13.1 12.8 4.8h12.1v13.2l-8.1 8.1L4.4 14.3a.85.85 0 0 1 0-1.2Z" />
+      <circle cx="20.7" cy="9.2" r="1.05" />
     </g>
   </>,
 };
