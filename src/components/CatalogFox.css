@@ -93,10 +93,14 @@
   animation: meryo-fox-peek 3.5s ease both, meryo-fox-return-wave 1.05s step-end 3;
 }
 .meryo-catalog-fox[data-pose="return"] .meryo-catalog-fox__speech {
-  inset: 58px calc(100% - 32px) auto auto;
-  max-width: min(14rem, calc(100vw - 188px));
+  /* Anchor to the visible cheek, inside the transparent sprite bounds. */
+  inset: 58px 54px auto auto;
+  max-width: min(14rem, calc(100vw - 90px));
   padding: .65rem .9rem;
   font-size: 1.125rem;
+}
+.meryo-catalog-fox[data-pose="return"] .meryo-catalog-fox__speech::after {
+  right: -4px;
 }
 @keyframes meryo-fox-peek {
   0%, 100% { transform: translateX(200px) rotate(-17deg) scaleX(-1); }
