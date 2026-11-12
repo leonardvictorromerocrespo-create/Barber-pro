@@ -1425,17 +1425,17 @@ body {
   background-color: #000;
 }
 
-/* Shared proportions and a restrained gold accent for Barberías shortcuts. */
+/* Compact signature shortcuts; white on black, original gold on ivory. */
 .meryo-catalog-shortcuts :is(button, .meryo-turn-finder__trigger) svg.meryo-barber-shortcut-icon {
-  width: 1.9rem;
-  height: 1.9rem;
+  width: 1.45rem;
+  height: 1.45rem;
   color: #95672d;
 }
-[data-meryo-mode="dark"] .meryo-catalog-shortcuts :is(button, .meryo-turn-finder__trigger) svg.meryo-barber-shortcut-icon { color: #e2b66f; }
+[data-meryo-mode="dark"] .meryo-catalog-shortcuts :is(button, .meryo-turn-finder__trigger) svg.meryo-barber-shortcut-icon { color: #fff; }
 .meryo-barber-shortcut-icon .meryo-shortcut-accent { stroke: #95672d; }
-[data-meryo-mode="dark"] .meryo-barber-shortcut-icon .meryo-shortcut-accent { stroke: #e2b66f; }
+[data-meryo-mode="dark"] .meryo-barber-shortcut-icon .meryo-shortcut-accent { stroke: #fff; }
 .meryo-barber-shortcut-icon .meryo-shortcut-percent {
   fill: currentColor;
   stroke: none;
-  font: 600 7px/1 ui-sans-serif, system-ui, sans-serif;
+  font: 600 5.5px/1 ui-sans-serif, system-ui, sans-serif;
 }
