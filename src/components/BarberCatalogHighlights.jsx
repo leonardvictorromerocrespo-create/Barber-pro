@@ -54,8 +54,8 @@ export default function BarberCatalogHighlights({api,shops,identity,onLogin,onVi
   const liked=shops.filter(shop=>Number(stats.get(String(shop.id))?.likes)>0)
     .sort((a,b)=>Number(stats.get(String(b.id)).likes)-Number(stats.get(String(a.id)).likes)||a.name.localeCompare(b.name,'es')).slice(0,10);
   const vote=async shop=>{
-    if(!identity){onLogin();return;}
-    if(identity.rol!=='cliente'||mutation.current)return;
+    if(identity?.rol!=='cliente'){onLogin();return;}
+    if(mutation.current)return;
     mutation.current=true;setBusy(true);setMessage('');
     try{
       await api.setBarberLike(shop.id,!stats.get(String(shop.id))?.liked);
@@ -63,10 +63,10 @@ export default function BarberCatalogHighlights({api,shops,identity,onLogin,onVi
     }catch{setMessage('No pudimos actualizar tu Me gusta. Inténtalo de nuevo.');}
     finally{mutation.current=false;setBusy(false);}
   };
-  const renderLike=(!identity||identity.rol==='cliente')?shop=>{
+  const renderLike=shop=>{
     const info=stats.get(String(shop.id));
     return <button type="button" className="meryo-catalog-like" disabled={busy} aria-pressed={!!info?.liked} aria-label={`Me gusta: ${shop.name}`} onClick={()=>void vote(shop)}><span aria-hidden="true">{info?.liked?'♥':'♡'}</span> {Number(info?.likes||0)}</button>;
-  }:undefined;
+  };
 
   return <>
     {featured.length>0&&<Featured shops={featured} onView={onView} onReserve={onReserve}/>}

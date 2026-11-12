@@ -20,7 +20,7 @@
 .meryo-featured-rail .meryo-shop-card:only-child { flex-basis:min(100%, 29rem); }
 .meryo-rail-controls { display:flex; gap:.35rem; }
 .meryo-rail-controls button { min-width:44px; min-height:44px; border:1px solid currentColor; border-radius:.65rem; }
-.meryo-catalog-like { position:absolute; top:.1rem; right:.1rem; z-index:1; display:inline-flex; min-width:44px; min-height:44px; height:44px; align-items:center; justify-content:center; border:0; border-radius:0; background:transparent; padding:0 .4rem; line-height:1; box-shadow:none; }
+.meryo-catalog-like { position:absolute; top:.1rem; right:.1rem; z-index:2; display:inline-flex; min-width:44px; min-height:44px; height:44px; align-items:center; justify-content:center; border:0; border-radius:0; background:transparent; padding:0 .4rem; color:var(--meryo-text); font-size:.9rem; line-height:1; box-shadow:none; opacity:1; visibility:visible; }
 .meryo-rail-controls button { font-size:1.65rem; line-height:1; }
 .meryo-rail-controls button:disabled { opacity:.3; }
 .meryo-catalog-like { padding-inline:.6rem; white-space:nowrap; }
