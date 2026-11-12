@@ -18,13 +18,20 @@ function OfferCover({url, name}) {
   </div>;
 }
 
+function timeLabel(slot) {
+  const match = /^(\d{1,2}):(\d{2})$/.exec(slot?.label ?? '');
+  if (!match) return slot?.label ?? '';
+  const hour = Number(match[1]);
+  return `${hour % 12 || 12}:${match[2]} ${hour < 12 ? 'a. m.' : 'p. m.'}`;
+}
+
 export function CutPromotions({ offers, loading, error, notice='', onRetry, onBack, onOpenOffer, onNavigate, bannerImage='/cut-promotions-banner.png', BottomNav,themeMode='dark',themeAppearance,onToggleTheme }) {
   const hasLiveOffers=!loading&&!error&&offers.length>0;
   return <div data-meryo-theme="barberia" data-meryo-mode={themeMode} data-meryo-appearance={themeAppearance} className="meryo-cut-promotions min-h-screen bg-neutral-950 pb-24 text-white md:pb-8">
     <header className="sticky top-0 z-20 border-b border-white/10 bg-neutral-950/95 px-4 py-3 backdrop-blur sm:px-6">
       <div className="mx-auto flex max-w-7xl items-center justify-between gap-4">
         <MeryoLogo variant={themeMode==='light'?'light':'dark'} className="h-7 w-auto sm:h-9" />
-        <div className="flex items-center gap-2"><MeryoThemeToggle mode={themeMode} onToggle={onToggleTheme} className="meryo-promotion-theme-toggle"/><button type="button" onClick={onBack} className="min-h-11 rounded-xl border border-white/20 px-4 py-2 text-sm">Inicio</button></div>
+        <div className="flex items-center gap-2"><MeryoThemeToggle mode={themeMode} onToggle={onToggleTheme} className="meryo-promotion-theme-toggle"/><button type="button" onClick={onBack} className="min-h-11 rounded-xl border border-white/20 px-4 py-2 text-sm"><span aria-hidden="true">← </span>Volver</button></div>
       </div>
     </header>
     <main className="mx-auto max-w-7xl px-4 py-5 sm:px-6 sm:py-8">
@@ -47,7 +54,10 @@ export function CutPromotions({ offers, loading, error, notice='', onRetry, onBa
         {!loading && !error && offers.length === 0 && <p role="status" className="rounded-2xl border border-white/10 bg-neutral-900 p-6 text-neutral-300">No hay promociones disponibles ahora.</p>}
         <div className="grid grid-cols-2 gap-2.5 sm:gap-5 lg:grid-cols-3">
           {!loading && offers.map(offer => {
-            const first = offer.slots?.[0];
+            const slots = offer.slots ?? [];
+            const first = slots[0];
+            const hour = timeLabel(first);
+            const singleHour = Boolean(hour) && slots.every(slot => timeLabel(slot) === hour);
             return <article key={`${offer.campaign_id}-${offer.service_id}`} className="flex min-w-0 flex-col overflow-hidden rounded-xl border border-white/10 bg-neutral-900/90 shadow-lg sm:rounded-2xl">
               <OfferCover key={offer.cover_url || ''} url={offer.cover_url} name={offer.shop_name} />
               <div className="flex min-w-0 flex-1 flex-col p-2.5 sm:p-4">
@@ -59,7 +69,7 @@ export function CutPromotions({ offers, loading, error, notice='', onRetry, onBa
                   <span className="whitespace-nowrap text-base font-black text-amber-300 sm:text-2xl">S/ {Number(offer.promo_price).toFixed(2)}</span>
                   <span className="whitespace-nowrap text-xs text-neutral-400">{offer.duration_min} min</span>
                 </div>
-                <p className="mb-3 mt-2 text-xs text-neutral-400">Vigencia: {dateLabel(offer.starts_on)}–{dateLabel(offer.ends_on)}<br />{first ? `Próximo turno: ${dateLabel(first.date)} · ${first.label}` : 'Turnos disponibles'}</p>
+                <p className="mb-3 mt-2 text-xs text-neutral-400">Vigencia: {dateLabel(offer.starts_on)}–{dateLabel(offer.ends_on)}<br />{hour ? <>{singleHour ? 'Hora única: ' : `Próximo turno: ${dateLabel(first.date)} · `}<span className="whitespace-nowrap">{hour}</span></> : 'Turnos disponibles'}</p>
                 <button type="button" onClick={() => onOpenOffer(offer)} className="mt-auto min-h-11 w-full rounded-xl bg-amber-300 px-2 py-2 text-sm font-bold text-black transition hover:bg-amber-200 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-amber-200">Ver horarios</button>
               </div>
             </article>;
