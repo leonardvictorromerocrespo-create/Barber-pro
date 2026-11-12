@@ -19,23 +19,29 @@ const sampleShop = {
   ],
 };
 
+function response(data) {
+  const result = Promise.resolve({ data, error: null });
+  result.abortSignal = () => result;
+  return result;
+}
+
 export function createDemoPreviewClient() {
   const listeners = new Set();
   return {
     authUnavailable: true,
     demoPreview: true,
-    rpc: async (name, args = {}) => {
+    rpc: (name, args = {}) => {
       if (name === 'meryo_catalogo_categoria') {
-        return { data: args.p_categoria === 'barberia' ? [sampleShop] : [], error: null };
+        return response(args.p_categoria === 'barberia' ? [sampleShop] : []);
       }
-      return { data: [], error: null };
+      return response([]);
     },
     auth: {
       getSession: async () => ({ data: { session: null }, error: null }),
       getUser: async () => ({ data: { user: null }, error: null }),
       onAuthStateChange: callback => {
         listeners.add(callback);
-        return { data: { subscription: { unsubscribe: () => listeners.delete(callback) } } };
+        return { data: { subscription: { unsubscribe: () => listeners.delete(callback) } };
       },
     },
   };
