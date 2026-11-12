@@ -73,7 +73,23 @@ export function createMeryoApi(client) {
       return savedOperation(()=>client.rpc('meryo_guardar_inspiracion',{p_id:id,p_asset_id:assetId,p_catalog_category:catalogCategory,p_work_category:workCategory,p_title:title,p_description:description,p_member_id:memberId||null,p_service_id:serviceId?Number(serviceId):null,p_published:published}));
     },
     slots:async(shop,service,date,barber)=>(await readResult(barber?client.rpc('meryo_horarios_barbero',{p_shop:shop,p_service:service,p_date:date,p_member:barber}):client.rpc('horarios_disponibles',{p_barberia_id:shop,p_servicio_id:service,p_fecha:date}))).map(s=>({id:s.hora_inicio,time:s.hora_inicio,label:new Date(s.hora_inicio).toLocaleTimeString('es-PE',{timeZone:'America/Lima',hour:'2-digit',minute:'2-digit',hour12:false}),occupied:false})),
-    cutPromotions:async()=>readResult(client.rpc('meryo_cortes_50_disponibles')),
+    cutPromotions:async()=>{
+      const offers=await readResult(client.rpc('meryo_cortes_50_disponibles'));
+      if(!offers.length)return offers;
+      const shopIds=new Set(offers.map(offer=>String(offer.shop_id)));
+      const covers=new Map();
+      try{
+        // Use the same active, public portfolio records as the shop profile.
+        // Only sign one cover for each participating shop.
+        const catalog=await readResult(client.rpc('meryo_catalogo_categoria',{p_categoria:'barberia'}));
+        const assets=catalog.filter(shop=>shopIds.has(String(shop.id))).flatMap(shop=>{
+          const cover=shop.assets?.find(asset=>asset.kind==='portada'&&asset.object_path?.startsWith(String(shop.id)+'/'));
+          return cover?[{...cover,shopId:String(shop.id)}]:[];
+        });
+        for(const cover of await signContent(client,assets))if(cover.url)covers.set(cover.shopId,cover.url);
+      }catch{/* An unavailable cover must not hide a bookable offer. */}
+      return offers.map(offer=>({...offer,cover_url:covers.get(String(offer.shop_id))??null}));
+    },
     cutPromotionSlots:async(shop,service,date,barber,campaign)=>readResult(client.rpc('meryo_cortes_50_horarios',{p_shop:shop,p_service:service,p_date:date,p_member:barber,p_campaign:campaign})).then(rows=>rows.map(s=>({id:s.hora_inicio,time:s.hora_inicio,label:new Date(s.hora_inicio).toLocaleTimeString('es-PE',{timeZone:'America/Lima',hour:'2-digit',minute:'2-digit',hour12:false}),occupied:false}))),
     beautyPromotionsToday:async()=>readResult(client.rpc('meryo_belleza_promociones_hoy')),
     beautyPromotionSlots:async(shop,service,date,barber,promotion)=>readResult(client.rpc('meryo_belleza_promocion_horarios',{p_promotion:promotion,p_shop:shop,p_service:service,p_date:date,p_member:barber})).then(rows=>rows.map(s=>({id:s.hora_inicio,time:s.hora_inicio,label:new Date(s.hora_inicio).toLocaleTimeString('es-PE',{timeZone:'America/Lima',hour:'2-digit',minute:'2-digit',hour12:false}),occupied:false}))),

@@ -1420,3 +1420,7 @@ body {
 .meryo-catalog-page[data-meryo-theme="barberia"][data-meryo-mode="dark"][data-meryo-appearance="negro-gris"] {
   background-color: #000;
 }
+
+.meryo-cut-promotions[data-meryo-theme="barberia"][data-meryo-mode="dark"][data-meryo-appearance="negro-gris"] {
+  background-color: #000;
+}

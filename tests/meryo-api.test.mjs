@@ -154,3 +154,25 @@ test('a tagged booking saves origin and price snapshot in one request and does n
  await assert.rejects(createMeryoApi(failing).request(request),/Schema unavailable/);
  assert.equal(failing.calls.some(item=>item.name==='meryo_solicitar_cita'),false);
 });
+
+
+test('cut offers use only their own published cover, and a media failure keeps the offer',async()=>{
+ const offers=[{shop_id:14,cover_url:'legacy.jpg'},{shop_id:14,service_id:2},{shop_id:15,cover_url:'other.jpg'}];
+ const assets=[
+  {id:14,assets:[{kind:'foto',object_path:'14/photo.jpg'},{kind:'portada',object_path:'14/cover.jpg'}]},
+  {id:15,assets:[{kind:'portada',object_path:'14/cover.jpg'}]},
+  {id:16,assets:[{kind:'portada',object_path:'16/cover.jpg'}]},
+ ];
+ let fail=false;
+ const client={
+  rpc:async name=>({data:name==='meryo_cortes_50_disponibles'?offers:assets,error:null}),
+  storage:{from:()=>({createSignedUrls:async paths=>{
+   assert.deepEqual(paths,['14/cover.jpg']);
+   return fail?{data:null,error:{message:'offline'}}:{data:[{signedUrl:'https://example.test/14/cover.jpg'}],error:null};
+  }})},
+ };
+ const api=createMeryoApi(client);
+ assert.deepEqual((await api.cutPromotions()).map(offer=>offer.cover_url),['https://example.test/14/cover.jpg','https://example.test/14/cover.jpg',null]);
+ fail=true;
+ assert.deepEqual((await api.cutPromotions()).map(offer=>offer.cover_url),[null,null,null]);
+});
