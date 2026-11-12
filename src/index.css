@@ -1425,13 +1425,17 @@ body {
   background-color: #000;
 }
 
-/* Compact shortcuts use the exact supplied marks; white in dark mode. */
+/* Approved icon scale; silver in the black-and-gray theme. */
 .meryo-catalog-shortcuts :is(button, .meryo-turn-finder__trigger) svg.meryo-barber-shortcut-icon {
   width: 1.45rem;
   height: 1.45rem;
   display: block;
-  filter: none;
+  color: #95672d;
 }
-[data-meryo-mode="dark"] .meryo-catalog-shortcuts :is(button, .meryo-turn-finder__trigger) svg.meryo-barber-shortcut-icon {
-  filter: brightness(0) invert(1);
+.meryo-shortcut-reference-image { filter: none; }
+.meryo-catalog-page[data-meryo-theme="barberia"][data-meryo-mode="dark"][data-meryo-appearance="negro-gris"] .meryo-catalog-shortcuts svg.meryo-barber-shortcut-icon {
+  color: #d9dbd7;
+}
+.meryo-catalog-page[data-meryo-theme="barberia"][data-meryo-mode="dark"][data-meryo-appearance="negro-gris"] .meryo-shortcut-reference-image {
+  filter: brightness(0) invert(.86);
 }
