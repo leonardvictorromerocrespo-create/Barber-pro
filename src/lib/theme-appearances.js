@@ -6,13 +6,13 @@ export const THEME_APPEARANCES = {
   belleza: [
     { id: 'rosa-marfil', label: 'Rosa y marfil', mode: 'light', colors: ['#FAF7F4', '#EEDDE2', '#955568'] },
     { id: 'ciruela-ahumado', label: 'Ciruela ahumado', mode: 'dark', colors: ['#342C33', '#413740', '#E3B1BF'] },
-    { id: 'malva-lino', label: 'Malva y lino · propuesta', mode: 'light', colors: ['#F3EEF0', '#E8DCE1', '#916475'] },
+    { id: 'malva-lino', label: 'Malva y Lino', mode: 'light', colors: ['#F3EEF0', '#E8DCE1', '#916475'] },
   ],
 };
 
 export const DEFAULT_THEME_APPEARANCE = {
   barberia: { light: 'marfil', dark: 'negro-gris' },
-  belleza: { light: 'rosa-marfil', dark: 'ciruela-ahumado' },
+  belleza: { light: 'malva-lino', dark: 'ciruela-ahumado' },
 };
 
 export function themeAppearanceOption(category, id) {

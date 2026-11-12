@@ -49,6 +49,11 @@ export function createMeryoApi(client) {
       const {error}=await client.rpc('meryo_set_barber_like',{p_shop_id:shopId,p_liked:liked});
       if(error)throw new Error(error.message);
     },
+    catalogHighlights:category=>readResult(client.rpc('meryo_catalog_highlights',{p_category:category})),
+    setCatalogLike:async(shopId,liked,category)=>{
+      const {error}=await client.rpc('meryo_set_catalog_like',{p_shop_id:shopId,p_liked:liked,p_category:category});
+      if(error)throw new Error(error.message);
+    },
     catalog:async(category='barberia',{signal}={})=>{
       const request=client.rpc('meryo_catalogo_categoria',{p_categoria:category});
       if(signal)request.abortSignal(signal);
