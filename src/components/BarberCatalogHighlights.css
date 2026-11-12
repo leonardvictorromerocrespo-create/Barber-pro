@@ -19,9 +19,10 @@
 .meryo-featured-rail .meryo-shop-card { flex:0 0 min(92%, 29rem); scroll-snap-align:start; }
 .meryo-featured-rail .meryo-shop-card:only-child { flex-basis:min(100%, 29rem); }
 .meryo-rail-controls { display:flex; gap:.35rem; }
-.meryo-rail-controls button,.meryo-catalog-like { min-width:44px; min-height:44px; border:1px solid currentColor; border-radius:.65rem; }
+.meryo-rail-controls button { min-width:44px; min-height:44px; border:1px solid currentColor; border-radius:.65rem; }
+.meryo-catalog-like { min-width:44px; min-height:44px; height:44px; border:0; border-radius:0; background:transparent; padding:.25rem .4rem; line-height:1; box-shadow:none; }
 .meryo-rail-controls button { font-size:1.65rem; line-height:1; }
 .meryo-rail-controls button:disabled { opacity:.3; }
 .meryo-catalog-like { padding-inline:.6rem; white-space:nowrap; }
 .meryo-catalog-like[aria-pressed="true"] { color:#b75260; }
-.meryo-shop-card__title-row { display:flex; align-items:center; justify-content:space-between; gap:.35rem; }
+.meryo-shop-card__title-row { display:flex; align-items:flex-start; justify-content:space-between; gap:.35rem; }
