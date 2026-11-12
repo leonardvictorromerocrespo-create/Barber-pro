@@ -155,6 +155,9 @@ export function createMeryoApi(client) {
       return savedOperation(()=>client.rpc('registrar_negocio',{p_nombre:form.nombre.trim(),p_distrito:form.distrito.trim(),p_direccion:form.direccion.trim(),p_descripcion:form.descripcion||'',p_lat:form.lat===''||form.lat==null?null:Number(form.lat),p_lng:form.lng===''||form.lng==null?null:Number(form.lng),p_whatsapp:form.whatsapp||null,p_correo:form.correo||null,p_tipo_negocio:type}));
     },
     ownerShop:async()=>{const p=await requireRole(['barbero']);return readResult(client.from('barberias').select('*').eq('id',p.barberia_id).single());},
+    publicJobListings:async(district=null)=>readResult(client.rpc('meryo_vacantes_publicas',{p_distrito:district||null})),
+    ownerJobListings:async()=>{await requireRole(['barbero']);return readResult(client.rpc('meryo_vacantes_propietario'));},
+    saveJobListing:async(listing)=>{await requireRole(['barbero']);return savedOperation(()=>client.rpc('meryo_guardar_vacante',{p_id:listing.id||null,p_puesto:listing.puesto,p_distrito:listing.distrito,p_horario:listing.horario,p_descripcion:listing.descripcion||'',p_vence_el:listing.vence_el,p_publicada:listing.publicada===true}));},
     ownerServices:async()=>{const p=await requireRole(['barbero']);return readResult(client.from('servicios').select('*').eq('barberia_id',p.barberia_id).order('nombre'));},
     team:async()=>{await requireRole(['barbero']);return readResult(client.rpc('meryo_equipo'));},
     inviteMember:async(email,name)=>{await requireRole(['barbero']);return savedOperation(()=>client.rpc('meryo_invitar_integrante',{p_email:email,p_name:name}));},
