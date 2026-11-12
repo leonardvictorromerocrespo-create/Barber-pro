@@ -1,10 +1,6 @@
-import BarberShortcutIcon from './components/BarberShortcutIcon';
 import NotificationAccess from './components/NotificationAccess';
-import MeryoHeader from './components/MeryoHeader';
-import BarberCatalogHighlights from './components/BarberCatalogHighlights';
-import ProfileModal from './components/ProfileModal';
-import BookingModal from './components/BookingModal';
-export {ProfileModal, BookingModal};
+export {default as ProfileModal} from './components/ProfileModal';
+export {BookingModal} from './components/BookingModal';
 import {visiblePolling} from './lib/visible-polling';
 import { endSession, signInWithProfile } from "./lib/operations";
 import { supabase, googleAuthEnabled, emailSignupEnabled } from "./lib/supabase";
@@ -23,9 +19,6 @@ import {catalogCountLabel} from './lib/catalog-copy';
 import {createCatalogLoader} from './lib/catalog-loader';
 import {isPublicShopIndexable,isPublicShopPath,publicShopCanonical,publicShopIdFromPath,publicShopUrl} from './lib/public-shop-url.js';
 const api = createMeryoApi(supabase);
-import CatalogFilters from "./components/CatalogFilters";
-import CatalogStatus from './components/CatalogStatus';
-import TurnFinder from './components/TurnFinder';
 import { selectShops, catalogMarkers, coordinates } from "./lib/catalog";
 import { listaDias,sumarDias } from "./lib/dates";
 const PushCenter = lazy(() => import('./components/PushCenter'));
@@ -40,6 +33,14 @@ const CutPromotions = lazy(() => import('./components/CutPromotions').then(modul
 const BeautyPromotions = lazy(() => import('./components/BeautyPromotions').then(module => ({default: module.BeautyPromotions})));
 const InspirationGallery = lazy(() => import('./components/InspirationGallery'));
 const CatalogFox = lazy(() => import('./components/CatalogFox'));
+const BarberShortcutIcon = lazy(() => import('./components/BarberShortcutIcon'));
+const MeryoHeader = lazy(() => import('./components/MeryoHeader'));
+const BarberCatalogHighlights = lazy(() => import('./components/BarberCatalogHighlights'));
+const CatalogFilters = lazy(() => import('./components/CatalogFilters'));
+const CatalogStatus = lazy(() => import('./components/CatalogStatus'));
+const TurnFinder = lazy(() => import('./components/TurnFinder'));
+const ProfileModalView = lazy(() => import('./components/ProfileModal'));
+const BookingModalView = lazy(() => import('./components/BookingModal').then(module => ({default: module.BookingModal})));
 const CatalogMap = lazy(() => import("./components/CatalogMap"));
 const StoreModal=lazy(()=>import('./components/store/StoreModal'));
 const MyPickupOrders=lazy(()=>import('./components/store/MyPickupOrders'));
@@ -672,7 +673,7 @@ const finalPrice = selectedPromotion ? Number((basePrice * 0.5).toFixed(2)) : ap
   const selectBookingBarber=memberId=>{if(selectedInspiration?.id&&String(memberId)!==String(selectedInspiration.member_id))setInspirationIssue('El profesional elegido ya no coincide con la referencia. Continúa sin la referencia para revisar y reservar con el profesional actual.');setSelectedBarber(memberId);};
   const selectBookingTime=time=>{setSelectedTime(time);if(time)setReservationValidationMessage('');};
   const confirmSalonRegularPrice=()=>{if(!salonPriceDecision||!activeSlots.some(slot=>slot.time===selectedTime))return;setSalonPriceDecision(null);setSalonPromotionError('');};
- const renderBookingModal=()=> <BookingModal startStep={bookingStartStep} catalogCategory={catalogCategory} themeMode={themeMode} themeAppearance={themeAppearance} selectedShop={showBookingModal?selectedShop:null} selectedService={selectedService} selectedBarber={selectedBarber} setSelectedBarber={setSelectedBarber} onBarberSelect={selectBookingBarber} setSelectedService={setSelectedService} onServiceSelect={selectBookingService} selectedDate={selectedDate} setSelectedDate={setSelectedDate} selectedTime={selectedTime} setSelectedTime={selectBookingTime} customerInfo={customerInfo} setCustomerInfo={setCustomerInfo} customRequest={customRequest} setCustomRequest={setCustomRequest} activeSlots={activeSlots} finalPrice={finalPrice} requestSaved={requestSaved} submitReservation={submitReservation} closeBookingModal={closeBookingModal} savingReservation={savingReservation} reservationsEnabled={reservationsEnabled} agendaLoading={agendaLoading} agendaError={agendaError} accessMessage={accessMessage} onLogin={requireBookingLogin} identityLoading={identity.loading} identityError={identity.error} onRetrySession={()=>void identity.refresh()} promotion={selectedPromotion} promotionError={promotionError} onRegularPrice={continueAtRegularPrice} onBackToOffers={backToOffers} salonPromotion={applicableBeautyPromotion} salonPromotionError={salonPromotionError} salonPriceDecision={salonPriceDecision} onSalonRegularPrice={confirmSalonRegularPrice} onCancelSalonPriceDecision={closeBookingModal} reservationValidationMessage={reservationValidationMessage} inspiration={selectedInspiration} inspirationIssue={inspirationIssue} onClearInspiration={continueWithoutInspiration}/>;
+ const renderBookingModal=()=> showBookingModal?<Suspense fallback={null}><BookingModalView startStep={bookingStartStep} catalogCategory={catalogCategory} themeMode={themeMode} themeAppearance={themeAppearance} selectedShop={selectedShop} selectedService={selectedService} selectedBarber={selectedBarber} setSelectedBarber={setSelectedBarber} onBarberSelect={selectBookingBarber} setSelectedService={setSelectedService} onServiceSelect={selectBookingService} selectedDate={selectedDate} setSelectedDate={setSelectedDate} selectedTime={selectedTime} setSelectedTime={selectBookingTime} customerInfo={customerInfo} setCustomerInfo={setCustomerInfo} customRequest={customRequest} setCustomRequest={setCustomRequest} activeSlots={activeSlots} finalPrice={finalPrice} requestSaved={requestSaved} submitReservation={submitReservation} closeBookingModal={closeBookingModal} savingReservation={savingReservation} reservationsEnabled={reservationsEnabled} agendaLoading={agendaLoading} agendaError={agendaError} accessMessage={accessMessage} onLogin={requireBookingLogin} identityLoading={identity.loading} identityError={identity.error} onRetrySession={()=>void identity.refresh()} promotion={selectedPromotion} promotionError={promotionError} onRegularPrice={continueAtRegularPrice} onBackToOffers={backToOffers} salonPromotion={applicableBeautyPromotion} salonPromotionError={salonPromotionError} salonPriceDecision={salonPriceDecision} onSalonRegularPrice={confirmSalonRegularPrice} onCancelSalonPriceDecision={closeBookingModal} reservationValidationMessage={reservationValidationMessage} inspiration={selectedInspiration} inspirationIssue={inspirationIssue} onClearInspiration={continueWithoutInspiration}/></Suspense>:null;
   const openProfessional=()=>{if(adminAccess)setView('admin');else if(identity.profile?.rol==='barbero')setView('shop-manage');else if(identity.profile?.rol==='cliente')setView('shop-register');else setView('barber-login');};
    if(view==='inspiration')return <Suspense fallback={lazyFallback}><><InspirationGallery api={api} category={catalogCategory} themeMode={themeMode} themeAppearance={themeAppearance} onToggleTheme={toggleThemeMode} onBack={()=>setView('client')} onViewProfile={openInspirationProfile} onBook={openInspirationBooking} onNavigate={navigateMobile} BottomNav={MobileBottomNav} initialPublication={selectedInspiration} signedIn={Boolean(identity.profile)} loadingIdentity={identity.loading}/>{renderBookingModal()}</></Suspense>;
    if(view==='promotions')return <Suspense fallback={lazyFallback}><><CutPromotions themeMode={themeModes.barberia} themeAppearance={themePalettes.barberia} onToggleTheme={()=>toggleThemeMode('barberia')} offers={cutOffers} loading={cutOffersLoading} error={cutOffersError} notice={cutOffersNotice} onRetry={loadCutOffers} onBack={()=>{cambiarCategoriaCatalogo('barberia');setView('client');}} onOpenOffer={openCutOffer} onNavigate={navigateMobile} bannerImage="/cut-promotions-banner.png" BottomNav={MobileBottomNav}/>{renderBookingModal()}</></Suspense>;
@@ -863,6 +864,7 @@ if (view === "admin" && adminAccess) return <Suspense fallback={lazyFallback}><A
   const catalogControls=<><CatalogFilters showSearch={false} query={query} district={district} order={order} hasLocation={!!location} onQuery={setQuery} onDistrict={setDistrict} onOrder={setOrder} onUseLocation={enableLocation} onClearFilters={clearCatalogFilters} districtPrompt={catalogCategory==='barberia'?'Escoge tu distrito':undefined} businessLabel={catalogCategory==='belleza'?'salón':'barbería'} businessPlural={catalogCategory==='belleza'?'peluquerías y salones':'barberías'} />
     {locationError&&<p role="alert" className="mt-2 text-sm text-amber-300">{locationError}</p>}</>;
   return (
+    <Suspense fallback={lazyFallback}>
     <div data-meryo-theme={catalogCategory==='belleza'?'beauty':'barberia'} data-meryo-mode={themeMode} data-meryo-appearance={themeAppearance} className="meryo-catalog-page min-h-screen bg-neutral-950 pb-24 text-white md:pb-0">
       <MeryoHeader
         variant={themeMode==='light'?'light':'dark'}
@@ -901,7 +903,7 @@ if (view === "admin" && adminAccess) return <Suspense fallback={lazyFallback}><A
         </section>
       </main>
 
-      <ProfileModal
+      {showProfileModal&&<Suspense fallback={lazyFallback}><ProfileModalView
         selectedShop={showProfileModal ? selectedShop : null}
         catalogCategory={catalogCategory}
         themeMode={themeMode}
@@ -913,7 +915,7 @@ if (view === "admin" && adminAccess) return <Suspense fallback={lazyFallback}><A
           openBookingModal(selectedShop,null,{service});
         }}
         onInspiration={()=>{const url=new URL(window.location.href);url.pathname='/';url.search='';url.searchParams.set('catalogo',catalogCategory);url.hash='inspiration';window.history.replaceState(window.history.state,'',url.href);setLocationPath('/');setShowProfileModal(false);setSelectedInspiration(null);setInspirationIssue('');setView('inspiration');}}
-      />
+      /></Suspense>}
 
       {showStoreModal&&storeShop&&<Suspense fallback={null}><StoreModal key={`${storeShop.id}-${Boolean(restoredPickupCart)}`} api={api} shop={storeShop} profile={identity.profile} category={storeCategory} themeMode={themeModes[storeCategory]||'light'} themeAppearance={themePalettes[storeCategory]||DEFAULT_THEME_APPEARANCE[storeCategory]?.[themeModes[storeCategory]||'light']} initialCart={restoredPickupCart} onLogin={destination=>openLogin(destination)} onClose={()=>{setShowStoreModal(false);setRestoredPickupCart(null);}} onOpenOrders={orderId=>{setShowStoreModal(false);const url=new URL(window.location.href);url.searchParams.set('pedido',orderId);window.history.replaceState(null,'',url.pathname+url.search+'#my-orders');setView('my-orders');}}/></Suspense>}
 
@@ -923,5 +925,6 @@ if (view === "admin" && adminAccess) return <Suspense fallback={lazyFallback}><A
 
       <footer className="border-t border-white/10 py-6 text-center text-neutral-500">© 2026 MERYO <a href="/privacidad.html" className="ml-4 hover:text-amber-400">Privacidad</a><a href="/condiciones.html" className="ml-4 hover:text-amber-400">Condiciones</a></footer>
     </div>
+    </Suspense>
   );
 }
