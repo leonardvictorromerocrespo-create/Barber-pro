@@ -179,6 +179,7 @@ function MeryoScreens({identity,view,setView}) {
   });
   const [affiliateBusy,setAffiliateBusy]=useState(false),[affiliateError,setAffiliateError]=useState('');
   const [selectedShop, setSelectedShop] = useState(null);
+  const profileRefreshRequest=useRef(0);
   const [selectedService, setSelectedService] = useState(null);
   const [selectedInspiration,setSelectedInspiration]=useState(null);
   const [inspirationIssue,setInspirationIssue]=useState('');
@@ -383,6 +384,8 @@ useEffect(() => { cargarBarberiasActivas(); }, [cargarBarberiasActivas,catalogLo
   const clearCatalogFilters=()=>{setQuery('');setDistrict('');setOrder('name');setLocation(null);setLocationError('');};
 
   const openProfileModal = (shop) => {
+    const request=++profileRefreshRequest.current;
+    const categoryAtOpen=catalogCategory;
     const currentId=publicShopIdFromPath(window.location.pathname);
     if(currentId!==String(shop.id)){
       const destination=new URL(publicShopUrl(shop,catalogCategory,window.location.origin));destination.hash='client';
@@ -393,9 +396,21 @@ useEffect(() => { cargarBarberiasActivas(); }, [cargarBarberiasActivas,catalogLo
     setSelectedShop(shop);
     setShowProfileModal(true);
     setProfileUnavailable(false);
+    // Catalog rows stay in memory while the page remains open. Refresh the
+    // selected profile so service edits show without a full page reload.
+    api.catalog(categoryAtOpen).then(rows=>{
+      if(request!==profileRefreshRequest.current)return;
+      const freshShop=rows.find(row=>String(row.id)===String(shop.id));
+      if(!freshShop)return;
+      setSelectedShop(freshShop);
+      setCatalogState(current=>current.category===categoryAtOpen
+        ?{...current,rows:current.rows.map(row=>String(row.id)===String(freshShop.id)?freshShop:row)}
+        :current);
+    }).catch(()=>{});
   };
 
   const closeProfileModal = () => {
+    profileRefreshRequest.current+=1;
     setShowProfileModal(false);setSelectedShop(null);setProfileUnavailable(false);
     if(window.history.state?.meryoProfileModal){window.history.back();return;}
     const url=new URL(window.location.href);url.pathname='/';url.search='';url.searchParams.set('catalogo',catalogCategory);url.hash='client';
