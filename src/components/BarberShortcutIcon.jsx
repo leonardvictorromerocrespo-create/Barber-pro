@@ -4,8 +4,8 @@ function Sparkle({x, y, size = 2.2}) {
 
 function TodayIcon() {
   return <g fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round">
-    <path d="M3.2 16.8A13 13 0 0 1 23.6 7.1" strokeWidth="1.35" />
-    <path d="M27.1 15.5A12.1 12.1 0 0 1 7.5 25.2" strokeWidth="1.35" />
+    <path d="M3.4 16.6A12.4 12.4 0 0 1 23.8 7.1" strokeWidth="1.35" />
+    <path d="M28.15 15.52A12.4 12.4 0 0 1 7.03 25.37" strokeWidth="1.35" />
     <circle cx="15.8" cy="16.6" r="9.15" strokeWidth="1.35" />
     <path d="M15.8 10.2v6.2l4.1 2.1" strokeWidth="1.35" />
     <path d="M15.8 3.7v3.8" strokeWidth="1.35" />
@@ -15,8 +15,8 @@ function TodayIcon() {
 
 function InspirationIcon() {
   return <g fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round">
-    <path d="M2.6 20.1A13.1 13.1 0 0 1 15.5 4.7" strokeWidth="1.35" />
-    <path d="M28 12.4a13.1 13.1 0 0 1-10.8 14.9" strokeWidth="1.35" />
+    <path d="M3.73 19.56A12.6 12.6 0 0 1 15.9 3.7" strokeWidth="1.35" />
+    <path d="M28.06 13.04A12.6 12.6 0 0 1 18.52 28.62" strokeWidth="1.35" />
     <path d="m15.9 9.1 6.9 7.2-6.9 7.2L9 16.3l6.9-7.2Z" strokeWidth="1.35" />
     <path d="M15.9 11.9c-.8 2.8-1.7 3.6-4.3 4.4 2.6.8 3.5 1.6 4.3 4.4.8-2.8 1.7-3.6 4.3-4.4-2.6-.8-3.5-1.6-4.3-4.4Z" fill="currentColor" stroke="none" />
     <Sparkle x={26.8} y={7.1} size={2.05} />
