@@ -31,6 +31,7 @@ const AdminShops = lazy(() => import('./components/AdminShops'));
 const TeamInvite = lazy(() => import('./components/TeamInvite'));
 const ShopManagement = lazy(() => import('./components/management/ShopManagement'));
 const LandingPage = lazy(() => import('./components/LandingPage'));
+const PublicJobBoard = lazy(() => import('./components/PublicJobBoard'));
 const CutPromotions = lazy(() => import('./components/CutPromotions').then(module => ({default: module.CutPromotions})));
 const BeautyPromotions = lazy(() => import('./components/BeautyPromotions').then(module => ({default: module.BeautyPromotions})));
 const InspirationGallery = lazy(() => import('./components/InspirationGallery'));
@@ -49,7 +50,7 @@ const MyPickupOrders=lazy(()=>import('./components/store/MyPickupOrders'));
 const lazyFallback=<main className="min-h-screen bg-neutral-950 p-8 text-white" role="status">Cargando MERYO…</main>;
 
 const pointerClass = "cursor-pointer";
-const ALLOWED_VIEWS=['landing','client','inspiration','promotions','beauty-promotions','client-auth','client-register','client-login','barber','barber-login','admin','account','account-security','shop-manage','shop-register','my-bookings','my-orders','team-invite','notifications'];
+const ALLOWED_VIEWS=['landing','client','jobs','inspiration','promotions','beauty-promotions','client-auth','client-register','client-login','barber','barber-login','admin','account','account-security','shop-manage','shop-register','my-bookings','my-orders','team-invite','notifications'];
 const themeStorageKey=category=>`meryo.theme.${category}.mode.v1`;
 const themeAppearanceStorageKey=(category,mode='current')=>`meryo.theme.${category}.appearance.${mode}.v1`;
 function readThemeMode(category,fallback){
@@ -711,8 +712,10 @@ const finalPrice = selectedPromotion ? Number((basePrice * 0.5).toFixed(2)) : ap
   if(view === 'shop-manage') return <Suspense fallback={lazyFallback}><ShopManagement key={identity.profile?.id||'anonymous'} api={api} profile={identity.profile} onLogin={()=>openLogin(pickupOrderIdFromSearch(window.location.search)?'shop-order':'barber')} onBack={async()=>{await cargarBarberiasActivas();setView('client');}} onRegister={()=>setView('shop-register')}/></Suspense>;
    if(view==='my-orders') return <div data-meryo-theme={catalogCategory==='belleza'?'beauty':'barberia'} data-meryo-mode={themeMode} data-meryo-appearance={themeAppearance}><Suspense fallback={<p className="min-h-screen bg-neutral-950 p-8 text-white">Cargando pedidos…</p>}><MyPickupOrders api={api} profile={identity.profile} identityLoading={identity.loading} onLogin={destination=>openLogin(destination)} onBack={()=>{const url=new URL(window.location.href);url.searchParams.delete('pedido');window.history.replaceState(null,'',url.pathname+url.search+url.hash);setView('client');}}/></Suspense></div>;
    if(view === 'my-bookings') return <div data-meryo-theme={catalogCategory==='belleza'?'beauty':'barberia'} data-meryo-mode={themeMode} data-meryo-appearance={themeAppearance} className="min-h-screen bg-neutral-950 p-4 pb-24 text-white sm:p-6 sm:pb-24 md:pb-6"><div className="mx-auto max-w-5xl space-y-5"><header className="meryo-bookings-page-header"><MeryoLogo variant={themeMode==='light'?'light':'dark'} className="h-7 w-auto shrink-0"/><button onClick={()=>{const url=new URL(window.location.href);url.searchParams.delete('cita');window.history.replaceState(null,'',url.pathname+url.search+url.hash);setView('client');}} className="hidden rounded-xl border border-white/20 px-4 py-2 sm:inline-flex">Volver al catálogo</button></header>{requestSaved&&identity.profile?.rol==='cliente'&&<section aria-labelledby="meryo-request-saved-title" className="rounded-xl bg-white/5 p-4"><h2 id="meryo-request-saved-title" className="font-bold">Solicitud enviada</h2><p role="status" className="mt-1 text-sm">El negocio tiene hasta 15 minutos para responder. Puedes consultar el estado aquí, en Mis citas.</p></section>}<Suspense fallback={<p role="status">Cargando citas…</p>}><Reservations key={`${identity.profile?.id}-${identity.profile?.rol}`} api={api} profile={identity.profile} identityLoading={identity.loading} identityError={identity.error} onRetrySession={()=>void identity.refresh()} onLogin={()=>openLogin('my-bookings')} onSearch={()=>{const url=new URL(window.location.href);url.searchParams.delete('cita');window.history.replaceState(null,'',url.pathname+url.search+url.hash);setQuery('');setDistrict('');setShowBookingModal(false);setView('client');}}/></Suspense></div><MobileBottomNav active="my-bookings" onNavigate={navigateMobile}/></div>;
+  if (view === 'jobs') return <Suspense fallback={lazyFallback}><PublicJobBoard api={api} onBack={()=>setView('landing')}/></Suspense>;
+
   if (view === "landing") {
-    return <Suspense fallback={lazyFallback}><LandingPage setView={setView} onExplore={openCatalogCategory} profile={identity.profile} identityLoading={identity.loading} onSignIn={()=>openLogin('client')} onAccount={()=>setView('account')} onProfessionalAccess={openProfessional}/></Suspense>;
+    return <Suspense fallback={lazyFallback}><LandingPage setView={setView} onExplore={openCatalogCategory} profile={identity.profile} identityLoading={identity.loading} onSignIn={()=>openLogin('client')} onAccount={()=>setView('account')} onProfessionalAccess={openProfessional} onJobs={()=>setView('jobs')}/></Suspense>;
   }
 
   if (view === "barber" || view === "barber-login") {
