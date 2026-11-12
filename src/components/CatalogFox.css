@@ -52,3 +52,32 @@
 .meryo-catalog-fox[data-pose="jump"] .meryo-catalog-fox__sprite { background-position: 0 100%; }
 .meryo-catalog-fox[data-pose="jump"] .meryo-catalog-fox__speech,
 .meryo-catalog-fox[data-pose="wave"] .meryo-catalog-fox__speech { left: auto; right: 0; }
+.meryo-catalog-fox[data-pose="return"] {
+  inset: 100% 0 auto auto;
+  width: 70px;
+  animation: meryo-fox-peek 3.5s ease both;
+}
+.meryo-catalog-fox[data-pose="return"] .meryo-catalog-fox__sprite {
+  width: 70px;
+  height: 70px;
+  background-image: var(--fox-wave);
+  background-size: 300% 100%;
+  background-position: 0 0;
+  animation: meryo-fox-return-wave 1.05s step-end 3;
+}
+.meryo-catalog-fox[data-pose="return"] .meryo-catalog-fox__speech {
+  inset: 10px calc(100% + 4px) auto auto;
+}
+@keyframes meryo-fox-peek {
+  0%, 100% { opacity: 0; transform: translateY(10px); }
+  12%, 87% { opacity: 1; transform: translateY(0); }
+}
+@keyframes meryo-fox-return-wave {
+  0%, 100% { background-position: 0 0; }
+  25%, 75% { background-position: 50% 0; }
+  50% { background-position: 100% 0; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .meryo-catalog-fox[data-pose="return"],
+  .meryo-catalog-fox[data-pose="return"] .meryo-catalog-fox__sprite { animation: none; }
+}

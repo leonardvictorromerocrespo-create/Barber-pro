@@ -1,6 +1,7 @@
 import {useEffect, useRef} from 'react';
 import sprite from '../assets/catalog-fox.webp';
 import walkFrames from '../assets/catalog-fox-walk.webp';
+import waveFrames from '../assets/catalog-fox-wave.webp';
 import './CatalogFox.css';
 
 const seenKey = 'meryo.catalog-fox.seen.v5';
@@ -11,7 +12,8 @@ export default function CatalogFox() {
   const words = useRef(null);
   useEffect(() => {
     if (seenHere) return;
-    try { if (localStorage.getItem(seenKey)) return; } catch { /* In-memory fallback. */ }
+    let returning = false;
+    try { returning = Boolean(localStorage.getItem(seenKey)); } catch { /* In-memory fallback. */ }
     const node = actor.current;
     const area = node.parentElement;
     let stopped = false;
@@ -25,13 +27,21 @@ export default function CatalogFox() {
     };
     async function start() {
       try {
-        await Promise.all([sprite, walkFrames].map(src => {
+        await Promise.all((returning ? [waveFrames] : [sprite, walkFrames]).map(src => {
           const image = new Image();
           image.src = src;
           return image.decode();
         }));
       } catch { return; }
       if (stopped || seenHere) return;
+      if (returning) {
+        seenHere = true;
+        node.dataset.pose = 'return';
+        words.current.textContent = '¡Hola de nuevo!';
+        node.hidden = false;
+        timer = window.setTimeout(stop, 3500);
+        return;
+      }
       const turn = area.querySelector('.meryo-turn-finder__trigger');
       const map = area.querySelector('.meryo-catalog-map-control > button');
       if (!turn || !map) return;
@@ -88,6 +98,6 @@ export default function CatalogFox() {
 
   return <div ref={actor} className="meryo-catalog-fox" hidden aria-hidden="true">
     <div ref={words} className="meryo-catalog-fox__speech">Bienvenido a MERYO, plataforma de barberías.</div>
-    <div className="meryo-catalog-fox__sprite" style={{'--fox-sheet': `url(${sprite})`, '--fox-walk': `url(${walkFrames})`}} />
+    <div className="meryo-catalog-fox__sprite" style={{'--fox-sheet': `url(${sprite})`, '--fox-walk': `url(${walkFrames})`, '--fox-wave': `url(${waveFrames})`}} />
   </div>;
 }
