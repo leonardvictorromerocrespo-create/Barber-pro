@@ -18,6 +18,7 @@ import {bookingDestination,bookingIdFromSearch,pickupOrderIdFromSearch} from './
 import {clearPickupCart,readPickupCart} from './lib/pickup-cart';
 import {catalogCountLabel} from './lib/catalog-copy';
 import {createCatalogLoader} from './lib/catalog-loader';
+import {createProfileRefreshCoordinator} from './lib/profile-refresh';
 import {isPublicShopIndexable,isPublicShopPath,publicShopCanonical,publicShopIdFromPath,publicShopUrl} from './lib/public-shop-url.js';
 const api = createMeryoApi(supabase);
 import { selectShops, catalogMarkers, coordinates } from "./lib/catalog";
@@ -179,6 +180,8 @@ function MeryoScreens({identity,view,setView}) {
   });
   const [affiliateBusy,setAffiliateBusy]=useState(false),[affiliateError,setAffiliateError]=useState('');
   const [selectedShop, setSelectedShop] = useState(null);
+  const profileRefresh=useRef(null);
+  if(!profileRefresh.current)profileRefresh.current=createProfileRefreshCoordinator({fetchCatalog:(category,shopId)=>api.catalog(category,{shopId}),setSelectedShop,setCatalogState});
   const [selectedService, setSelectedService] = useState(null);
   const [selectedInspiration,setSelectedInspiration]=useState(null);
   const [inspirationIssue,setInspirationIssue]=useState('');
@@ -383,6 +386,7 @@ useEffect(() => { cargarBarberiasActivas(); }, [cargarBarberiasActivas,catalogLo
   const clearCatalogFilters=()=>{setQuery('');setDistrict('');setOrder('name');setLocation(null);setLocationError('');};
 
   const openProfileModal = (shop) => {
+    const categoryAtOpen=catalogCategory;
     const currentId=publicShopIdFromPath(window.location.pathname);
     if(currentId!==String(shop.id)){
       const destination=new URL(publicShopUrl(shop,catalogCategory,window.location.origin));destination.hash='client';
@@ -393,9 +397,11 @@ useEffect(() => { cargarBarberiasActivas(); }, [cargarBarberiasActivas,catalogLo
     setSelectedShop(shop);
     setShowProfileModal(true);
     setProfileUnavailable(false);
+    void profileRefresh.current.refresh(shop,categoryAtOpen);
   };
 
   const closeProfileModal = () => {
+    profileRefresh.current.invalidate();
     setShowProfileModal(false);setSelectedShop(null);setProfileUnavailable(false);
     if(window.history.state?.meryoProfileModal){window.history.back();return;}
     const url=new URL(window.location.href);url.pathname='/';url.search='';url.searchParams.set('catalogo',catalogCategory);url.hash='client';
