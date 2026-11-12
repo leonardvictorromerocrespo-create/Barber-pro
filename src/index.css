@@ -1417,6 +1417,6 @@ body {
 .meryo-profile-store-icon { flex: 0 0 auto; }
 
 /* Keep the dark Barberías canvas black without changing theme surfaces. */
-.meryo-catalog-page[data-meryo-theme="barberia"][data-meryo-mode="dark"] {
+.meryo-catalog-page[data-meryo-theme="barberia"][data-meryo-mode="dark"][data-meryo-appearance="negro-gris"] {
   background-color: #000;
 }

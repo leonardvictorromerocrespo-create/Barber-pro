@@ -1,8 +1,7 @@
 export const THEME_APPEARANCES = {
   barberia: [
     { id: 'marfil', label: 'Marfil', mode: 'light', colors: ['#F4EFE6', '#FFFBF4', '#9B7548'] },
-    { id: 'petroleo-plata', label: 'Petróleo y plata', mode: 'dark', colors: ['#10191F', '#1B2A32', '#AECAD6'] },
-    { id: 'negro-gris', label: 'Negro con gris claro', mode: 'dark', colors: ['#111111', '#292929', '#D6D6D6'] },
+    { id: 'negro-gris', label: 'Negro con gris claro', mode: 'dark', colors: ['#000000', '#292929', '#D6D6D6'] },
   ],
   belleza: [
     { id: 'rosa-marfil', label: 'Rosa y marfil', mode: 'light', colors: ['#FAF7F4', '#EEDDE2', '#955568'] },
@@ -12,7 +11,7 @@ export const THEME_APPEARANCES = {
 };
 
 export const DEFAULT_THEME_APPEARANCE = {
-  barberia: { light: 'marfil', dark: 'petroleo-plata' },
+  barberia: { light: 'marfil', dark: 'negro-gris' },
   belleza: { light: 'rosa-marfil', dark: 'ciruela-ahumado' },
 };
 
