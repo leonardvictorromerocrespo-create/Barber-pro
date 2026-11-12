@@ -5,11 +5,12 @@ const iconImages = {
 
 export default function BarberShortcutIcon({kind}) {
   return <svg className={`meryo-barber-shortcut-icon meryo-barber-shortcut-icon--${kind}`} aria-hidden="true" focusable="false" viewBox="0 0 32 32">
-    <image className="meryo-shortcut-reference-image" href={iconImages[kind]} x="0" y="0" width="32" height="32" preserveAspectRatio="xMidYMid meet" />
-    {kind === 'promotions' && <g fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round">
-      <path d="m14.4 18 3.2-3.2" strokeWidth="1.65" />
-      <circle cx="14.2" cy="15" r="1.05" strokeWidth="1.15" />
-      <circle cx="17.8" cy="18" r="1.05" strokeWidth="1.15" />
-    </g>}
+    {kind === 'promotions' ? <g fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M6.1 20.2Q5.8 19.7 6.3 19.2L17.6 7.8Q18 7.4 18.5 7.3L27.3 6.2Q28.2 6.1 28 7L26.5 15.6Q26.4 16 26 16.4L13.6 28.2Q13 28.8 12.4 28.2Z" strokeWidth="1.1" />
+      <circle cx="23.1" cy="10.3" r="1.35" fill="currentColor" stroke="none" />
+      <path d="m14.4 18 3.2-3.2" strokeWidth="1.45" />
+      <circle cx="14.2" cy="15" r=".82" fill="currentColor" stroke="none" />
+      <circle cx="17.8" cy="18" r=".82" fill="currentColor" stroke="none" />
+    </g> : <image className="meryo-shortcut-reference-image" href={iconImages[kind]} x="0" y="0" width="32" height="32" preserveAspectRatio="xMidYMid meet" />}
   </svg>;
 }
