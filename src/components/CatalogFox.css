@@ -93,7 +93,7 @@
   animation: meryo-fox-peek 3.5s ease both, meryo-fox-return-wave 1.05s step-end 3;
 }
 .meryo-catalog-fox[data-pose="return"] .meryo-catalog-fox__speech {
-  inset: 23px calc(100% + 4px) auto auto;
+  inset: 29px calc(100% - 12px) auto auto;
 }
 @keyframes meryo-fox-peek {
   0%, 100% { transform: translateX(100px) rotate(-17deg) scaleX(-1); }
