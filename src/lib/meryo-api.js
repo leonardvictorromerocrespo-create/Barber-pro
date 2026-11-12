@@ -1,6 +1,6 @@
 import {normalizeBookingOrigin} from './booking-origin.js';
 import { savedOperation } from './operations.js';
-import {PROFILE_PHOTO_TITLE,signContent,uploadContent,uploadProductPhoto} from './shop-content.js';
+import {signContent,uploadContent,uploadProductPhoto} from './shop-content.js';
 
 export async function readResult(operation) {
   const {data,error}=await operation;
@@ -59,7 +59,7 @@ export function createMeryoApi(client) {
       if(signal)request.abortSignal(signal);
       return Promise.all((await readResult(request)).map(async row=>{
         const shop=mapShop(row);
-        try{shop.assets=await signContent(client,row.assets??[]);const cover=shop.assets.find(a=>a.kind==='portada'&&a.url);const profile=shop.assets.filter(a=>a.kind==='foto'&&a.title===PROFILE_PHOTO_TITLE&&a.url).at(-1);shop.coverImage=cover?.url||shop.image;shop.profileImage=profile?.url||null;shop.assets=shop.assets.filter(a=>a.title!==PROFILE_PHOTO_TITLE);if(cover)shop.image=cover.url;}
+        try{const coverAsset=(row.assets??[]).find(asset=>asset.kind==='portada'&&asset.object_path?.startsWith(`${shop.id}/`));shop.assets=coverAsset?(await signContent(client,[coverAsset])):[];const cover=shop.assets.find(asset=>asset.url);shop.coverImage=cover?.url||shop.image;shop.profileImage=null;if(cover)shop.image=cover.url;}
         catch(error){shop.assets=[];shop.contentError=error.message;}
         return shop;
       }));
