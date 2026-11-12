@@ -899,6 +899,7 @@ if (view === "admin" && adminAccess) return <Suspense fallback={lazyFallback}><A
   return (
     <Suspense fallback={lazyFallback}>
     <div data-meryo-theme={catalogCategory==='belleza'?'beauty':'barberia'} data-meryo-mode={themeMode} data-meryo-appearance={themeAppearance} className="meryo-catalog-page min-h-screen bg-neutral-950 pb-24 text-white md:pb-0">
+      {supabase.demoPreview&&<div role="status" className="bg-amber-300 px-4 py-2 text-center text-sm font-semibold text-slate-950">Vista de muestra: barbería y servicios ficticios. No está conectada a Producción.</div>}
       <MeryoHeader
         variant={themeMode==='light'?'light':'dark'}
         themeMode={themeMode} onToggleTheme={()=>toggleThemeMode(catalogCategory)}
