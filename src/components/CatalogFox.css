@@ -52,25 +52,37 @@
 .meryo-catalog-fox[data-pose="jump"] .meryo-catalog-fox__sprite { background-position: 0 100%; }
 .meryo-catalog-fox[data-pose="jump"] .meryo-catalog-fox__speech,
 .meryo-catalog-fox[data-pose="wave"] .meryo-catalog-fox__speech { left: auto; right: 0; }
+/* Reveal the left side of a mirrored, waist-up fox from the right edge. */
 .meryo-catalog-fox[data-pose="return"] {
   inset: 100% 0 auto auto;
-  width: 70px;
-  animation: meryo-fox-peek 3.5s ease both;
+  width: 92px;
+  animation: meryo-fox-return-opacity 3.5s ease both;
 }
 .meryo-catalog-fox[data-pose="return"] .meryo-catalog-fox__sprite {
-  width: 70px;
-  height: 70px;
-  background-image: var(--fox-wave);
-  background-size: 300% 100%;
-  background-position: 0 0;
-  animation: meryo-fox-return-wave 1.05s step-end 3;
+  width: 100%;
+  height: 140px;
+  overflow: hidden;
+  background: none;
+}
+.meryo-catalog-fox[data-pose="return"] .meryo-catalog-fox__sprite::before {
+  content: '';
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: 140px;
+  background: var(--fox-wave) 0 0 / 300% 100% no-repeat;
+  transform: scaleX(-1);
+  animation: meryo-fox-peek 3.5s ease both, meryo-fox-return-wave 1.05s step-end 3;
 }
 .meryo-catalog-fox[data-pose="return"] .meryo-catalog-fox__speech {
-  inset: 10px calc(100% + 4px) auto auto;
+  inset: 23px calc(100% + 4px) auto auto;
 }
 @keyframes meryo-fox-peek {
-  0%, 100% { opacity: 0; transform: translateY(10px); }
-  12%, 87% { opacity: 1; transform: translateY(0); }
+  0%, 100% { transform: translateX(100px) scaleX(-1); }
+  12%, 87% { transform: translateX(0) scaleX(-1); }
+}
+@keyframes meryo-fox-return-opacity {
+  0%, 100% { opacity: 0; }
+  12%, 87% { opacity: 1; }
 }
 @keyframes meryo-fox-return-wave {
   0%, 100% { background-position: 0 0; }
@@ -79,5 +91,5 @@
 }
 @media (prefers-reduced-motion: reduce) {
   .meryo-catalog-fox[data-pose="return"],
-  .meryo-catalog-fox[data-pose="return"] .meryo-catalog-fox__sprite { animation: none; }
+  .meryo-catalog-fox[data-pose="return"] .meryo-catalog-fox__sprite::before { animation: none; }
 }
