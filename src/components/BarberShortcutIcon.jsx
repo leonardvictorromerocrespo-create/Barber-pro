@@ -1,25 +1,25 @@
 function Sparkle({x, y, size = 2.2}) {
-  return <path d={`M${x} ${y - size} Q${x + .55} ${y - .55} ${x + size} ${y} Q${x + .55} ${y + .55} ${x} ${y + size} Q${x - .55} ${y + .55} ${x - size} ${y} Q${x - .55} ${y - .55} ${x} ${y - size}Z`} fill="currentColor" stroke="none" />;
+  return <path d={`M${x} ${y - size} C${x - size * .35} ${y - size * .35} ${x - size * .35} ${y - size * .35} ${x - size} ${y} C${x - size * .35} ${y + size * .35} ${x - size * .35} ${y + size * .35} ${x} ${y + size} C${x + size * .35} ${y + size * .35} ${x + size * .35} ${y + size * .35} ${x + size} ${y} C${x + size * .35} ${y - size * .35} ${x + size * .35} ${y - size * .35} ${x} ${y - size}Z`} fill="currentColor" stroke="none" />;
 }
 
 function TodayIcon() {
   return <g fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round">
-    <path d="M3.4 16.6A12 12 0 0 1 23.8 7.9" strokeWidth="1.45" />
-    <path d="M27.3 17.8A12 12 0 0 1 8 27.1" strokeWidth="1.45" />
-    <path d="M5.7 17.8a10.1 10.1 0 1 1 20.2 0 10.1 10.1 0 0 1-20.2 0Z" strokeWidth="1.55" />
-    <path d="M15.8 11.5v6.4l4.1 2.4" strokeWidth="1.5" />
-    <path d="M11.2 5.9v2.4m7.1-2.7v2.3" strokeWidth="1.2" />
-    <Sparkle x={27.2} y={7.6} size={2.4} />
+    <path d="M3.2 16.8A13 13 0 0 1 23.6 7.1" strokeWidth="1.35" />
+    <path d="M27.1 15.5A12.1 12.1 0 0 1 7.5 25.2" strokeWidth="1.35" />
+    <circle cx="15.8" cy="16.6" r="9.15" strokeWidth="1.35" />
+    <path d="M15.8 10.2v6.2l4.1 2.1" strokeWidth="1.35" />
+    <path d="M15.8 3.7v3.8" strokeWidth="1.35" />
+    <Sparkle x={27.1} y={7.3} size={2.15} />
   </g>;
 }
 
 function InspirationIcon() {
   return <g fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round">
-    <path d="M3.7 18.3A12.2 12.2 0 0 1 16.2 5.5" strokeWidth="1.45" />
-    <path d="M28 13.9a12.1 12.1 0 0 1-9.2 13.4" strokeWidth="1.45" />
-    <path d="m15.8 10 6.5 6.9-6.5 6.9-6.5-6.9L15.8 10Z" strokeWidth="1.5" />
-    <path d="m15.8 13.4 3.3 3.5-3.3 3.5-3.3-3.5 3.3-3.5Z" strokeWidth="1.25" />
-    <Sparkle x={26.9} y={7} size={2.25} />
+    <path d="M2.6 20.1A13.1 13.1 0 0 1 15.5 4.7" strokeWidth="1.35" />
+    <path d="M28 12.4a13.1 13.1 0 0 1-10.8 14.9" strokeWidth="1.35" />
+    <path d="m15.9 9.1 6.9 7.2-6.9 7.2L9 16.3l6.9-7.2Z" strokeWidth="1.35" />
+    <path d="M15.9 11.9c-.8 2.8-1.7 3.6-4.3 4.4 2.6.8 3.5 1.6 4.3 4.4.8-2.8 1.7-3.6 4.3-4.4-2.6-.8-3.5-1.6-4.3-4.4Z" fill="currentColor" stroke="none" />
+    <Sparkle x={26.8} y={7.1} size={2.05} />
   </g>;
 }
 
