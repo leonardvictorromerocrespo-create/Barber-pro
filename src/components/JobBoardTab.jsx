@@ -8,16 +8,16 @@ export default function JobBoardTab({onOpen}){
     const timer=window.setTimeout(()=>setCollapsed(true),4200);
     return()=>{cancelAnimationFrame(frame);window.clearTimeout(timer);};
   },[]);
-  const transform=!entered?'translateX(100%)':collapsed?'translateX(calc(100% - 2.85rem))':'translateX(0)';
+  const transform=!entered?'translateX(100%)':'translateX(0)';
   return <button
     type="button"
     onClick={onOpen}
     aria-label="Abrir bolsa de trabajo"
     title="Bolsa de trabajo"
     className="meryo-job-board-tab"
-    style={{transform}}
+    style={{transform,width:collapsed?'2.85rem':'13rem'}}
   >
-    <span>Bolsa de trabajo</span>
+    <span className="meryo-job-board-tab__label" style={{opacity:collapsed?0:1}}>Bolsa de trabajo</span>
     <span className="meryo-job-board-tab__arrow" aria-hidden="true">&gt;</span>
   </button>;
 }
