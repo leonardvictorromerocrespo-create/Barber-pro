@@ -1424,3 +1424,18 @@ body {
 .meryo-cut-promotions[data-meryo-theme="barberia"][data-meryo-mode="dark"][data-meryo-appearance="negro-gris"] {
   background-color: #000;
 }
+
+/* Shared proportions and a restrained gold accent for Barberías shortcuts. */
+.meryo-catalog-shortcuts :is(button, .meryo-turn-finder__trigger) svg.meryo-barber-shortcut-icon {
+  width: 1.9rem;
+  height: 1.9rem;
+  color: #95672d;
+}
+[data-meryo-mode="dark"] .meryo-catalog-shortcuts :is(button, .meryo-turn-finder__trigger) svg.meryo-barber-shortcut-icon { color: #e2b66f; }
+.meryo-barber-shortcut-icon .meryo-shortcut-accent { stroke: #95672d; }
+[data-meryo-mode="dark"] .meryo-barber-shortcut-icon .meryo-shortcut-accent { stroke: #e2b66f; }
+.meryo-barber-shortcut-icon .meryo-shortcut-percent {
+  fill: currentColor;
+  stroke: none;
+  font: 600 7px/1 ui-sans-serif, system-ui, sans-serif;
+}

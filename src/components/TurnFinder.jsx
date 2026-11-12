@@ -1,3 +1,4 @@
+import BarberShortcutIcon from './BarberShortcutIcon';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { fechaLima, sumarDias } from '../lib/dates';
 import { findTurns, turnKey } from '../lib/turn-finder';
@@ -170,9 +171,9 @@ export default function TurnFinder({ shops, slots, onReserve, themeMode = 'dark'
       disabled={disabled}
       onClick={() => setOpen(true)}
       className="meryo-turn-finder__trigger inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-md px-3 py-2 font-medium shadow-sm">
-      <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" className="size-4 shrink-0" stroke="currentColor" strokeWidth="1.8">
+      {activeCategory==='barberia'?<BarberShortcutIcon kind="today"/>:<svg aria-hidden="true" viewBox="0 0 24 24" fill="none" className="size-4 shrink-0" stroke="currentColor" strokeWidth="1.8">
         <circle cx="10.8" cy="10.8" r="6.4"/><path d="m16 16 4.2 4.2"/>
-      </svg>
+      </svg>}
       <span>Turnos para hoy</span>
     </button>
 
