@@ -54,10 +54,12 @@ export function createMeryoApi(client) {
       const {error}=await client.rpc('meryo_set_catalog_like',{p_shop_id:shopId,p_liked:liked,p_category:category});
       if(error)throw new Error(error.message);
     },
-    catalog:async(category='barberia',{signal}={})=>{
+    catalog:async(category='barberia',{signal,shopId}={})=>{
       const request=client.rpc('meryo_catalogo_categoria',{p_categoria:category});
       if(signal)request.abortSignal(signal);
-      return Promise.all((await readResult(request)).map(async row=>{
+      const rows=await readResult(request);
+      const visibleRows=shopId===undefined?rows:rows.filter(row=>String(row.id)===String(shopId));
+      return Promise.all(visibleRows.map(async row=>{
         const shop=mapShop(row);
         try{const coverAsset=(row.assets??[]).find(asset=>asset.kind==='portada'&&asset.object_path?.startsWith(`${shop.id}/`));shop.assets=coverAsset?(await signContent(client,[coverAsset])):[];const cover=shop.assets.find(asset=>asset.url);shop.coverImage=cover?.url||shop.image;shop.profileImage=null;if(cover)shop.image=cover.url;}
         catch(error){shop.assets=[];shop.contentError=error.message;}
