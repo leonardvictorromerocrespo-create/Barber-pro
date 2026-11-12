@@ -9,7 +9,7 @@ function StoreActionLabel() {
 
 function SectionTitle({children}) { return <h3 className="meryo-profile-section-title">{children}</h3>; }
 
-export default function ProfileModal({selectedShop,onClose,onReserve,onStore,onInspiration,catalogCategory='barberia',themeMode='dark',themeAppearance,initialTab='servicios'}) {
+export default function ProfileModal({selectedShop,onClose,onReserve,onStore,onInspiration,catalogCategory='barberia',themeMode='dark',themeAppearance,initialTab='servicios',contentLoading=false,contentError=''}) {
   const [shareFeedback,setShareFeedback]=useState('');
   const [activeTab,setActiveTab]=useState(initialTab);
   const [aboutExpanded,setAboutExpanded]=useState(false);
@@ -78,14 +78,14 @@ export default function ProfileModal({selectedShop,onClose,onReserve,onStore,onI
   </section>;
   else if(activeTab==='trabajos')tabContent=<section role="tabpanel" id="meryo-profile-panel" aria-labelledby="meryo-profile-tab-trabajos" className="meryo-profile-tab-panel">
     <div className="meryo-profile-work-heading"><SectionTitle>Trabajos</SectionTitle>{onInspiration&&<button type="button" onClick={onInspiration} className="meryo-profile-secondary-action min-h-11 rounded-lg px-3 py-2 text-sm font-semibold">Ver Inspiración</button>}</div>
-    {photos.length?<div className="meryo-profile-work-grid">{photos.map(asset=><figure key={asset.id} className="min-w-0"><img src={asset.url} alt={asset.title||`Trabajo publicado por el ${profileLabel}`} loading="lazy"/>{asset.title&&<figcaption>{asset.title}</figcaption>}</figure>)}</div>:<p className="meryo-profile-empty">El negocio aún no publicó trabajos.</p>}
+    {contentLoading?<p role="status" className="meryo-profile-empty">Cargando fotos del portafolio…</p>:contentError?<p role="alert" className="meryo-profile-empty">{contentError}</p>:photos.length?<div className="meryo-profile-work-grid">{photos.map(asset=><figure key={asset.id} className="min-w-0"><img src={asset.url} alt={asset.title||`Trabajo publicado por el ${profileLabel}`} loading="lazy"/>{asset.title&&<figcaption>{asset.title}</figcaption>}</figure>)}</div>:<p className="meryo-profile-empty">El negocio aún no publicó trabajos.</p>}
   </section>;
   else tabContent=<section role="tabpanel" id="meryo-profile-panel" aria-labelledby="meryo-profile-tab-informacion" className="meryo-profile-tab-panel">
     <SectionTitle>Información</SectionTitle>
     {selectedShop.about&&<div className="meryo-profile-info-block"><h4>Acerca del negocio</h4><p>{selectedShop.about}</p></div>}
     <PublicShopLocation key={selectedShop.id} shop={selectedShop} mapHeight="h-32 sm:h-48" className="meryo-profile-location"/>
     {!selectedShop.direccion&&!selectedShop.lat&&!selectedShop.lng&&!selectedShop.district&&<p className="meryo-profile-empty">El negocio aún no publicó su ubicación.</p>}
-    {videos.length>0?<div className="meryo-profile-info-block"><h4>Video de presentación</h4>{videos.map(asset=><video key={asset.id} src={asset.url} controls preload="metadata" aria-label="Video de presentación" className="mt-3 max-h-[28rem] w-full rounded-lg"/>)}</div>:selectedShop.contentError&&<p role="alert" className="meryo-profile-empty">{selectedShop.contentError}</p>}
+    {contentLoading?<p role="status" className="meryo-profile-empty">Cargando contenido del perfil…</p>:contentError?<p role="alert" className="meryo-profile-empty">{contentError}</p>:videos.length>0?<div className="meryo-profile-info-block"><h4>Video de presentación</h4>{videos.map(asset=><video key={asset.id} src={asset.url} controls preload="none" aria-label="Video de presentación" className="mt-3 max-h-[28rem] w-full rounded-lg"/>)}</div>:selectedShop.contentError&&<p role="alert" className="meryo-profile-empty">{selectedShop.contentError}</p>}
     {(selectedShop.reviews>0||reviews.length>0)&&<div className="meryo-profile-info-block"><h4>Reseñas</h4>{selectedShop.reviews>0&&Number.isFinite(Number(selectedShop.rating))&&<p className="mt-2">★ {Number(selectedShop.rating).toFixed(1)} basado en {selectedShop.reviews} reseñas</p>}{reviews.map(review=><article key={review.id} className="meryo-profile-review"><p>{review.autor} · {review.calificacion}/5</p><p>{review.comentario}</p></article>)}</div>}
   </section>;
 
