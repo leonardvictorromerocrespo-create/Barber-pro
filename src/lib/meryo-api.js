@@ -44,6 +44,11 @@ export function createMeryoApi(client) {
   async function markAttendance(id,attended){await requireRole(['barbero']);const {error}=await client.rpc('marcar_asistencia',{p_reserva_id:id,p_asistio:attended});if(error)throw new Error(error.message||(attended?'No se pudo finalizar la cita':'No se pudo registrar la inasistencia'));return true;}
   return {
     profile:()=>verifiedProfile(client),
+    barberHighlights:()=>readResult(client.rpc('meryo_barber_catalog_highlights')),
+    setBarberLike:async(shopId,liked)=>{
+      const {error}=await client.rpc('meryo_set_barber_like',{p_shop_id:shopId,p_liked:liked});
+      if(error)throw new Error(error.message);
+    },
     catalog:async(category='barberia',{signal}={})=>{
       const request=client.rpc('meryo_catalogo_categoria',{p_categoria:category});
       if(signal)request.abortSignal(signal);

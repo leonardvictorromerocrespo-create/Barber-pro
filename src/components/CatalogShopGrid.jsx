@@ -1,6 +1,6 @@
 const businessLabel=(shop,category)=>category==='belleza'?'Salón de belleza':shop.businessTypes?.includes('belleza')?'Barbería y salón':'Barbería';
 
-export default function CatalogShopGrid({shops,category='barberia',onView,onReserve=()=>{}}) {
+export default function CatalogShopGrid({shops,category='barberia',onView,onReserve=()=>{},renderLike}) {
   return <div className="meryo-shop-grid" aria-label={category==='belleza'?'Salones publicados':'Barberías publicadas'}>
     {shops.map(shop=>{
       const label=businessLabel(shop,category);
@@ -17,7 +17,7 @@ export default function CatalogShopGrid({shops,category='barberia',onView,onRese
           {shop.image?<img src={shop.image} alt={`Portada de ${shop.name}`} loading="lazy"/>:<div className="meryo-shop-card__placeholder" role="img" aria-label="Sin fotografía de portada publicada"/>}
         </div>
         <div className="meryo-shop-card__content min-w-0">
-          <p className="meryo-shop-card__category">{label}</p>
+          {renderLike?<div className="meryo-shop-card__title-row"><p className="meryo-shop-card__category">{label}</p>{renderLike(shop)}</div>:<p className="meryo-shop-card__category">{label}</p>}
           <h2 className="meryo-shop-card__name">{shop.name}</h2>
           <p className="meryo-shop-card__district">{shop.district||'Distrito no publicado'}</p>
           <div className="meryo-shop-card__facts">

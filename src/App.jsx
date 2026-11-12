@@ -2,6 +2,7 @@ import PushCenter from './components/PushCenter';
 import NotificationAccess from './components/NotificationAccess';
 import MeryoHeader from './components/MeryoHeader';
 import CatalogShopGrid from './components/CatalogShopGrid';
+import BarberCatalogHighlights from './components/BarberCatalogHighlights';
 import ShopRegistration from './components/ShopRegistration';
 import ProfileModal from './components/ProfileModal';
 import BookingModal from './components/BookingModal';
@@ -875,11 +876,12 @@ if (view === "admin" && adminAccess) return <AdminShops api={api} profile={ident
         {accessMessage&&<p role="status" className="px-6 text-amber-300">{accessMessage}</p>}
         {profileUnavailable&&<div role="alert" className="mx-auto my-5 max-w-4xl rounded-2xl border border-white/15 bg-neutral-900 p-5"><h1 className="text-xl font-bold">Este negocio ya no está disponible</h1><p className="mt-2 text-neutral-300">No mostramos perfiles que ya no están publicados.</p><button onClick={closeProfileModal} className="mt-4 rounded-xl border border-amber-400/50 px-4 py-2 text-amber-200">Volver al catálogo</button></div>}
         <section id="catalogo" className="meryo-catalog-section mx-auto max-w-7xl px-4 pt-4 pb-10 md:px-6 md:pt-8 md:pb-16">
+          <div className={catalogCategory==='barberia'?'meryo-barber-sticky':undefined}>
           <div className="meryo-catalog-topline">
             <div className="min-w-0"><h1 className="meryo-catalog-heading">{catalogCategory==='belleza'?'Encuentra tu salón':'Encuentra tu barbería'}</h1>{district&&<p className="mt-1 text-sm text-neutral-400">Distrito: {district}</p>}</div>
             <div className="meryo-catalog-top-actions"><p className="meryo-catalog-count" aria-live="polite">{catalogLoading||!catalogMatchesCategory?'Cargando…':catalogError?'Catálogo no disponible':catalogCountLabel(catalogCategory,ranking.length)}</p>{catalogCategory==='belleza'&&<ThemeAppearancePicker category={catalogCategory} appearance={themeAppearance} onSelect={selectThemeAppearance}/>}</div>
           </div>
-          <CatalogFilters query={query} district={district} order={order} hasLocation={!!location} onQuery={setQuery} onDistrict={setDistrict} onOrder={setOrder} onUseLocation={enableLocation} onClearFilters={clearCatalogFilters} businessLabel={catalogCategory==='belleza'?'salón':'barbería'} businessPlural={catalogCategory==='belleza'?'peluquerías y salones':'barberías'} />
+          <CatalogFilters query={query} district={district} order={order} hasLocation={!!location} onQuery={setQuery} onDistrict={setDistrict} onOrder={setOrder} onUseLocation={enableLocation} onClearFilters={clearCatalogFilters} districtPrompt={catalogCategory==='barberia'?'Escoge tu distrito':undefined} businessLabel={catalogCategory==='belleza'?'salón':'barbería'} businessPlural={catalogCategory==='belleza'?'peluquerías y salones':'barberías'} />
           {locationError&&<p role="alert" className="mt-2 text-sm text-amber-300">{locationError}</p>}
           <div className="meryo-catalog-fox-stage">
           <div className="meryo-catalog-shortcuts" aria-label="Accesos rápidos">
@@ -887,13 +889,16 @@ if (view === "admin" && adminAccess) return <AdminShops api={api} profile={ident
             <button type="button" onClick={()=>{setSelectedInspiration(null);setInspirationIssue('');setView('inspiration');}}><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="m21 15-5-5L5 21"/></svg><span>Inspiración</span></button>
             <button type="button" className="meryo-catalog-promotion-shortcut" onClick={catalogCategory==='belleza'?openBeautyPromotions:()=>setView('promotions')}><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round"><path d="M20.6 13.4 13.4 20.6a2 2 0 0 1-2.8 0L3.4 13.4a2 2 0 0 1 0-2.8l7.2-7.2H19a2 2 0 0 1 2 2v8z"/><circle cx="16.5" cy="7.5" r="1"/></svg><span>Promociones</span></button>
           </div>
-          <div className="meryo-catalog-map-control"><button type="button" onClick={()=>setShowMap(value=>!value)} aria-expanded={showMap}><span>{showMap?'Ocultar mapa':'Ver mapa'}</span><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="m3 6 6-3 6 3 6-3v15l-6 3-6-3-6 3z"/><path d="M9 3v15m6-12v15"/></svg></button></div>
+          <div className="meryo-catalog-map-control"><button type="button" onClick={()=>setShowMap(value=>!value)} aria-expanded={showMap}><span>{showMap?'Ocultar mapa':catalogCategory==='barberia'?'Ver en el mapa':'Ver mapa'}</span><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="m3 6 6-3 6 3 6-3v15l-6 3-6-3-6 3z"/><path d="M9 3v15m6-12v15"/></svg></button></div>
           {catalogCategory==='barberia'&&!showMap&&!showProfileModal&&!showBookingModal&&<CatalogFox />}
+          </div>
           </div>
           {showMap&&<div className="meryo-catalog-map-panel"><Suspense fallback={<p role="status">Cargando mapa…</p>}><CatalogMap markers={markers} location={location} onSelect={id=>{const shop=catalogRows.find(item=>item.id===id);if(shop)openProfileModal(shop);}}/></Suspense>{markers.length===0&&<p className="mt-3 text-sm text-neutral-400">No hay ubicaciones verificables para estos resultados.</p>}</div>}
           {catalogMatchesCategory&&!catalogLoading&&!catalogError&&catalogRows.length>0&&ranking.length===0&&<p role="status" className="meryo-catalog-no-match">No encontramos {catalogCategory==='belleza'?'peluquerías ni salones':'barberías'} con esos filtros.</p>}
           <CatalogStatus loading={catalogLoading||!catalogMatchesCategory} error={catalogMatchesCategory?catalogError:''} empty={catalogRows.length===0} businessLabel={catalogCategory==='belleza'?'peluquerías y salones':'barberías'} onRetry={cargarBarberiasActivas}/>
-          {!catalogLoading&&!catalogError&&catalogMatchesCategory&&<CatalogShopGrid shops={ranking} category={catalogCategory} onView={openProfileModal} onReserve={shop=>openBookingModal(shop,null,{startStep:1})}/>}
+          {!catalogLoading&&!catalogError&&catalogMatchesCategory&&(catalogCategory==='barberia'
+            ?<BarberCatalogHighlights key={identity.profile?.id??'guest'} api={api} shops={ranking} identity={identity.profile} onLogin={()=>openLogin('client')} onView={openProfileModal} onReserve={shop=>openBookingModal(shop,null,{startStep:1})}/>
+            :<CatalogShopGrid shops={ranking} category={catalogCategory} onView={openProfileModal} onReserve={shop=>openBookingModal(shop,null,{startStep:1})}/>)}
         </section>
       </main>
 

@@ -1,0 +1,27 @@
+.meryo-barber-sticky {
+  position: sticky;
+  top: var(--meryo-catalog-header-height, 57px);
+  z-index: 10;
+  padding-block: .5rem .25rem;
+  background: var(--meryo-barber-sticky-bg, #000);
+  border-bottom: 1px solid currentColor;
+  border-color: color-mix(in srgb, currentColor 13%, transparent);
+}
+[data-meryo-theme="barberia"][data-meryo-mode="light"] .meryo-barber-sticky { --meryo-barber-sticky-bg: #f2eee5; }
+@media (max-height: 500px) { .meryo-barber-sticky { position: static; } }
+.meryo-discovery-shelf { margin-block: 1rem 1.65rem; }
+.meryo-discovery-heading { display:flex; align-items:center; justify-content:space-between; gap:.75rem; margin-bottom:.5rem; }
+.meryo-discovery-heading h2 { font-size:clamp(1.25rem, 4vw, 1.75rem); font-weight:700; }
+.meryo-discovery-heading p,.meryo-rail-hint { font-size:.85rem; opacity:.78; }
+.meryo-rail-hint { margin-bottom:.6rem; }
+.meryo-featured-rail { overflow-x:auto; scroll-snap-type:x mandatory; overscroll-behavior-inline:contain; padding-block:.2rem .65rem; }
+.meryo-featured-rail .meryo-shop-grid { display:flex; gap:12px; }
+.meryo-featured-rail .meryo-shop-card { flex:0 0 min(92%, 29rem); scroll-snap-align:start; }
+.meryo-featured-rail .meryo-shop-card:only-child { flex-basis:min(100%, 29rem); }
+.meryo-rail-controls { display:flex; gap:.35rem; }
+.meryo-rail-controls button,.meryo-catalog-like { min-width:44px; min-height:44px; border:1px solid currentColor; border-radius:.65rem; }
+.meryo-rail-controls button { font-size:1.65rem; line-height:1; }
+.meryo-rail-controls button:disabled { opacity:.3; }
+.meryo-catalog-like { padding-inline:.6rem; white-space:nowrap; }
+.meryo-catalog-like[aria-pressed="true"] { color:#b75260; }
+.meryo-shop-card__title-row { display:flex; align-items:center; justify-content:space-between; gap:.35rem; }
