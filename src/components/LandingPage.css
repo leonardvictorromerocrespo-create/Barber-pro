@@ -404,7 +404,9 @@
 /* Shared quiet treatment for the landing actions and floating job entry. */
 .meryo-cover__entry-actions { gap: .82rem; }
 .meryo-cover__entry-copy button,
-.meryo-cover__entry-copy .meryo-cover__nearby-button {
+.meryo-cover__entry-copy .meryo-cover__nearby-button,
+.meryo-cover__entry--barber .meryo-cover__entry-copy button,
+.meryo-cover__entry--beauty .meryo-cover__entry-copy button {
   border: 0;
   border-radius: .5rem;
   background: #fffefa;
@@ -412,7 +414,9 @@
   box-shadow: 0 7px 14px #40331b24;
 }
 .meryo-cover__entry-copy button:hover,
-.meryo-cover__entry-copy .meryo-cover__nearby-button:hover {
+.meryo-cover__entry-copy .meryo-cover__nearby-button:hover,
+.meryo-cover__entry--barber .meryo-cover__entry-copy button:hover,
+.meryo-cover__entry--beauty .meryo-cover__entry-copy button:hover {
   background: #fffefa;
   box-shadow: 0 8px 16px #40331b2b;
 }
