@@ -7,6 +7,7 @@ import { supabase, googleAuthEnabled, emailSignupEnabled } from "./lib/supabase"
 import { lazy, Suspense, useCallback, useEffect, useEffectEvent, useMemo, useRef, useState } from "react";
 import { createMeryoApi } from './lib/meryo-api';
 import MeryoLogo from './components/MeryoLogo';
+import LandingPage from './components/LandingPage';
 import { DEFAULT_THEME_APPEARANCE, themeAppearanceOption } from './lib/theme-appearances';
 import { useIdentity } from './lib/useIdentity';
 import { PROFILE_PHOTO_TITLE } from './lib/shop-content';
@@ -30,7 +31,7 @@ const AdminMfa = lazy(() => import('./components/AdminMfa'));
 const AdminShops = lazy(() => import('./components/AdminShops'));
 const TeamInvite = lazy(() => import('./components/TeamInvite'));
 const ShopManagement = lazy(() => import('./components/management/ShopManagement'));
-const LandingPage = lazy(() => import('./components/LandingPage'));
+
 const PublicJobBoard = lazy(() => import('./components/PublicJobBoard'));
 const CutPromotions = lazy(() => import('./components/CutPromotions').then(module => ({default: module.CutPromotions})));
 const BeautyPromotions = lazy(() => import('./components/BeautyPromotions').then(module => ({default: module.BeautyPromotions})));
@@ -48,7 +49,7 @@ const CatalogMap = lazy(() => import("./components/CatalogMap"));
 const StoreModal=lazy(()=>import('./components/store/StoreModal'));
 const MyPickupOrders=lazy(()=>import('./components/store/MyPickupOrders'));
 const lazyFallback=<main className="min-h-screen bg-neutral-950 p-8 text-white" role="status">Cargando MERYO…</main>;
-const landingFallback=<main className="min-h-screen p-6" style={{background:'#f3eee6',color:'#302824'}} role="status" aria-label="Cargando MERYO"><MeryoLogo variant="light" className="h-8 w-auto"/></main>;
+
 
 const pointerClass = "cursor-pointer";
 const ALLOWED_VIEWS=['landing','client','jobs','inspiration','promotions','beauty-promotions','client-auth','client-register','client-login','barber','barber-login','admin','account','account-security','shop-manage','shop-register','my-bookings','my-orders','team-invite','notifications'];
@@ -716,7 +717,7 @@ const finalPrice = selectedPromotion ? Number((basePrice * 0.5).toFixed(2)) : ap
   if (view === 'jobs') return <Suspense fallback={lazyFallback}><PublicJobBoard api={api} onBack={()=>setView('landing')}/></Suspense>;
 
   if (view === "landing") {
-    return <Suspense fallback={landingFallback}><LandingPage setView={setView} onExplore={openCatalogCategory} onFindNearby={category=>{openCatalogCategory(category);enableLocation();}} profile={identity.profile} identityLoading={identity.loading} onSignIn={()=>openLogin('client')} onAccount={()=>setView('account')} onProfessionalAccess={openProfessional} onJobs={()=>setView('jobs')}/></Suspense>;
+    return <LandingPage setView={setView} onExplore={openCatalogCategory} onFindNearby={category=>{openCatalogCategory(category);enableLocation();}} profile={identity.profile} identityLoading={identity.loading} onSignIn={()=>openLogin('client')} onAccount={()=>setView('account')} onProfessionalAccess={openProfessional} onJobs={()=>setView('jobs')}/>;
   }
 
   if (view === "barber" || view === "barber-login") {
