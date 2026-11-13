@@ -265,6 +265,99 @@
 }
 
 
+.meryo-cover__entry-actions { display: grid; justify-items: start; gap: .55rem; margin-top: .15rem; }
+.meryo-cover__entry-copy .meryo-cover__nearby-button {
+  width: auto;
+  min-width: 0;
+  min-height: 2.8rem;
+  margin-top: 0;
+  border: 1px solid #d7d4ce;
+  background: transparent;
+  color: #37332e;
+  padding: .55rem .85rem;
+  font-size: .9rem;
+  font-weight: 600;
+  box-shadow: none;
+}
+.meryo-cover__entry-copy .meryo-cover__nearby-button:hover { background: #f0efec; box-shadow: 0 3px 9px #40331b12; }
+.meryo-nearby-backdrop {
+  position: fixed;
+  z-index: 80;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  padding: 1rem;
+  background: rgba(24, 22, 20, .56);
+  backdrop-filter: blur(3px);
+}
+.meryo-nearby-dialog {
+  position: relative;
+  width: min(100%, 28rem);
+  border: 1px solid #dedbd4;
+  border-radius: 1.35rem;
+  background: #fffefa;
+  color: #302b27;
+  padding: clamp(1.4rem, 5vw, 2rem);
+  box-shadow: 0 24px 70px #16120d45;
+  font-family: 'Quicksand', sans-serif;
+}
+.meryo-nearby-close {
+  position: absolute;
+  top: .75rem;
+  right: .85rem;
+  display: grid;
+  width: 2.6rem;
+  height: 2.6rem;
+  place-items: center;
+  border: 0;
+  border-radius: 50%;
+  background: #eeece8;
+  color: #302b27;
+  font-size: 1.65rem;
+  line-height: 1;
+  cursor: pointer;
+}
+.meryo-nearby-eyebrow {
+  margin: 0 2.4rem .55rem 0;
+  color: #746b60;
+  font-size: .75rem;
+  font-weight: 700;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+}
+.meryo-nearby-dialog h2 { margin: 0; font-size: clamp(1.45rem, 5vw, 1.85rem); font-weight: 700; line-height: 1.2; }
+.meryo-nearby-copy { margin: .75rem 0 1.25rem; color: #625d56; font-size: .95rem; line-height: 1.55; }
+.meryo-nearby-primary,
+.meryo-nearby-secondary {
+  display: flex;
+  min-height: 3.25rem;
+  width: 100%;
+  align-items: center;
+  justify-content: center;
+  gap: .65rem;
+  border-radius: .9rem;
+  padding: .7rem 1rem;
+  font: inherit;
+  font-size: .95rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+.meryo-nearby-primary { border: 0; background: #e8e8e6; color: #292520; box-shadow: 0 5px 14px #40331b18; }
+.meryo-nearby-primary:hover { background: #dededb; }
+.meryo-nearby-primary svg { width: 1.2rem; height: 1.2rem; }
+.meryo-nearby-secondary { margin-top: .65rem; border: 1px solid #d8d5ce; background: transparent; color: #38342f; }
+.meryo-nearby-secondary:hover { background: #f3f1ed; }
+.meryo-nearby-note { margin: .95rem 0 0; color: #777168; font-size: .78rem; line-height: 1.45; text-align: center; }
+.meryo-nearby-dialog button:focus-visible { outline: 2px solid #45403a; outline-offset: 3px; }
+@media (max-width: 47.999rem) {
+  .meryo-cover__entry-actions { gap: .42rem; }
+  .meryo-cover__entry-copy .meryo-cover__nearby-button { min-height: 2.75rem; padding: .48rem .6rem; font-size: clamp(.65rem, 2.8vw, .78rem); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .meryo-nearby-backdrop { backdrop-filter: none; }
+}
+
+/* Compact job board entry, using MERYO's current graphite and ivory palette. */
 .meryo-job-board-tab {
   position: fixed;
   z-index: 45;
@@ -276,32 +369,28 @@
   justify-content: space-between;
   gap: .75rem;
   overflow: hidden;
-  border: 1px solid #d4af37;
+  border: 1px solid #d7d4ce;
   border-right: 0;
   border-radius: .9rem 0 0 .9rem;
-  background: linear-gradient(135deg, #1b1915, #30291b);
-  color: #f5e8c6;
+  background: linear-gradient(135deg, #302b27, #48433d);
+  color: #fffefa;
   padding: .55rem .65rem .55rem 1rem;
-  box-shadow: 0 12px 32px #0008, inset 0 1px 0 #ffffff18;
+  box-shadow: 0 12px 32px #0004, inset 0 1px 0 #ffffff18;
   font: inherit;
   font-size: .9rem;
   font-weight: 750;
   transition: transform .72s cubic-bezier(.2,.75,.25,1), width .55s cubic-bezier(.2,.75,.25,1);
 }
-.meryo-job-board-tab:hover { background: linear-gradient(135deg, #29241a, #43391f); }
-.meryo-job-board-tab:focus-visible { outline: 2px solid #f1d37b; outline-offset: 3px; }
-.meryo-job-board-tab__label {
-  overflow: hidden;
-  white-space: nowrap;
-  transition: opacity .2s ease;
-}
+.meryo-job-board-tab:hover { background: linear-gradient(135deg, #403b35, #57514a); }
+.meryo-job-board-tab:focus-visible { outline: 2px solid #514a43; outline-offset: 3px; }
+.meryo-job-board-tab__label { overflow: hidden; white-space: nowrap; transition: opacity .2s ease; }
 .meryo-job-board-tab__arrow {
   flex: none;
   display: grid;
   width: 1.55rem;
   height: 1.9rem;
   place-items: center;
-  color: #f1d37b;
+  color: #e8e8e6;
   font-size: 1.6rem;
   font-weight: 500;
   line-height: 1;
