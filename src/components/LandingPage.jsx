@@ -2,6 +2,7 @@ import {useEffect,useState} from 'react';
 import barberPhoto from '../assets/meryo-entry-barber-reference.png';
 import beautyPhoto from '../assets/meryo-entry-beauty-reference.png';
 import MeryoHeader from './MeryoHeader';
+import JobBoardTab from './JobBoardTab';
 import WelcomeOnboarding, {shouldShowWelcome} from './WelcomeOnboarding';
 import './LandingPage.css';
 
@@ -10,7 +11,7 @@ const categoryCopy={
   belleza:{title:'salones de belleza',action:'Buscar horarios de salón',nearby:'Encuentra salones cerca de ti',district:'Ver salones por distrito'},
 };
 
-export default function LandingPage({setView, onExplore, onFindNearby, profile=null, identityLoading=false, onSignIn, onAccount, onProfessionalAccess}) {
+export default function LandingPage({setView, onExplore, onFindNearby, profile=null, identityLoading=false, onSignIn, onAccount, onProfessionalAccess, onJobs}) {
   const [showWelcome, setShowWelcome] = useState(shouldShowWelcome);
   const [nearbyCategory,setNearbyCategory]=useState('');
   const explore = category => onExplore ? onExplore(category) : setView('client');
@@ -34,6 +35,8 @@ export default function LandingPage({setView, onExplore, onFindNearby, profile=n
         onHome={()=>setView('landing')} onProfessional={onProfessionalAccess}
         onAccount={enterAccount} onNotifications={()=>setView('notifications')}
       />
+
+      <JobBoardTab onOpen={onJobs}/>
 
       <main className="meryo-cover__main">
         <section className="meryo-cover__hero" aria-labelledby="meryo-cover-title">

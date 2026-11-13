@@ -356,3 +356,46 @@
 @media (prefers-reduced-motion: reduce) {
   .meryo-nearby-backdrop { backdrop-filter: none; }
 }
+
+/* Compact job board entry, using MERYO's current graphite and ivory palette. */
+.meryo-job-board-tab {
+  position: fixed;
+  z-index: 45;
+  top: 42%;
+  right: 0;
+  display: flex;
+  min-height: 3.4rem;
+  align-items: center;
+  justify-content: space-between;
+  gap: .75rem;
+  overflow: hidden;
+  border: 1px solid #d7d4ce;
+  border-right: 0;
+  border-radius: .9rem 0 0 .9rem;
+  background: linear-gradient(135deg, #302b27, #48433d);
+  color: #fffefa;
+  padding: .55rem .65rem .55rem 1rem;
+  box-shadow: 0 12px 32px #0004, inset 0 1px 0 #ffffff18;
+  font: inherit;
+  font-size: .9rem;
+  font-weight: 750;
+  transition: transform .72s cubic-bezier(.2,.75,.25,1), width .55s cubic-bezier(.2,.75,.25,1);
+}
+.meryo-job-board-tab:hover { background: linear-gradient(135deg, #403b35, #57514a); }
+.meryo-job-board-tab:focus-visible { outline: 2px solid #514a43; outline-offset: 3px; }
+.meryo-job-board-tab__label { overflow: hidden; white-space: nowrap; transition: opacity .2s ease; }
+.meryo-job-board-tab__arrow {
+  flex: none;
+  display: grid;
+  width: 1.55rem;
+  height: 1.9rem;
+  place-items: center;
+  color: #e8e8e6;
+  font-size: 1.6rem;
+  font-weight: 500;
+  line-height: 1;
+}
+@media (prefers-reduced-motion: reduce) {
+  .meryo-job-board-tab,
+  .meryo-job-board-tab__label { transition-duration: .01ms; }
+}
