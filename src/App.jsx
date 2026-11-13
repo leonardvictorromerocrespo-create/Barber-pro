@@ -48,6 +48,7 @@ const CatalogMap = lazy(() => import("./components/CatalogMap"));
 const StoreModal=lazy(()=>import('./components/store/StoreModal'));
 const MyPickupOrders=lazy(()=>import('./components/store/MyPickupOrders'));
 const lazyFallback=<main className="min-h-screen bg-neutral-950 p-8 text-white" role="status">Cargando MERYO…</main>;
+const landingFallback=<main className="min-h-screen p-6" style={{background:'#f3eee6',color:'#302824'}} role="status" aria-label="Cargando MERYO"><MeryoLogo variant="light" className="h-8 w-auto"/></main>;
 
 const pointerClass = "cursor-pointer";
 const ALLOWED_VIEWS=['landing','client','jobs','inspiration','promotions','beauty-promotions','client-auth','client-register','client-login','barber','barber-login','admin','account','account-security','shop-manage','shop-register','my-bookings','my-orders','team-invite','notifications'];
@@ -715,7 +716,7 @@ const finalPrice = selectedPromotion ? Number((basePrice * 0.5).toFixed(2)) : ap
   if (view === 'jobs') return <Suspense fallback={lazyFallback}><PublicJobBoard api={api} onBack={()=>setView('landing')}/></Suspense>;
 
   if (view === "landing") {
-    return <Suspense fallback={lazyFallback}><LandingPage setView={setView} onExplore={openCatalogCategory} onFindNearby={category=>{openCatalogCategory(category);enableLocation();}} profile={identity.profile} identityLoading={identity.loading} onSignIn={()=>openLogin('client')} onAccount={()=>setView('account')} onProfessionalAccess={openProfessional} onJobs={()=>setView('jobs')}/></Suspense>;
+    return <Suspense fallback={landingFallback}><LandingPage setView={setView} onExplore={openCatalogCategory} onFindNearby={category=>{openCatalogCategory(category);enableLocation();}} profile={identity.profile} identityLoading={identity.loading} onSignIn={()=>openLogin('client')} onAccount={()=>setView('account')} onProfessionalAccess={openProfessional} onJobs={()=>setView('jobs')}/></Suspense>;
   }
 
   if (view === "barber" || view === "barber-login") {
