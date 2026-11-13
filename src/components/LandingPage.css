@@ -399,3 +399,54 @@
   .meryo-job-board-tab,
   .meryo-job-board-tab__label { transition-duration: .01ms; }
 }
+
+
+/* Shared quiet treatment for the landing actions and floating job entry. */
+.meryo-cover__entry-actions { gap: .82rem; }
+.meryo-cover__entry-copy button,
+.meryo-cover__entry-copy .meryo-cover__nearby-button,
+.meryo-cover__entry--barber .meryo-cover__entry-copy button,
+.meryo-cover__entry--beauty .meryo-cover__entry-copy button {
+  border: 0;
+  border-radius: .5rem;
+  background: #fffefa;
+  color: #302b27;
+  box-shadow: 0 7px 14px #40331b24;
+}
+.meryo-cover__entry-copy button:hover,
+.meryo-cover__entry-copy .meryo-cover__nearby-button:hover,
+.meryo-cover__entry--barber .meryo-cover__entry-copy button:hover,
+.meryo-cover__entry--beauty .meryo-cover__entry-copy button:hover {
+  background: #fffefa;
+  box-shadow: 0 8px 16px #40331b2b;
+}
+.meryo-job-board-tab {
+  top: 65%;
+  border: 0;
+  border-radius: .5rem 0 0 .5rem;
+  background: #e8e8e6;
+  color: #302b27;
+  box-shadow: 0 7px 14px #40331b2b;
+}
+.meryo-job-board-tab:hover { background: #e8e8e6; box-shadow: 0 8px 16px #40331b32; }
+
+@media (max-width: 47.999rem) {
+  .meryo-cover__entry-grid {
+    padding-block: .85rem;
+    gap: .35rem;
+  }
+  .meryo-cover__entry {
+    min-height: clamp(16.5rem, 68vw, 20rem);
+  }
+  .meryo-cover__portrait {
+    height: clamp(11.5rem, 46vw, 14.5rem);
+  }
+  .meryo-cover__entry-actions { gap: .72rem; }
+  .meryo-cover__entry-copy button { min-height: 3.1rem; }
+  .meryo-cover__entry--beauty .meryo-cover__portrait img,
+  .meryo-cover__entry--beauty .meryo-cover__entry-copy {
+    position: relative;
+    top: -.65rem;
+  }
+  .meryo-job-board-tab { top: 65%; }
+}
