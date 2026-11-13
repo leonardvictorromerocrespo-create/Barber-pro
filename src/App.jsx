@@ -715,7 +715,7 @@ const finalPrice = selectedPromotion ? Number((basePrice * 0.5).toFixed(2)) : ap
   if (view === 'jobs') return <Suspense fallback={lazyFallback}><PublicJobBoard api={api} onBack={()=>setView('landing')}/></Suspense>;
 
   if (view === "landing") {
-    return <Suspense fallback={lazyFallback}><LandingPage setView={setView} onExplore={openCatalogCategory} profile={identity.profile} identityLoading={identity.loading} onSignIn={()=>openLogin('client')} onAccount={()=>setView('account')} onProfessionalAccess={openProfessional} onJobs={()=>setView('jobs')}/></Suspense>;
+    return <Suspense fallback={lazyFallback}><LandingPage setView={setView} onExplore={openCatalogCategory} onFindNearby={category=>{openCatalogCategory(category);enableLocation();}} profile={identity.profile} identityLoading={identity.loading} onSignIn={()=>openLogin('client')} onAccount={()=>setView('account')} onProfessionalAccess={openProfessional} onJobs={()=>setView('jobs')}/></Suspense>;
   }
 
   if (view === "barber" || view === "barber-login") {
