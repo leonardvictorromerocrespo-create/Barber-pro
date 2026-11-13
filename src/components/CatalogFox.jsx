@@ -67,14 +67,15 @@ export default function CatalogFox() {
       node.dataset.pose = 'walk';
       const walkMs = 3550;
       const hopMs = 1080;
-      const duration = walkMs + hopMs + 1270;
+      const exitMs = 2400;
+      const duration = walkMs + hopMs + 750 + exitMs;
       const landed = (walkMs + hopMs) / duration;
       animation = node.animate([
         {transform: place(x, y), offset: 0},
         {transform: place(Math.max(x, Math.min(mx - 48, areaBox.width - 196)), y), offset: walkMs / duration},
         {transform: place(mx - 22, Math.min(y, my) - 24), offset: (walkMs + hopMs * .52) / duration},
         {transform: place(mx, my), offset: landed},
-        {transform: place(mx, my), opacity: 1, offset: (walkMs + hopMs + 750) / duration},
+        {transform: place(mx, my), opacity: 1, offset: (walkMs + hopMs + 750) / duration, easing: 'cubic-bezier(.22,1,.36,1)'},
         {transform: place(areaBox.width + size, my - 8), opacity: 0, offset: 1},
       ], {duration, fill: 'forwards'});
       timer = window.setTimeout(() => {
