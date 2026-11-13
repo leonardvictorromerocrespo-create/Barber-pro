@@ -36,7 +36,7 @@ const PublicJobBoard = lazy(() => import('./components/PublicJobBoard'));
 const CutPromotions = lazy(() => import('./components/CutPromotions').then(module => ({default: module.CutPromotions})));
 const BeautyPromotions = lazy(() => import('./components/BeautyPromotions').then(module => ({default: module.BeautyPromotions})));
 const InspirationGallery = lazy(() => import('./components/InspirationGallery'));
-const CatalogFox = lazy(() => import('./components/CatalogFox'));
+
 const BarberShortcutIcon = lazy(() => import('./components/BarberShortcutIcon'));
 const MeryoHeader = lazy(() => import('./components/MeryoHeader'));
 const BarberCatalogHighlights = lazy(() => import('./components/BarberCatalogHighlights'));
@@ -49,6 +49,7 @@ const CatalogMap = lazy(() => import("./components/CatalogMap"));
 const StoreModal=lazy(()=>import('./components/store/StoreModal'));
 const MyPickupOrders=lazy(()=>import('./components/store/MyPickupOrders'));
 const lazyFallback=<main className="min-h-screen bg-neutral-950 p-8 text-white" role="status">Cargando MERYO…</main>;
+const catalogFallback=<main className="min-h-screen bg-[#fffefa] text-[#302b27]" role="status" aria-label="Cargando catálogo"><div className="h-[4.5rem] bg-[#0b0b0b]"/><div className="mx-auto max-w-7xl space-y-4 px-4 py-8"><div className="h-9 w-72 rounded-lg bg-[#302b27]/[.08]"/><div className="grid grid-cols-2 gap-3"><div className="h-14 rounded-xl bg-[#302b27]/[.06]"/><div className="h-14 rounded-xl bg-[#302b27]/[.06]"/></div><div className="mt-8 flex justify-between"><div className="h-11 w-40 rounded-lg bg-[#302b27]/[.06]"/><div className="h-11 w-28 rounded-lg bg-[#302b27]/[.06]"/></div><div className="mt-8 h-44 rounded-2xl bg-[#302b27]/[.05]"/></div></main>;
 
 
 const pointerClass = "cursor-pointer";
@@ -893,7 +894,7 @@ if (view === "admin" && adminAccess) return <Suspense fallback={lazyFallback}><A
   const catalogControls=<><CatalogFilters showSearch={false} query={query} district={district} order={order} hasLocation={!!location} onQuery={setQuery} onDistrict={setDistrict} onOrder={setOrder} onUseLocation={enableLocation} onClearFilters={clearCatalogFilters} districtPrompt={catalogCategory==='barberia'?'Escoge tu distrito':undefined} businessLabel={catalogCategory==='belleza'?'salón':'barbería'} businessPlural={catalogCategory==='belleza'?'peluquerías y salones':'barberías'} />
     {locationError&&<p role="alert" className="mt-2 text-sm text-amber-300">{locationError}</p>}</>;
   return (
-    <Suspense fallback={lazyFallback}>
+    <Suspense fallback={catalogFallback}>
     <div data-meryo-theme={catalogCategory==='belleza'?'beauty':'barberia'} data-meryo-mode={themeMode} data-meryo-appearance={themeAppearance} className="meryo-catalog-page min-h-screen bg-neutral-950 pb-24 text-white md:pb-0">
       <MeryoHeader
         variant={themeMode==='light'?'light':'dark'}
@@ -922,13 +923,13 @@ if (view === "admin" && adminAccess) return <Suspense fallback={lazyFallback}><A
             <button type="button" className="meryo-catalog-promotion-shortcut" onClick={catalogCategory==='belleza'?openBeautyPromotions:()=>setView('promotions')}><BarberShortcutIcon kind="promotions"/><span>Promociones</span></button>
           </div>
           <div className="meryo-catalog-map-control"><button type="button" onClick={()=>setShowMap(value=>!value)} aria-expanded={showMap}><span>{showMap?'Ocultar mapa':catalogCategory==='barberia'?'Ver en el mapa':'Ver mapa'}</span><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="m3 6 6-3 6 3 6-3v15l-6 3-6-3-6 3z"/><path d="M9 3v15m6-12v15"/></svg></button></div>
-          {catalogCategory==='barberia'&&!showMap&&!showProfileModal&&!showBookingModal&&<Suspense fallback={null}><CatalogFox /></Suspense>}
+
           </div>
           </div>
           {showMap&&<div className="meryo-catalog-map-panel"><Suspense fallback={<p role="status">Cargando mapa…</p>}><CatalogMap markers={markers} location={location} onSelect={id=>{const shop=catalogRows.find(item=>item.id===id);if(shop)openProfileModal(shop);}}/></Suspense>{markers.length===0&&<p className="mt-3 text-sm text-neutral-400">No hay ubicaciones verificables para estos resultados.</p>}</div>}
           {catalogMatchesCategory&&!catalogLoading&&!catalogError&&catalogRows.length>0&&ranking.length===0&&<p role="status" className="meryo-catalog-no-match">No encontramos {catalogCategory==='belleza'?'peluquerías ni salones':'barberías'} con esos filtros.</p>}
           <CatalogStatus loading={catalogLoading||!catalogMatchesCategory} error={catalogMatchesCategory?catalogError:''} empty={catalogRows.length===0} businessLabel={catalogCategory==='belleza'?'peluquerías y salones':'barberías'} onRetry={cargarBarberiasActivas}/>
-          {!catalogLoading&&!catalogError&&catalogMatchesCategory&&<BarberCatalogHighlights key={`${catalogCategory}-${identity.profile?.id??'guest'}`} api={api} shops={ranking} identity={identity.profile} category={catalogCategory} onLogin={()=>openLogin('client')} onView={openProfileModal} onReserve={shop=>openBookingModal(shop,null,{startStep:1})}/>}
+          {!catalogLoading&&!catalogError&&catalogMatchesCategory&&<Suspense fallback={<p role="status" className="mt-4 text-center text-sm text-neutral-500">Cargando barberías…</p>}><BarberCatalogHighlights key={`${catalogCategory}-${identity.profile?.id??'guest'}`} api={api} shops={ranking} identity={identity.profile} category={catalogCategory} onLogin={()=>openLogin('client')} onView={openProfileModal} onReserve={shop=>openBookingModal(shop,null,{startStep:1})}/></Suspense>}
         </section>
       </main>
 
