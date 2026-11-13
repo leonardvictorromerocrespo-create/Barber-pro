@@ -2,13 +2,13 @@ import {useEffect,useMemo,useState} from 'react';
 import MeryoLogo from './MeryoLogo';
 
 function contactUrl(value){
-  const digits=String(value||'').replace(/\D/g,'');
+  const digits=String(value||'').replace(/\\D/g,'');
   const phone=digits.startsWith('51')?digits:digits.length===9?'51'+digits:digits;
   return phone?'https://wa.me/'+phone:null;
 }
 
 function dateLabel(value){
-  const date=/^\d{4}-\d{2}-\d{2}$/.test(String(value||''))?new Date(value+'T12:00:00'):new Date(value);
+  const date=/^\\d{4}-\\d{2}-\\d{2}$/.test(String(value||''))?new Date(value+'T12:00:00'):new Date(value);
   return Number.isNaN(date.getTime())?'':new Intl.DateTimeFormat('es-PE',{day:'numeric',month:'short',year:'numeric'}).format(date);
 }
 
@@ -19,10 +19,15 @@ export default function PublicJobBoard({api,onBack}){
   const [error,setError]=useState('');
   useEffect(()=>{
     let active=true;
-    setLoading(true);setError('');
-    api.publicJobListings().then(rows=>{if(active)setJobs(Array.isArray(rows)?rows:[]);})
-      .catch(e=>{if(active)setError(e.message||'No se pudieron cargar las vacantes.');})
-      .finally(()=>{if(active)setLoading(false);});
+    api.publicJobListings().then(rows=>{
+      if(!active)return;
+      setJobs(Array.isArray(rows)?rows:[]);
+      setLoading(false);
+    }).catch(e=>{
+      if(!active)return;
+      setError(e.message||'No se pudieron cargar las vacantes.');
+      setLoading(false);
+    });
     return()=>{active=false;};
   },[api]);
   const districts=useMemo(()=>[...new Set(jobs.map(job=>job.distrito).filter(Boolean))].sort((a,b)=>a.localeCompare(b,'es')), [jobs]);
