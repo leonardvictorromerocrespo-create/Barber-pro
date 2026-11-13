@@ -1,5 +1,6 @@
 import {useEffect,useMemo,useState} from 'react';
 import MeryoLogo from './MeryoLogo';
+const EMPTY_JOBS = [];
 
 function contactUrl(value){
   const digits=String(value||'').replace(/\D/g,'');
@@ -13,23 +14,23 @@ function dateLabel(value){
 }
 
 export default function PublicJobBoard({api,onBack}){
-  const [jobs,setJobs]=useState([]);
+  const [listing,setListing]=useState({api:null,jobs:[],loading:true,error:''});
   const [district,setDistrict]=useState('');
-  const [loading,setLoading]=useState(true);
-  const [error,setError]=useState('');
   useEffect(()=>{
     let active=true;
     api.publicJobListings().then(rows=>{
       if(!active)return;
-      setJobs(Array.isArray(rows)?rows:[]);
-      setLoading(false);
+      setListing({api,jobs:Array.isArray(rows)?rows:[],loading:false,error:''});
     }).catch(e=>{
       if(!active)return;
-      setError(e.message||'No se pudieron cargar las vacantes.');
-      setLoading(false);
+      setListing({api,jobs:[],loading:false,error:e.message||'No se pudieron cargar las vacantes.'});
     });
     return()=>{active=false;};
   },[api]);
+  const currentListing=listing.api===api;
+  const jobs=currentListing?listing.jobs:EMPTY_JOBS;
+  const loading=!currentListing||listing.loading;
+  const error=currentListing?listing.error:'';
   const districts=useMemo(()=>[...new Set(jobs.map(job=>job.distrito).filter(Boolean))].sort((a,b)=>a.localeCompare(b,'es')), [jobs]);
   const visibleJobs=useMemo(()=>district?jobs.filter(job=>job.distrito?.toLocaleLowerCase('es')===district.toLocaleLowerCase('es')):jobs,[jobs,district]);
   return <main className="min-h-screen bg-neutral-950 px-4 py-5 pb-12 text-white sm:px-6">
