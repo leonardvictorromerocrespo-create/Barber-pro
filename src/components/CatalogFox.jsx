@@ -75,7 +75,7 @@ export default function CatalogFox() {
         {transform: place(mx - 22, Math.min(y, my) - 24), offset: (walkMs + hopMs * .52) / duration},
         {transform: place(mx, my), offset: landed},
         {transform: place(mx, my), opacity: 1, offset: (walkMs + hopMs + 750) / duration},
-        {transform: place(clamp(areaBox.width - size), my - 8), opacity: 0, offset: 1},
+        {transform: place(areaBox.width + size, my - 8), opacity: 0, offset: 1},
       ], {duration, fill: 'forwards'});
       timer = window.setTimeout(() => {
         node.dataset.pose = 'jump';
