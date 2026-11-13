@@ -2,13 +2,13 @@ import {useEffect,useMemo,useState} from 'react';
 import MeryoLogo from './MeryoLogo';
 
 function contactUrl(value){
-  const digits=String(value||'').replace(/\\D/g,'');
+  const digits=String(value||'').replace(/\D/g,'');
   const phone=digits.startsWith('51')?digits:digits.length===9?'51'+digits:digits;
   return phone?'https://wa.me/'+phone:null;
 }
 
 function dateLabel(value){
-  const date=/^\\d{4}-\\d{2}-\\d{2}$/.test(String(value||''))?new Date(value+'T12:00:00'):new Date(value);
+  const date=/^\d{4}-\d{2}-\d{2}$/.test(String(value||''))?new Date(value+'T12:00:00'):new Date(value);
   return Number.isNaN(date.getTime())?'':new Intl.DateTimeFormat('es-PE',{day:'numeric',month:'short',year:'numeric'}).format(date);
 }
 
