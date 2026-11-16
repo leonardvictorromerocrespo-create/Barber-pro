@@ -48,6 +48,8 @@ jobs:
           curl -fL https://github.com/PostgREST/postgrest/releases/download/v16.5/postgrest-v16.5-linux-static-x86-64.tar.xz -o "$RUNNER_TEMP/meryo-official/rest.tar.xz"
           tar -xJf "$RUNNER_TEMP/meryo-official/rest.tar.xz" -C "$RUNNER_TEMP/meryo-official"
       - name: Verify real Storage upload, read, replacement, withdrawal and tenant permissions
+        env:
+          MERYO_CI_TEAM_PHOTO_ONLY: 'true'
         run: node scripts/verify-storage-ci.mjs
       - name: Publish non-secret verification result
         if: success()

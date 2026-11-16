@@ -1,10 +1,10 @@
 // Real official services on a disposable standard Linux runner. No production secrets.
 import fs from 'node:fs/promises';import {createWriteStream} from 'node:fs';import path from 'node:path';import crypto from 'node:crypto';import {spawn,spawnSync} from 'node:child_process';import http from 'node:http';
 import pg from 'pg';import webpush from 'web-push';import {createClient} from '@supabase/supabase-js';import assert from 'node:assert/strict';
-import {createMeryoApi} from '../src/lib/meryo-api.js';import {uploadContent,CONTENT_BUCKET} from '../src/lib/shop-content.js';import {totp} from '../tests/helpers/totp.mjs';import {fechaLima,sumarDias} from '../src/lib/dates.js';
+import {createMeryoApi} from '../src/lib/meryo-api.js';import {uploadContent,CONTENT_BUCKET,isTeamPhotoTitle,teamPhotoTitle} from '../src/lib/shop-content.js';import {totp} from '../tests/helpers/totp.mjs';import {fechaLima,sumarDias} from '../src/lib/dates.js';
 import {deliverBookingPush} from '../server/web-push.mjs';
 if(process.env.GITHUB_ACTIONS!=='true'||process.platform!=='linux'||!process.env.RUNNER_TEMP)throw Error('Disposable GitHub Linux runner only');
-const root=path.join(process.env.RUNNER_TEMP,'meryo-official'),dbName='meryo_ci_storage',user=process.env.USER,setupOnly=process.env.MERYO_CI_SETUP_ONLY==='true';
+const root=path.join(process.env.RUNNER_TEMP,'meryo-official'),dbName='meryo_ci_storage',user=process.env.USER,setupOnly=process.env.MERYO_CI_SETUP_ONLY==='true',teamPhotoOnly=process.env.MERYO_CI_TEAM_PHOTO_ONLY==='true';
 const jwtSecret=crypto.randomBytes(48).toString('hex'),password=crypto.randomBytes(24).toString('hex');
 function jwt(role){const body=Buffer.from(JSON.stringify({alg:'HS256',typ:'JWT'})).toString('base64url')+'.'+Buffer.from(JSON.stringify({role,aud:'authenticated',iat:Math.floor(Date.now()/1000),exp:Math.floor(Date.now()/1000)+3600})).toString('base64url');return body+'.'+crypto.createHmac('sha256',jwtSecret).update(body).digest('base64url');}
 const anon=jwt('anon'),service=jwt('service_role');for(const value of [jwtSecret,password,anon,service])console.log('::add-mask::'+value);
@@ -40,8 +40,9 @@ try{
  await db.query(await fs.readFile('db/incremental/022_beauty_business_catalog.sql','utf8'));
  // Reuse the same disposable schema to exercise the reservation contracts in
  // order, through the exact migration under review; never connect to Supabase.
- for(const version of ['023_cut50_campaigns.sql','024_beauty_service_promotions.sql','025_weekly_business_promotions.sql','026_turn_finder_price_check.sql','027_inspiration_publications.sql','028_no_show_guard.sql','029_booking_origins.sql'])
+  for(const version of ['023_cut50_campaigns.sql','024_beauty_service_promotions.sql','025_weekly_business_promotions.sql','026_turn_finder_price_check.sql','027_inspiration_publications.sql','028_no_show_guard.sql','029_booking_origins.sql'])
   await db.query(await fs.readFile(`db/incremental/${version}`,'utf8'));
+  await db.query(await fs.readFile('db/incremental/035_team_member_photos.sql','utf8'));
  const clean=(await db.query('select (select count(*) from auth.users)::int users,(select count(*) from public.barberias)::int shops')).rows[0];assert.deepEqual(clean,{users:0,shops:0});
  console.log('Disposable isolated schema and store migration prepared; no services started');
  }else{
@@ -74,6 +75,24 @@ try{
  const shop=await ownerApi.registerShop({nombre:'MERYO CI Storage',distrito:'Ate',direccion:'Dirección sintética CI',descripcion:'Contenido privado hasta aprobación',lat:-12.04,lng:-77.03,whatsapp:'',correo:''});
  assert.ifError((await owner.from('servicios').insert({barberia_id:shop,nombre:'Corte CI',precio:30,duracion_min:30,activo:true})).error);
  const png=Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+a8XcAAAAASUVORK5CYII=','base64');
+ let teamPortraits=null;
+ if(teamPhotoOnly){
+  const staff=make();clients.push(staff);const staffEmail='team.'+crypto.randomUUID()+'@example.com',staffPassword=crypto.randomBytes(24).toString('base64url'),staffSignup=await staff.auth.signUp({email:staffEmail,password:staffPassword,options:{data:{full_name:'Profesional sintético CI'}}});assert.ifError(staffSignup.error);assert.ok(staffSignup.data.session);const staffId=staffSignup.data.user.id,staffApi=createMeryoApi(staff);
+  const staffInvite=await ownerApi.inviteMember(staffEmail,'Profesional sintético CI');await staffApi.acceptInvite(staffInvite.token);const staffTeam=await staffApi.team(),ownerTeam=await ownerApi.team(),staffMember=staffTeam.members[0],ownerMember=ownerTeam.members.find(member=>String(member.user_id)===String(ownerId));
+  assert.equal(staffTeam.owner,false);assert.equal(staffTeam.members.length,1,'A professional can see only their own team record');assert.ok(staffMember&&ownerMember);assert.equal(String(staffMember.user_id),String(staffId));
+  const ownerPortrait=await ownerApi.uploadTeamPhoto(shop,ownerMember.id,new File([png],'owner.png',{type:'image/png'}));
+  const staffPortrait=await staffApi.uploadTeamPhoto(shop,staffMember.id,new File([png],'staff.png',{type:'image/png'}));
+  await assert.rejects(()=>staffApi.uploadTeamPhoto(shop,ownerMember.id,new File([png],'other.png',{type:'image/png'})),/Storage no guardó la foto|row-level security/i,'A professional cannot upload to another member path');
+  await assert.rejects(()=>ownerApi.uploadTeamPhoto(shop,staffMember.id,new File([png],'other.png',{type:'image/png'})),/Storage no guardó la foto|row-level security/i,'An owner cannot upload a professional portrait on their behalf');
+  assert.ok((await staff.rpc('meryo_guardar_foto_integrante',{p_member:ownerMember.id,p_path:`${shop}/team/${ownerMember.id}/${crypto.randomUUID()}.png`})).error,'The server RPC rejects a professional trying to register another member portrait');
+  assert.ok((await stranger.storage.from(CONTENT_BUCKET).upload(`${shop}/team/${staffMember.id}/${crypto.randomUUID()}.png`,png,{contentType:'image/png'})).error,'A customer cannot upload into a professional portrait namespace');
+  const ownerPhotoRows=await staffApi.shopAssets(shop),staffAsset=ownerPhotoRows.find(asset=>asset.id===staffPortrait),ownerAsset=ownerPhotoRows.find(asset=>asset.id===ownerPortrait);
+  assert.ok(staffAsset&&ownerAsset);assert.equal(staffAsset.title,teamPhotoTitle(staffMember.id));assert.equal(ownerAsset.title,teamPhotoTitle(ownerMember.id));
+  assert.ok((await anonymous.storage.from(CONTENT_BUCKET).createSignedUrl(staffAsset.object_path,300)).error,'Professional photo remains private before approval');
+  assert.deepEqual(Buffer.from(await(await fetch(staffAsset.url)).arrayBuffer()),png,'Professional portrait downloads byte-for-byte through official Storage');
+  assert.deepEqual(Buffer.from(await(await fetch(ownerAsset.url)).arrayBuffer()),png,'Owner portrait downloads byte-for-byte through official Storage');
+  teamPortraits={staffMemberId:staffMember.id,ownerMemberId:ownerMember.id,ownerName:ownerMember.display_name,staffName:staffMember.display_name};
+ }
  const cover=await uploadContent(owner,shop,new File([png],'cover.png',{type:'image/png'}),'portada','Portada CI');
  let assets=await ownerApi.shopAssets(shop);assert.equal(assets.length,1);const first=assets[0];assert.equal(first.id,cover);assert.deepEqual(Buffer.from(await(await fetch(first.url)).arrayBuffer()),png);
  phase='unapproved and cross-tenant object permissions';
@@ -88,7 +107,18 @@ try{
  const videoFile=path.join(process.env.RUNNER_TEMP,'synthetic.mp4'),media=spawnSync('ffmpeg',['-loglevel','error','-f','lavfi','-i','color=c=black:s=160x90:d=1','-c:v','libx264','-pix_fmt','yuv420p',videoFile],{encoding:'utf8'});if(media.status!==0)throw Error('Synthetic video generation failed');
  const video=await fs.readFile(videoFile);await uploadContent(owner,shop,new File([video],'synthetic.mp4',{type:'video/mp4'}),'video','Video sintético');
  await adminApi.moderateShop(shop,'aprobar','Contenido y servicio revisados en CI','pendiente');
- const catalogue=await publicApi.catalog();assert.equal(catalogue.length,1);assert.equal(catalogue[0].services[0].price,30);assert.equal(catalogue[0].assets.length,2);
+ const catalogue=await publicApi.catalog();assert.equal(catalogue.length,1);assert.equal(catalogue[0].services[0].price,30);
+ if(teamPhotoOnly){
+  const portraits=catalogue[0].assets.filter(asset=>asset.kind==='foto'&&isTeamPhotoTitle(asset.title));
+  assert.equal(portraits.length,2,'The public catalogue exposes both team portraits after shop approval');
+  assert.ok(portraits.some(asset=>asset.title===teamPhotoTitle(teamPortraits.staffMemberId))&&portraits.some(asset=>asset.title===teamPhotoTitle(teamPortraits.ownerMemberId)));
+  for(const portrait of portraits)assert.deepEqual(Buffer.from(await(await fetch(portrait.url)).arrayBuffer()),png,'Approved profile portrait downloads byte-for-byte for public visitors');
+  assert.ok(catalogue[0].equipo.some(member=>String(member.id)===String(teamPortraits.staffMemberId)&&member.nombre===teamPortraits.staffName));
+  proof={verifiedAt:new Date().toISOString(),officialAuth:true,officialStorage:true,officialPostgrest:true,dockerUsed:false,productionAccess:false,syntheticAccountsOnly:true,teamPhotoMigration035Applied:true,ownerAndProfessionalPortraitsUploaded:true,eachMemberHasOwnPhoto:true,crossMemberUploadDenied:true,crossMemberRpcDenied:true,customerUploadDenied:true,privateUntilBusinessApproval:true,exactBytesUploadedAndDownloaded:true,portraitsVisibleInApprovedPublicProfile:true,globalUploadGateHonored:true};
+  await fs.writeFile(path.join(process.env.RUNNER_TEMP,'meryo-storage-proof.json'),JSON.stringify(proof,null,2));console.log(JSON.stringify(proof));
+  throw Object.assign(new Error('Targeted team-photo verification complete'),{teamPhotoVerificationComplete:true});
+ }
+ assert.equal(catalogue[0].assets.length,2);
  const publishedVideo=catalogue[0].assets.find(a=>a.kind==='video');assert.deepEqual(Buffer.from(await(await fetch(publishedVideo.url)).arrayBuffer()),video);
  const currentCover=catalogue[0].assets.find(a=>a.kind==='portada');await ownerApi.retireAsset(currentCover.id);
  assert.ok((await anonymous.storage.from(CONTENT_BUCKET).createSignedUrl(currentCover.object_path,300)).error,'Withdrawn content is not newly accessible');
@@ -200,5 +230,5 @@ try{
  proof={verifiedAt:new Date().toISOString(),officialAuth:true,officialStorage:true,officialPostgrest:true,dockerUsed:false,productionAccess:false,syntheticAccountsOnly:true,bookingOriginsMigration029Applied:true,taggedBookingCreated:true,authorizedOwnerResultsVerified:true,bookingOrigin:'ficha_google',uploadAndByteExactDownload:true,privateBeforeApproval:true,crossTenantDenied:true,formatAndSizeDenied:true,replacementAndRetirementPreserveFiles:true,serverMfaApproval:true,publicCatalogueAndVideoVerified:true,availabilityQueried:true,pickupProductsRls:true,pickupPrivatePhotos:true,ordersSnapshotPricesAndIdempotency:true,concurrentAcceptanceNoOversell:true,acceptanceNoPartialStock:true,priceChangeRejectedWithoutMutation:true,serverExpiryReleasesOnce:true,cancelReleasesOnce:true,deliveryConsumesStock:true,orderPushRecipientsVerified:true,legacySignedURLsLifetimeSeconds:300};
  await fs.writeFile(path.join(process.env.RUNNER_TEMP,'meryo-storage-proof.json'),JSON.stringify(proof,null,2));console.log(JSON.stringify(proof));
  }
-}catch(error){console.error('Isolated Storage verification failed during '+phase+': '+error.message);for(const file of logs){let log=await fs.readFile(file,'utf8').catch(()=>'');for(const value of [jwtSecret,password,anon,service])log=log.replaceAll(value,'[redacted]');console.error(path.basename(file)+'\n'+log.slice(-6000));}process.exitCode=1;}
+}catch(error){if(error?.teamPhotoVerificationComplete)console.log(error.message);else{console.error('Isolated Storage verification failed during '+phase+': '+error.message);for(const file of logs){let log=await fs.readFile(file,'utf8').catch(()=>'');for(const value of [jwtSecret,password,anon,service])log=log.replaceAll(value,'[redacted]');console.error(path.basename(file)+'\n'+log.slice(-6000));}process.exitCode=1;}}
 finally{for(const c of clients)await c.auth.signOut({scope:'local'}).catch(()=>{});if(proxy)await new Promise(resolve=>proxy.close(resolve));for(const c of children)c.kill();await db.end();}
