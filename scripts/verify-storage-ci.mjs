@@ -95,7 +95,7 @@ try{
   teamPortraits={staffMemberId:staffMember.id,ownerMemberId:ownerMember.id,ownerName:ownerMember.display_name,staffName:staffMember.display_name};
  }
  const cover=await uploadContent(owner,shop,new File([png],'cover.png',{type:'image/png'}),'portada','Portada CI');
- let assets=await ownerApi.shopAssets(shop);assert.equal(assets.length,1);const first=assets[0];assert.equal(first.id,cover);assert.deepEqual(Buffer.from(await(await fetch(first.url)).arrayBuffer()),png);
+ let assets=(await ownerApi.shopAssets(shop)).filter(asset=>!isTeamPhotoTitle(asset.title));assert.equal(assets.length,1);const first=assets[0];assert.equal(first.id,cover);assert.deepEqual(Buffer.from(await(await fetch(first.url)).arrayBuffer()),png);
  phase='unapproved and cross-tenant object permissions';
  assert.deepEqual(await publicApi.catalog(),[]);
  assert.ok((await anonymous.storage.from(CONTENT_BUCKET).createSignedUrl(first.object_path,300)).error,'Unapproved object cannot be signed publicly');
@@ -104,7 +104,7 @@ try{
  assert.ok((await owner.storage.from(CONTENT_BUCKET).upload(`${shop}/${crypto.randomUUID()}.html`,new Blob(['<script>bad</script>'],{type:'text/html'}),{contentType:'text/html'})).error,'Disallowed type denied');
  assert.ok((await owner.storage.from(CONTENT_BUCKET).upload(`${shop}/${crypto.randomUUID()}.png`,new Uint8Array(20971521),{contentType:'image/png'})).error,'Oversized payload denied');
  phase='replacement, real video and administrator approval';
- await uploadContent(owner,shop,new File([png],'replacement.png',{type:'image/png'}),'portada','Portada reemplazada');assets=await ownerApi.shopAssets(shop);assert.equal(assets.length,1);assert.notEqual(assets[0].id,cover);
+ await uploadContent(owner,shop,new File([png],'replacement.png',{type:'image/png'}),'portada','Portada reemplazada');assets=(await ownerApi.shopAssets(shop)).filter(asset=>!isTeamPhotoTitle(asset.title));assert.equal(assets.length,1);assert.notEqual(assets[0].id,cover);
  const videoFile=path.join(process.env.RUNNER_TEMP,'synthetic.mp4'),media=spawnSync('ffmpeg',['-loglevel','error','-f','lavfi','-i','color=c=black:s=160x90:d=1','-c:v','libx264','-pix_fmt','yuv420p',videoFile],{encoding:'utf8'});if(media.status!==0)throw Error('Synthetic video generation failed');
  const video=await fs.readFile(videoFile);await uploadContent(owner,shop,new File([video],'synthetic.mp4',{type:'video/mp4'}),'video','Video sintético');
  await adminApi.moderateShop(shop,'aprobar','Contenido y servicio revisados en CI','pendiente');
