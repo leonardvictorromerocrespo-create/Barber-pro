@@ -110,7 +110,7 @@ try{
  await adminApi.moderateShop(shop,'aprobar','Contenido y servicio revisados en CI','pendiente');
  const catalogue=await publicApi.catalog();assert.equal(catalogue.length,1);assert.equal(catalogue[0].services[0].price,30);
  if(teamPhotoOnly){
-  const portraits=catalogue[0].assets.filter(asset=>asset.kind==='foto'&&isTeamPhotoTitle(asset.title));
+  const portraits=(await publicApi.shopAssets(shop)).filter(asset=>asset.kind==='foto'&&isTeamPhotoTitle(asset.title));
   assert.equal(portraits.length,2,'The public catalogue exposes both team portraits after shop approval');
   assert.ok(portraits.some(asset=>asset.title===teamPhotoTitle(teamPortraits.staffMemberId))&&portraits.some(asset=>asset.title===teamPhotoTitle(teamPortraits.ownerMemberId)));
   for(const portrait of portraits)assert.deepEqual(Buffer.from(await(await fetch(portrait.url)).arrayBuffer()),png,'Approved profile portrait downloads byte-for-byte for public visitors');
