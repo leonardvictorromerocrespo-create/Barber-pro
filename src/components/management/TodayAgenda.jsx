@@ -6,6 +6,7 @@ import {noShowEligibility,showArrivalControl,showFinishControl} from '../../lib/
 import {visiblePolling} from '../../lib/visible-polling.js';
 import {bookingMoney,readableBookingDate} from '../../lib/reservation-presentation.js';
 import {availableAgendaStarts,dayAgenda,EXTERNAL_PREFIX,limaHour,overlaps} from '../../lib/day-agenda.js';
+import ReservationChat from '../ReservationChat';
 import './TodayAgenda.css';
 
 const labels={solicitada:'Por responder',aceptada:'Espera adelanto',confirmada:'Confirmada',completada:'Atendida',rechazada:'Rechazada',expirada:'Vencida',cancelada:'Cancelada',no_asistio:'No asistió'};
@@ -156,7 +157,7 @@ export default function TodayAgenda({api,team,shop,services,profile,onSaved,onAd
     <section className="today-panel" aria-label="Cronología de la agenda"><div className="today-panel__heading"><div><p className="today-kicker">En orden de atención</p><h3>Cronología</h3></div><Icon name="calendar"/></div>
      {ready&&!agenda.timeline.length&&<p className="today-empty">No tienes citas ni bloqueos para este día.</p>}
      {agenda.timeline.length>0&&<ol className="today-timeline">{agenda.timeline.map(({id,kind,row,start})=>{
-      const booking=kind==='booking',canArrive=booking&&member.user_id===profile.id&&showArrivalControl(row,profile,memberId);
+      const booking=kind==='booking',canChat=booking&&Boolean(row.aceptada_en&&row.barbero_id)&&member.user_id===profile.id&&row.barbero_id===memberId,canArrive=booking&&member.user_id===profile.id&&showArrivalControl(row,profile,memberId);
       const canFinish=booking&&member.user_id===profile.id&&showFinishControl(row,profile,memberId);
       const noShow=canArrive&&noShowEligibility(row,snapshot?now:null).eligible;
       return <li key={id}><time dateTime={new Date(start).toISOString()}>{limaHour(start)}</time><div className="today-event" data-kind={kind}>
@@ -164,6 +165,7 @@ export default function TodayAgenda({api,team,shop,services,profile,onSaved,onAd
        <strong>{booking?row.servicio_nombre:kind==='external'?row.reason.slice(EXTERNAL_PREFIX.length):row.reason}</strong>
        <p className="today-muted">{booking?(row.cliente_nombre||'Cliente')+' · ':''}Hasta las {limaHour(row.fin??row.ends)}</p>
        {booking&&row.pedido_especial&&<p className="today-muted">{row.pedido_especial}</p>}
+       {canChat&&<ReservationChat api={api} reservation={row} profile={profile}/>}
        {(canArrive||canFinish||(!booking&&team.owner))&&<div className="today-rowactions">
         {canArrive&&<button type="button" className="today-button today-button--quiet" disabled={buttonDisabled} onClick={()=>void act(()=>api.markArrival(row.id),'Llegada registrada.')}>Registrar llegada</button>}
         {canFinish&&<button type="button" className="today-button today-button--gold" disabled={buttonDisabled} onClick={()=>{if(window.confirm('¿Terminó el servicio y se cobró el saldo en el local? Esta acción no realiza cobros.'))void act(()=>api.finishBooking(row.id),'Cita completada.');}}>Finalizar cita</button>}

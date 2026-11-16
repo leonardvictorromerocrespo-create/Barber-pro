@@ -5,13 +5,15 @@ import {bookingIdFromSearch,bookingDeadline} from '../lib/booking-link';
 import {visiblePolling} from '../lib/visible-polling';
 import {bookingMoney,readableBookingDate,splitBookingRows} from '../lib/reservation-presentation';
 import {noShowEligibility,showArrivalControl,showFinishControl,showNoShowControl} from '../lib/no-show';
+import ReservationChat from './ReservationChat';
 
-export default function Reservations({api,profile,onLogin,onSearch,onRetrySession,memberId,identityLoading=false,identityError=''}){
+export default function Reservations({api,profile,onLogin,onSearch,onRetrySession,memberId,assignedMemberUserId,identityLoading=false,identityError=''}){
  const [focus,setFocus]=useState(()=>typeof window!=='undefined'?bookingIdFromSearch(window.location.search):null);
  const focused=useRef(false);
  const polling=useRef(null);
  const [rows,setRows]=useState([]),[error,setError]=useState(''),[loading,setLoading]=useState(true),[busy,setBusy]=useState(false),[message,setMessage]=useState('');
  const [anchor,setAnchor]=useState(null),[now,setNow]=useState(0);
+ const [ownMemberIds,setOwnMemberIds]=useState([]);
  const visibleRows=rows.filter(r=>(!memberId||r.barbero_id===memberId)&&(!focus||r.id===focus));
  const load=useCallback(async()=>{
   setLoading(true);
@@ -24,6 +26,12 @@ export default function Reservations({api,profile,onLogin,onSearch,onRetrySessio
   const clock=setInterval(()=>setNow(performance.now()),1000);
   return()=>{reader.stop();if(polling.current===reader)polling.current=null;clearInterval(clock);};
  },[load,api,profile]);
+ useEffect(()=>{
+  if(profile?.rol!=='barbero'||memberId||assignedMemberUserId)return;
+  let current=true;
+  api.team().then(team=>{if(current)setOwnMemberIds((team.members||[]).filter(member=>member.active&&member.user_id===profile.id).map(member=>member.id));}).catch(()=>{if(current)setOwnMemberIds([]);});
+  return()=>{current=false;};
+ },[api,profile?.id,profile?.rol,memberId,assignedMemberUserId]);
  const refresh=()=>polling.current?.refresh()||Promise.resolve();
  useEffect(()=>{if(focus&&!focused.current&&rows.some(r=>r.id===focus)){document.getElementById('cita-'+focus)?.scrollIntoView({block:'center'});focused.current=true;}},[rows,focus]);
  async function respond(id,accept){
@@ -61,6 +69,8 @@ export default function Reservations({api,profile,onLogin,onSearch,onRetrySessio
  const renderBooking=row=>{
   const seconds=remainingSeconds(bookingDeadline(row),anchor?.serverMs,elapsed),when=readableBookingDate(row.inicio);
   const noShow=noShowEligibility(row,anchor?serverNow:null);
+  const assignedToBarber=profile.rol==='barbero'&&((memberId&&row.barbero_id===memberId&&assignedMemberUserId===profile.id)||(!memberId&&ownMemberIds.some(id=>id===row.barbero_id)));
+  const canChat=Boolean(row.aceptada_en&&row.barbero_id)&&(profile.rol==='cliente'||assignedToBarber);
   return <article id={'cita-'+row.id} key={row.id} className="meryo-booking-card">
    <h3 className="meryo-booking-business">{row.barberias?.nombre||'Negocio'}</h3>
    <dl className="meryo-booking-details">
@@ -85,6 +95,7 @@ export default function Reservations({api,profile,onLogin,onSearch,onRetrySessio
    {showNoShowControl(row,profile,memberId)&&<div className="meryo-booking-actions"><button type="button" disabled={busy||!noShow.eligible} className="rounded-xl bg-neutral-200 px-4 py-3 font-semibold text-neutral-900 disabled:opacity-50" onClick={()=>markNoShow(row.id)}>Marcar como no asistió</button>{!noShow.eligible&&<p className="meryo-booking-note">{noShow.reason==='adelanto'?'Disponible solo cuando el adelanto pagado figure confirmado.':noShow.reason==='plazo'?'Disponible 15 minutos después de la hora de la cita.':noShow.reason==='llegada'?'No disponible: la llegada del cliente ya fue registrada.':'Comprobando hora del servidor…'}</p>}</div>}
    {row.estado==='aceptada'&&<div className="meryo-booking-payment"><p>{row.expira_pago_en?'El profesional aceptó la cita. Tienes 10 minutos para pagar el adelanto y confirmarla.':'El profesional aceptó esta cita previamente.'}</p>{!row.expira_pago_en&&<p>Esta cita es anterior al plazo actual de 10 minutos y no tiene vencimiento registrado. Requiere revisión de soporte.</p>}<p>Pago bloqueado: falta integrar la pasarela. No se ha cobrado ni confirmado la cita.</p>{profile.rol==='cliente'&&<button disabled className="mt-2 rounded-xl bg-neutral-700 px-4 py-3 text-neutral-400">Pagar adelanto del 50 % · {bookingMoney(row.monto_adelanto)} · no disponible</button>}</div>}
    {profile.rol==='cliente'&&['rechazada','expirada'].includes(row.estado)&&<div className="meryo-booking-actions"><button onClick={onSearch} className="rounded-xl bg-amber-400 px-4 py-3 font-bold text-black">Buscar otro negocio</button></div>}
+   {canChat&&<ReservationChat api={api} reservation={row} profile={profile}/>}
   </article>;
  };
  const renderGroup=(title,items,emptyText)=> <section className="meryo-booking-group" aria-label={title}><h3>{title}</h3>{items.length?<div className="meryo-booking-list">{items.map(renderBooking)}</div>:<p className="meryo-booking-empty">{emptyText}</p>}</section>;

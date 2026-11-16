@@ -130,6 +130,19 @@ export function createMeryoApi(client) {
       return readResult(client.from('reservas').select('*,barberias(nombre),pagos(proveedor,estado)').eq(p.rol==='barbero'?'barberia_id':'cliente_id',p.rol==='barbero'?p.barberia_id:p.id).order('inicio',{ascending:false}));
     },
     bookingState:async()=>{await requireRole(['cliente','barbero']);return readResult(client.rpc('meryo_reservas_estado'));},
+    reservationChat:async(reservationId)=>{
+      await requireRole(['cliente','barbero']);
+      if(!reservationId)throw new Error('Falta la cita para abrir el chat');
+      const rows=await readResult(client.from('reserva_mensajes').select('id,reserva_id,autor_id,contenido,creado_en').eq('reserva_id',reservationId).order('creado_en',{ascending:false}).order('id',{ascending:false}).limit(100));
+      return rows.reverse();
+    },
+    sendReservationMessage:async(reservationId,body)=>{
+      const profile=await requireRole(['cliente','barbero']);
+      if(!reservationId)throw new Error('Falta la cita para enviar el mensaje');
+      const contenido=String(body??'').trim();
+      if(!contenido||Array.from(contenido).length>2000)throw new Error('Escribe un mensaje de hasta 2000 caracteres');
+      return readResult(client.from('reserva_mensajes').insert({reserva_id:reservationId,autor_id:profile.id,contenido}).select('id,reserva_id,autor_id,contenido,creado_en').single());
+    },
     bookingConfig:()=>readResult(client.rpc('meryo_reservas_config')),
     pushState:()=>readResult(client.rpc('meryo_push_estado')),
     pushDevice:endpoint=>readResult(client.rpc('meryo_push_dispositivo',{p_endpoint:endpoint})),
