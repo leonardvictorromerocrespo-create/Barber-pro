@@ -34,9 +34,8 @@ export default function ReservationChat({api,reservation,profile,openOnMount=fal
  }
  const counterpart=profile.rol==='cliente'?'Profesional':'Cliente';
  return <section className="meryo-reservation-chat" aria-label="Chat de la cita">
-  <button type="button" className="meryo-reservation-chat__toggle" aria-expanded={open} onClick={()=>setOpen(value=>!value)}>
+  <button type="button" className="meryo-reservation-chat__toggle" aria-label={open?'Cerrar chat de la cita':'Abrir chat de la cita'} title={open?'Cerrar chat':'Abrir chat'} aria-expanded={open} onClick={()=>setOpen(value=>!value)}>
    <svg aria-hidden="true" viewBox="0 0 24 24" fill="none"><path d="M4.5 5.75h15v10.5h-8l-4.75 3v-3H4.5V5.75Z" stroke="currentColor" strokeWidth="1.7" strokeLinejoin="round"/><path d="M8 9.5h8M8 12.5h5" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round"/></svg>
-   <span>{open?'Cerrar chat':'Chat de la cita'}</span>
   </button>
   {open&&<div className="meryo-reservation-chat__panel">
    <div className="meryo-reservation-chat__heading"><h4>Conversación de la reserva</h4><p>Solo tú y el {counterpart.toLowerCase()} asignado pueden leerla.</p></div>

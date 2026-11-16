@@ -32,7 +32,17 @@
   cursor: pointer;
 }
 
-.meryo-reservation-chat__toggle svg { width: 1.05rem; height: 1.05rem; flex: 0 0 auto; color: #d0d0d0; }
+.meryo-reservation-chat__toggle {
+  width: 2.5rem;
+  min-width: 2.5rem;
+  height: 2.5rem;
+  min-height: 2.5rem;
+  padding: 0;
+  border-radius: 50%;
+  box-shadow: 0 3px 0 rgb(0 0 0 / 36%);
+}
+
+.meryo-reservation-chat__toggle svg { width: 1.2rem; height: 1.2rem; flex: 0 0 auto; color: #d0d0d0; }
 .meryo-reservation-chat__toggle:hover,
 .meryo-reservation-chat__form-footer button:hover:not(:disabled),
 .meryo-reservation-chat__error button:hover { background: #454545; }
