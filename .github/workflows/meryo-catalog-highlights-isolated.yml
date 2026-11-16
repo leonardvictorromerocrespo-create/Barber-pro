@@ -1,0 +1,52 @@
+name: MERYO isolated catalog highlights verification
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - codex/catalog-highlights-test-20261116
+permissions:
+  contents: read
+concurrency:
+  group: meryo-isolated-catalog-highlights
+  cancel-in-progress: false
+jobs:
+  catalog-highlights:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1
+        with:
+          node-version: '24'
+          cache: npm
+      - name: Install native PostgreSQL 17 in the disposable runner
+        timeout-minutes: 8
+        run: |
+          sudo /usr/share/postgresql-common/pgdg/apt.postgresql.org.sh -y
+          sudo apt-get update -qq
+          sudo apt-get install -y --no-install-recommends -o Acquire::Retries=2 -o Acquire::http::Timeout=30 postgresql-17 postgresql-contrib-17 postgresql-17-cron
+          sudo pg_createcluster 17 meryo_catalog --port 55440
+          printf "%s\n" "shared_preload_libraries='pg_cron'" "cron.database_name='meryo_ci_storage'" "cron.use_background_workers=on" | sudo tee -a /etc/postgresql/17/meryo_catalog/postgresql.conf
+          sudo pg_ctlcluster 17 meryo_catalog start
+          sudo -u postgres createuser --host=/var/run/postgresql --port=55440 --superuser "$USER"
+          createdb --host=/var/run/postgresql --port=55440 meryo_ci_storage
+      - name: Install MERYO dependencies
+        run: npm ci
+      - name: Prepare sanitized schema and prerequisite migrations
+        env:
+          MERYO_CI_SETUP_ONLY: 'true'
+        run: node scripts/verify-storage-ci.mjs
+      - name: Compile pinned official Supabase Auth and PostgREST
+        run: |
+          mkdir -p "$RUNNER_TEMP/meryo-official"
+          git clone --filter=blob:none --no-checkout https://github.com/supabase/auth.git "$RUNNER_TEMP/meryo-official/auth"
+          git -C "$RUNNER_TEMP/meryo-official/auth" checkout c3348e8f1cb31454e9783e4eb9eab1e71ad9652f
+          cd "$RUNNER_TEMP/meryo-official/auth"
+          go build -o "$RUNNER_TEMP/meryo-official/gotrue" .
+          curl -fL https://github.com/PostgREST/postgrest/releases/download/v16.5/postgrest-v16.5-linux-static-x86-64.tar.xz -o "$RUNNER_TEMP/meryo-official/rest.tar.xz"
+          tar -xJf "$RUNNER_TEMP/meryo-official/rest.tar.xz" -C "$RUNNER_TEMP/meryo-official"
+      - name: Verify Beauty and Barberías highlights with synthetic accounts
+        run: node scripts/verify-catalog-highlights-ci.mjs
+      - name: Publish non-secret verification result
+        if: success()
+        run: cat "$RUNNER_TEMP/meryo-catalog-highlights-proof.json" >> "$GITHUB_STEP_SUMMARY"
