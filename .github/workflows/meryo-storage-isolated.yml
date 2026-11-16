@@ -1,5 +1,8 @@
 name: MERYO isolated Storage verification
 on:
+  push:
+    branches:
+      - codex/shortcut-profile-polish-20261116
   workflow_dispatch:
 permissions:
   contents: read
