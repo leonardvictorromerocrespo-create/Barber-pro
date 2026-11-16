@@ -2,8 +2,8 @@ import {useCallback,useEffect,useRef,useState} from 'react';
 import {visiblePolling} from '../lib/visible-polling';
 import './ReservationChat.css';
 
-export default function ReservationChat({api,reservation,profile}){
- const [open,setOpen]=useState(false),[messages,setMessages]=useState([]),[draft,setDraft]=useState(''),[loading,setLoading]=useState(false),[sending,setSending]=useState(false),[error,setError]=useState('');
+export default function ReservationChat({api,reservation,profile,openOnMount=false}){
+ const [open,setOpen]=useState(openOnMount),[messages,setMessages]=useState([]),[draft,setDraft]=useState(''),[loading,setLoading]=useState(false),[sending,setSending]=useState(false),[error,setError]=useState('');
  const active=useRef(false),polling=useRef(null);
  const load=useCallback(async()=>{
   if(!active.current)return;

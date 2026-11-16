@@ -32,7 +32,7 @@ export function OwnerBookingNotice({notice,onDismiss}){
  return <aside className="meryo-owner-booking-notice" role="status" aria-live="polite" aria-atomic="true">
   <div className="meryo-owner-booking-notice__heading"><strong>{notice.titulo||'Nueva solicitud de cita'}</strong><button type="button" aria-label="Cerrar aviso" onClick={onDismiss}>×</button></div>
   <p>{notice.mensaje}</p>
-  {notice.reserva_id&&<a href={`/?cita=${encodeURIComponent(notice.reserva_id)}#my-bookings`}>Abrir solicitud</a>}
+  {notice.reserva_id&&<a href={`/?cita=${encodeURIComponent(notice.reserva_id)}${notice.tipo==='reserva_chat'?'&chat=1':''}#my-bookings`}>{notice.tipo==='reserva_chat'?'Abrir conversación':'Abrir solicitud'}</a>}
  </aside>;
 }
 
@@ -93,9 +93,10 @@ export default function NotificationAccess({api,profile,loading,showNavigation=t
    const rows=await api.notifications(id);if(!active)return;
    const dismissedIds=dismissedNoticeIds(id),now=Date.now();
    const notice=rows.find(row=>{
-    if(row.tipo!=='reserva_solicitada'||!row.reserva_id)return false;
+    if(!['reserva_solicitada','reserva_chat'].includes(row.tipo)||!row.reserva_id)return false;
     const noticeId=String(row.id),age=now-Date.parse(row.created_at);
-    return age>=-60000&&age<=15*60*1000&&!dismissedIds.has(noticeId)&&!shownNoticeIds.current.has(noticeId);
+    const maxAge=row.tipo==='reserva_chat'?60*60*1000:15*60*1000;
+    return age>=-60000&&age<=maxAge&&!dismissedIds.has(noticeId)&&!shownNoticeIds.current.has(noticeId);
    });
    if(notice){
     const noticeId=String(notice.id);shownNoticeIds.current.add(noticeId);setBookingNotice(notice);

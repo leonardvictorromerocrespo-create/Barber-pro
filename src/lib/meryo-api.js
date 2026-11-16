@@ -129,7 +129,7 @@ export function createMeryoApi(client) {
       const p=await requireRole(['cliente','barbero']);
       return readResult(client.from('reservas').select('*,barberias(nombre),pagos(proveedor,estado)').eq(p.rol==='barbero'?'barberia_id':'cliente_id',p.rol==='barbero'?p.barberia_id:p.id).order('inicio',{ascending:false}));
     },
-    bookingState:async()=>{await requireRole(['cliente','barbero']);return readResult(client.rpc('meryo_reservas_estado'));},
+    bookingState:async()=>{await requireRole(['cliente','barbero']);const state=await readResult(client.rpc('meryo_reservas_estado'));return {...state,reservas:(Array.isArray(state.reservas)?state.reservas:[]).map(row=>({...row,chat_disponible:row.chat_disponible===true}))};},
     reservationChat:async(reservationId)=>{
       await requireRole(['cliente','barbero']);
       if(!reservationId)throw new Error('Falta la cita para abrir el chat');

@@ -32,9 +32,9 @@ export function readDraft(storage,now=Date.now()){
  }catch{return clearDraft(storage);}
 }
 export function clearDraft(storage){storage.removeItem(KEY);return null;}
-export async function beginGoogle(client,{enabled,origin,bookingId,orderId,adminView,destination}){
+export async function beginGoogle(client,{enabled,origin,bookingId,openChat=false,orderId,adminView,destination}){
  if(!enabled)throw Error('Google está pendiente de configurar en Supabase Auth. Puedes continuar con correo y contraseña.');
- const target=new URL('/?auth_callback=1',origin);if(uuid(bookingId))target.searchParams.set('cita',bookingId);
+ const target=new URL('/?auth_callback=1',origin);if(uuid(bookingId)){target.searchParams.set('cita',bookingId);if(openChat===true)target.searchParams.set('chat','1');}
  if(!target.searchParams.has('cita')&&uuid(orderId))target.searchParams.set('pedido',orderId);
  if(target.searchParams.has('pedido')&&destination==='shop-order')target.searchParams.set('pedido_origen','negocio');
  if(!target.searchParams.has('cita')&&adminView==='avisos')target.searchParams.set('admin_view','avisos');
