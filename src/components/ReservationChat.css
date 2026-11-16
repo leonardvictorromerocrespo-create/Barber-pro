@@ -1,0 +1,72 @@
+.meryo-reservation-chat {
+  --chat-card: #111;
+  --chat-field: #191919;
+  --chat-surface: #242424;
+  --chat-action: #3a3a3a;
+  --chat-text: #fff;
+  --chat-muted: #c4c4c4;
+  display: grid;
+  gap: .65rem;
+  min-width: 0;
+  margin-top: .8rem;
+  color: var(--chat-text);
+  color-scheme: dark;
+}
+
+.meryo-reservation-chat__toggle,
+.meryo-reservation-chat__form-footer button,
+.meryo-reservation-chat__error button {
+  display: inline-flex;
+  min-height: 2.4rem;
+  align-items: center;
+  justify-content: center;
+  gap: .45rem;
+  padding: .45rem .7rem;
+  border: 0;
+  border-radius: 8px;
+  background: var(--chat-action);
+  color: var(--chat-text);
+  font: inherit;
+  font-weight: 500;
+  box-shadow: 0 2px 4px rgb(0 0 0 / 22%);
+  cursor: pointer;
+}
+
+.meryo-reservation-chat__toggle {
+  width: 2.5rem;
+  min-width: 2.5rem;
+  height: 2.5rem;
+  min-height: 2.5rem;
+  padding: 0;
+  border-radius: 50%;
+  box-shadow: 0 3px 0 rgb(0 0 0 / 36%);
+}
+
+.meryo-reservation-chat__toggle svg { width: 1.2rem; height: 1.2rem; flex: 0 0 auto; color: #d0d0d0; }
+.meryo-reservation-chat__toggle:hover,
+.meryo-reservation-chat__form-footer button:hover:not(:disabled),
+.meryo-reservation-chat__error button:hover { background: #454545; }
+.meryo-reservation-chat :where(button, textarea):focus-visible { outline: 2px solid #fff; outline-offset: 3px; }
+.meryo-reservation-chat__panel { margin-top: .45rem; padding: .7rem; border: 0; border-radius: 9px; background: var(--chat-card); }
+.meryo-reservation-chat__heading h4 { margin: 0; font-size: .98rem; font-weight: 600; }
+.meryo-reservation-chat__heading p,
+.meryo-reservation-chat__empty { margin: .2rem 0 .6rem; color: var(--chat-muted); font-size: .86rem; }
+.meryo-reservation-chat__messages { display: flex; max-height: min(24rem, 45vh); min-height: 4rem; flex-direction: column; gap: .45rem; overflow-y: auto; padding: .1rem 0 .5rem; }
+.meryo-reservation-chat__message { width: min(88%, 34rem); align-self: flex-start; overflow-wrap: anywhere; padding: .5rem .6rem; border: 0; border-radius: 8px; background: var(--chat-surface); }
+.meryo-reservation-chat__message.is-mine { align-self: flex-end; background: #303030; }
+.meryo-reservation-chat__author { margin: 0 0 .15rem; color: #dedede; font-size: .76rem; font-weight: 600; }
+.meryo-reservation-chat__body { margin: 0; white-space: pre-wrap; line-height: 1.4; }
+.meryo-reservation-chat__message time { display: block; margin-top: .2rem; color: var(--chat-muted); font-size: .68rem; text-align: right; }
+.meryo-reservation-chat__form { display: grid; gap: .35rem; padding-top: .55rem; }
+.meryo-reservation-chat__form label { font-size: .84rem; font-weight: 500; }
+.meryo-reservation-chat__form textarea { box-sizing: border-box; width: 100%; min-height: 4rem; resize: vertical; border: 0; border-radius: 8px; background: var(--chat-field); color: var(--chat-text); padding: .55rem .65rem; font: inherit; line-height: 1.4; }
+.meryo-reservation-chat__form textarea::placeholder { color: var(--chat-muted); opacity: .85; }
+.meryo-reservation-chat__form-footer { display: flex; align-items: center; justify-content: space-between; gap: .6rem; color: var(--chat-muted); font-size: .75rem; }
+.meryo-reservation-chat__form-footer button:disabled { cursor: not-allowed; opacity: .5; }
+.meryo-reservation-chat__error { display: flex; flex-wrap: wrap; align-items: center; gap: .45rem; color: #f0bcbc; font-size: .86rem; }
+.meryo-reservation-chat__error button { min-height: 2rem; padding: .3rem .55rem; color: var(--chat-text); }
+
+@media (max-width: 480px) {
+  .meryo-reservation-chat__panel { padding: .6rem; }
+  .meryo-reservation-chat__message { width: 94%; }
+}

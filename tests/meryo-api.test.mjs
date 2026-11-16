@@ -11,6 +11,12 @@ function clientFor(profile,answer={data:'saved-id',error:null}){
   rpc:async(name,args)=>{calls.push({name,args});return name==='meryo_reservas_config'?{data:{respuesta_segundos:900,modelo_comercial:'mensualidad'},error:null}:answer;}};
  return client;
 }
+function chatClient(profile){
+ const calls=[],saved={id:'message-saved',reserva_id:'booking-1',autor_id:'real-subject',contenido:'Hola',creado_en:'2026-11-15T10:00:00Z'};
+ const rows=[{...saved,id:'message-new',contenido:'Segundo',creado_en:'2026-11-15T10:01:00Z'},{...saved,id:'message-old',contenido:'Primero',creado_en:'2026-11-15T10:00:00Z'}];
+ const client={calls,auth:{getUser:async()=>({data:{user:{id:'real-subject'}},error:null})},from(table){let mode='select';const query={select(columns){calls.push({table,select:columns});return query;},eq(...args){calls.push({table,eq:args});return query;},order(...args){calls.push({table,order:args});return query;},limit(value){calls.push({table,limit:value});return query;},insert(value){mode='insert';calls.push({table,insert:value});return query;},single(){calls.push({table,single:true});return query;},then(resolve,reject){const data=table==='profiles'?profile:mode==='insert'?saved:rows;return Promise.resolve({data,error:null}).then(resolve,reject);}};return query;},rpc:async()=>({data:null,error:null})};
+ return client;
+}
 
 test('catalog rejects legacy counters and reads only the server public catalogue',async()=>{
  const legacy={id:1,nombre:'Legacy',rating:4.9,total_resenas:324};
@@ -175,4 +181,15 @@ test('cut offers use only their own published cover, and a media failure keeps t
  assert.deepEqual((await api.cutPromotions()).map(offer=>offer.cover_url),['https://example.test/14/cover.jpg','https://example.test/14/cover.jpg',null]);
  fail=true;
  assert.deepEqual((await api.cutPromotions()).map(offer=>offer.cover_url),[null,null,null]);
+});
+
+test('reservation chat reads chronologically and sends only the authenticated author with bounded text',async()=>{
+ const c=chatClient({id:'real-subject',rol:'cliente',activo:true}),api=createMeryoApi(c);
+ assert.deepEqual((await api.reservationChat('booking-1')).map(row=>row.id),['message-old','message-new']);
+ assert.equal(c.calls.find(call=>call.table==='reserva_mensajes'&&call.limit)?.limit,100);
+ assert.deepEqual(await api.sendReservationMessage('booking-1','  Hola  '),{id:'message-saved',reserva_id:'booking-1',autor_id:'real-subject',contenido:'Hola',creado_en:'2026-11-15T10:00:00Z'});
+ assert.deepEqual(c.calls.find(call=>call.table==='reserva_mensajes'&&call.insert)?.insert,{reserva_id:'booking-1',autor_id:'real-subject',contenido:'Hola'});
+ await assert.rejects(api.sendReservationMessage('booking-1','   '),/hasta 2000/);
+ await assert.rejects(api.sendReservationMessage('booking-1','x'.repeat(2001)),/hasta 2000/);
+ const admin=chatClient({id:'real-subject',rol:'admin',activo:true});await assert.rejects(createMeryoApi(admin).reservationChat('booking-1'),/rol correspondiente/);assert.equal(admin.calls.some(call=>call.table==='reserva_mensajes'),false);
 });

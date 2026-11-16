@@ -44,8 +44,8 @@ export function resendSender({apiKey,from,appUrl,fetchImpl=fetch}){
   return async job=>{
     const response=await fetchImpl('https://api.resend.com/emails',{
       method:'POST',headers:{Authorization:`Bearer ${apiKey}`,'Content-Type':'application/json','Idempotency-Key':`meryo-notification/${job.id}`},
-      body:JSON.stringify({from,to:[job.email],subject:job.event==='reserva_solicitada'?'MERYO: nueva solicitud':'MERYO: actualización de reserva',
-        text:`Hay una actualización en tu agenda MERYO. Abre ${origin.origin} para revisarla. La solicitud solo se acepta desde tu cuenta y dentro del plazo vigente.`}),
+      body:JSON.stringify({from,to:[job.email],subject:job.event==='reserva_solicitada'?'MERYO: nueva solicitud':job.event==='reserva_chat'?'MERYO: nuevo mensaje de una cita':'MERYO: actualización de reserva',
+        text:`Hay una actualización en tu agenda MERYO. Abre ${job.event==='reserva_chat'&&/^[\da-f-]{36}$/i.test(job.reserva_id||'')?`${origin.origin}/?cita=${encodeURIComponent(job.reserva_id)}&chat=1#my-bookings`:origin.origin} para revisarla. La solicitud solo se acepta desde tu cuenta y dentro del plazo vigente.`}),
       signal:AbortSignal.timeout(5000)
     });
     if(!response.ok) throw Error('provider_rejected');

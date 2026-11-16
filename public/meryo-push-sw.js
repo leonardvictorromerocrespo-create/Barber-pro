@@ -9,7 +9,7 @@ self.addEventListener('push',event=>event.waitUntil((async()=>{
  const id=/^[\da-f-]{36}$/i.test(data.bookingId||'')?data.bookingId:null;
  const orderId=/^[\da-f-]{36}$/i.test(data.orderId||'')?data.orderId:null;
  const notification=/^\d+$/.test(String(data.notificationId||''))?data.notificationId:null;
- const url=orderId?(data.event==='pedido_solicitado'?`/?pedido=${orderId}&pedido_origen=negocio&shop_view=tienda&tienda_view=pedidos#shop-manage`:`/?pedido=${orderId}#my-orders`):id?`/?cita=${id}#my-bookings`:data.event==='push_diagnostico'?`/?admin_view=avisos${notification?'&aviso='+notification:''}#admin`:notification?`/?aviso=${notification}#notifications`:'/#notifications';
+ const url=orderId?(data.event==='pedido_solicitado'?`/?pedido=${orderId}&pedido_origen=negocio&shop_view=tienda&tienda_view=pedidos#shop-manage`:`/?pedido=${orderId}#my-orders`):id?`/?cita=${id}${data.event==='reserva_chat'?'&chat=1':''}#my-bookings`:data.event==='push_diagnostico'?`/?admin_view=avisos${notification?'&aviso='+notification:''}#admin`:notification?`/?aviso=${notification}#notifications`:'/#notifications';
  const delivery=/^[\da-f-]{36}$/i.test(data.receipt?.id||'')?data.receipt.id:null;
  if(!await alreadyShown(delivery).catch(()=>false)){
   await self.registration.showNotification(typeof data.title==='string'?data.title.slice(0,70):'MERYO · Tu cita',{
