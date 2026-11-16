@@ -1,6 +1,6 @@
 const businessLabel=(shop,category)=>category==='belleza'?'Salón de belleza':shop.businessTypes?.includes('belleza')?'Barbería y salón':'Barbería';
 
-export default function CatalogShopGrid({shops,category='barberia',onView,onReserve=()=>{},renderLike}) {
+export default function CatalogShopGrid({shops,category='barberia',onView,onReserve=()=>{},renderLike,decorativeClone=false}) {
   return <div className="meryo-shop-grid" aria-label={category==='belleza'?'Salones publicados':'Barberías publicadas'}>
     {shops.map(shop=>{
       const label=businessLabel(shop,category);
@@ -18,7 +18,7 @@ export default function CatalogShopGrid({shops,category='barberia',onView,onRese
         </div>
         <div className={`meryo-shop-card__content min-w-0${renderLike?' meryo-shop-card__content--likes':''}`}>
           <p className="meryo-shop-card__category">{label}</p>
-          {renderLike&&renderLike(shop)}
+          {renderLike&&renderLike(shop,{decorativeClone})}
           <h2 className="meryo-shop-card__name">{shop.name}</h2>
           <p className="meryo-shop-card__district">{shop.district||'Distrito no publicado'}</p>
           <div className="meryo-shop-card__facts">
@@ -27,8 +27,8 @@ export default function CatalogShopGrid({shops,category='barberia',onView,onRese
           </div>
           <p className="meryo-shop-card__service-summary" title={serviceSummary}>{serviceSummary}</p>
           <div className="meryo-shop-card__actions">
-            <button type="button" onClick={()=>onView(shop)} className="meryo-shop-card__profile-action min-h-11 rounded-lg px-2 py-2 text-sm font-semibold">{category==='belleza'?'Ver salón':'Ver barbería'}</button>
-            <button type="button" disabled={!reservable.length} onClick={()=>onReserve(shop)} className="meryo-shop-card__booking-action min-h-11 rounded-lg px-2 py-2 text-sm font-semibold">Reservar cita</button>
+            <button type="button" tabIndex={decorativeClone?-1:undefined} onClick={()=>onView(shop)} className="meryo-shop-card__profile-action min-h-11 rounded-lg px-2 py-2 text-sm font-semibold">{category==='belleza'?'Ver salón':'Ver barbería'}</button>
+            <button type="button" tabIndex={decorativeClone?-1:undefined} disabled={!reservable.length} onClick={()=>onReserve(shop)} className="meryo-shop-card__booking-action min-h-11 rounded-lg px-2 py-2 text-sm font-semibold">Reservar cita</button>
           </div>
         </div>
       </article>;
