@@ -41,7 +41,7 @@ function TurnCard({ turn, onReserve }) {
   </li>;
 }
 
-export default function TurnFinder({ shops, slots, onReserve, themeMode = 'dark', themeAppearance, category = 'barberia', disabled = false }) {
+export default function TurnFinder({ shops, slots, onReserve, themeMode = 'dark', themeAppearance, category = 'barberia', disabled = false, triggerClassName = '' }) {
   const activeCategory = category === 'belleza' ? 'belleza' : 'barberia';
   const [district, setDistrict] = useState('');
   const [service, setService] = useState('');
@@ -170,7 +170,7 @@ export default function TurnFinder({ shops, slots, onReserve, themeMode = 'dark'
       aria-controls="meryo-turn-finder-dialog"
       disabled={disabled}
       onClick={() => setOpen(true)}
-      className="meryo-turn-finder__trigger inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-md px-3 py-2 font-medium shadow-sm">
+      className={`meryo-turn-finder__trigger ${triggerClassName} inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-md px-3 py-2 font-medium shadow-sm`}>
       <BarberShortcutIcon kind="today"/>
       <span>Turnos para hoy</span>
     </button>

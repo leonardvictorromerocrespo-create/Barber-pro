@@ -1,19 +1,19 @@
 import {useEffect,useRef,useState} from 'react';
 import PublicShopLocation from './PublicShopLocation';
-import {PROFILE_PHOTO_TITLE} from '../lib/shop-content';
+import {isTeamPhotoAsset,isTeamPhotoTitle,PROFILE_PHOTO_TITLE} from '../lib/shop-content';
 import {publicShopUrl} from '../lib/public-shop-url';
 
 function StoreActionLabel() {
   return <><span>Tienda</span><svg className="meryo-profile-store-icon" width="23" height="23" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" focusable="false"><path d="M4 10v10h16V10M3 7l2-4h14l2 4v2a3 3 0 0 1-4.5 2.6 3 3 0 0 1-4.5 0 3 3 0 0 1-4.5 0A3 3 0 0 1 3 9V7Z"/><path d="M3 7h18M9 20v-5h6v5"/></svg></>;
 }
 
-function SectionTitle({children}) { return <h3 className="meryo-profile-section-title">{children}</h3>; }
-
 export default function ProfileModal({selectedShop,onClose,onReserve,onStore,onInspiration,catalogCategory='barberia',themeMode='dark',themeAppearance,initialTab='servicios',contentLoading=false,contentError=''}) {
   const [shareFeedback,setShareFeedback]=useState('');
   const [activeTab,setActiveTab]=useState(initialTab);
   const [aboutExpanded,setAboutExpanded]=useState(false);
   const closeRef=useRef(null);
+  const scrollContainerRef=useRef(null);
+  const tabsRef=useRef(null);
   const onCloseRef=useRef(onClose);
   onCloseRef.current=onClose;
   useEffect(()=>{
@@ -38,6 +38,7 @@ export default function ProfileModal({selectedShop,onClose,onReserve,onStore,onI
   if(!selectedShop)return null;
 
   const photos=selectedShop.assets?.filter(asset=>asset.kind==='foto'&&asset.url&&asset.title!==PROFILE_PHOTO_TITLE)??[];
+  const workPhotos=photos.filter(asset=>!isTeamPhotoTitle(asset.title));
   const videos=selectedShop.assets?.filter(asset=>asset.kind==='video'&&asset.url)??[];
   const services=selectedShop.services??[];
   const team=selectedShop.equipo??[];
@@ -58,10 +59,20 @@ export default function ProfileModal({selectedShop,onClose,onReserve,onStore,onI
   };
   const tabs=[['servicios','Servicios'],['equipo','Equipo'],['trabajos','Trabajos'],['informacion','Información']];
   const firstBookable=services.find(service=>service.bookable);
+  const scrollTabsToTop=()=>{
+    const container=scrollContainerRef.current,tabsElement=tabsRef.current;
+    if(!container||!tabsElement)return;
+    const top=container.scrollTop+tabsElement.getBoundingClientRect().top-container.getBoundingClientRect().top;
+    const reduced=window.matchMedia?.('(prefers-reduced-motion: reduce)')?.matches===true;
+    container.scrollTo({top,behavior:reduced?'auto':'smooth'});
+  };
+  const selectTab=id=>{
+    setActiveTab(id);
+    window.requestAnimationFrame(scrollTabsToTop);
+  };
 
   let tabContent;
   if(activeTab==='servicios')tabContent=<section role="tabpanel" id="meryo-profile-panel" aria-labelledby="meryo-profile-tab-servicios" className="meryo-profile-tab-panel">
-    <SectionTitle>Servicios</SectionTitle>
     {services.length?<div className="meryo-profile-service-list">{services.map(service=><article key={service.id} className="meryo-profile-service-row">
       <div className="min-w-0"><h4>{service.name}</h4><p>{service.duration||'Duración por definir'}{service.requiresEvaluation?' · Requiere evaluación':''}</p></div>
       <div className="meryo-profile-service-price">{service.bookable?`S/ ${Number(service.price).toFixed(2)}`:'Precio por confirmar'}</div>
@@ -69,19 +80,19 @@ export default function ProfileModal({selectedShop,onClose,onReserve,onStore,onI
     </article>)}</div>:<p className="meryo-profile-empty">El negocio aún no publicó servicios.</p>}
   </section>;
   else if(activeTab==='equipo')tabContent=<section role="tabpanel" id="meryo-profile-panel" aria-labelledby="meryo-profile-tab-equipo" className="meryo-profile-tab-panel">
-    <SectionTitle>Equipo</SectionTitle>
     {team.length?<div className="meryo-profile-team-list">{team.map(member=>{
-      const memberServices=services.filter(service=>(member.servicios??[]).some(id=>String(id)===String(service.id)));
       const memberInitials=String(member.nombre||'?').trim().split(/\s+/).slice(0,2).map(part=>Array.from(part)[0]||'').join('').toLocaleUpperCase('es');
-      return <article key={member.id||member.nombre} className="meryo-profile-team-card"><div className="meryo-profile-member-photo">{member.foto_url?<img src={member.foto_url} alt={`Foto de ${member.nombre}`} loading="lazy"/>:memberInitials}</div><div className="min-w-0"><h4>{member.nombre}{member.propietario?' · propietario':''}</h4><p>{memberServices.length?`Servicios: ${memberServices.map(service=>service.name).join(', ')}`:'Servicios por consultar con el negocio'}</p></div></article>;
+      const memberPhoto=selectedShop.assets?.filter(asset=>asset.kind==='foto'&&asset.url&&isTeamPhotoAsset(asset,selectedShop.id,member.id)).at(-1)?.url;
+      const rating=Number(member.rating),reviewCount=Number(member.reviews);
+      const hasRating=Number.isFinite(rating)&&rating>=1&&rating<=5&&Number.isInteger(reviewCount)&&reviewCount>0;
+      return <article key={member.id||member.nombre} className="meryo-profile-team-card"><div className="meryo-profile-member-photo">{memberPhoto?<img src={memberPhoto} alt={`Foto de ${member.nombre}`} loading="lazy"/>:memberInitials}</div><div className="meryo-profile-team-identity">{member.propietario&&<span className="meryo-profile-owner-label">Propietario</span>}<h4>{member.nombre}</h4>{hasRating&&<p className="meryo-profile-member-rating" aria-label={`Calificación ${rating.toFixed(1)} de 5, ${reviewCount} reseñas`}>★ {rating.toFixed(1)}</p>}</div></article>;
     })}</div>:<p className="meryo-profile-empty">El negocio aún no publicó integrantes del equipo.</p>}
   </section>;
   else if(activeTab==='trabajos')tabContent=<section role="tabpanel" id="meryo-profile-panel" aria-labelledby="meryo-profile-tab-trabajos" className="meryo-profile-tab-panel">
-    <div className="meryo-profile-work-heading"><SectionTitle>Trabajos</SectionTitle>{onInspiration&&<button type="button" onClick={onInspiration} className="meryo-profile-secondary-action min-h-11 rounded-lg px-3 py-2 text-sm font-semibold">Ver Inspiración</button>}</div>
-    {contentLoading?<p role="status" className="meryo-profile-empty">Cargando fotos del portafolio…</p>:contentError?<p role="alert" className="meryo-profile-empty">{contentError}</p>:photos.length?<div className="meryo-profile-work-grid">{photos.map(asset=><figure key={asset.id} className="min-w-0"><img src={asset.url} alt={asset.title||`Trabajo publicado por el ${profileLabel}`} loading="lazy"/>{asset.title&&<figcaption>{asset.title}</figcaption>}</figure>)}</div>:<p className="meryo-profile-empty">El negocio aún no publicó trabajos.</p>}
+    {onInspiration&&<div className="meryo-profile-work-heading"><button type="button" onClick={onInspiration} className="meryo-profile-secondary-action min-h-11 rounded-lg px-3 py-2 text-sm font-semibold">Ver Inspiración</button></div>}
+    {contentLoading?<p role="status" className="meryo-profile-empty">Cargando fotos del portafolio…</p>:contentError?<p role="alert" className="meryo-profile-empty">{contentError}</p>:workPhotos.length?<div className="meryo-profile-work-grid">{workPhotos.map(asset=><figure key={asset.id} className="min-w-0"><img src={asset.url} alt={asset.title||`Trabajo publicado por el ${profileLabel}`} loading="lazy"/>{asset.title&&<figcaption>{asset.title}</figcaption>}</figure>)}</div>:<p className="meryo-profile-empty">El negocio aún no publicó trabajos.</p>}
   </section>;
   else tabContent=<section role="tabpanel" id="meryo-profile-panel" aria-labelledby="meryo-profile-tab-informacion" className="meryo-profile-tab-panel">
-    <SectionTitle>Información</SectionTitle>
     {selectedShop.about&&<div className="meryo-profile-info-block"><h4>Acerca del negocio</h4><p>{selectedShop.about}</p></div>}
     <PublicShopLocation key={selectedShop.id} shop={selectedShop} mapHeight="h-32 sm:h-48" className="meryo-profile-location"/>
     {!selectedShop.direccion&&!selectedShop.lat&&!selectedShop.lng&&!selectedShop.district&&<p className="meryo-profile-empty">El negocio aún no publicó su ubicación.</p>}
@@ -90,7 +101,7 @@ export default function ProfileModal({selectedShop,onClose,onReserve,onStore,onI
   </section>;
 
   return <div className="meryo-profile-backdrop fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-0 sm:p-4" onMouseDown={event=>{if(event.target===event.currentTarget)onClose();}}>
-    <div role="dialog" aria-modal="true" aria-labelledby="meryo-profile-title" tabIndex={-1} data-meryo-theme={catalogCategory==='belleza'?'beauty':'barberia'} data-meryo-mode={themeMode} data-meryo-appearance={themeAppearance} className="meryo-profile-modal min-w-0 w-full overflow-auto">
+    <div ref={scrollContainerRef} role="dialog" aria-modal="true" aria-labelledby="meryo-profile-title" tabIndex={-1} data-meryo-theme={catalogCategory==='belleza'?'beauty':'barberia'} data-meryo-mode={themeMode} data-meryo-appearance={themeAppearance} className="meryo-profile-modal min-w-0 w-full overflow-auto">
       <header className="meryo-profile-header">
         {cover?<img src={cover} alt={`Portada de ${selectedShop.name}`} className="meryo-profile-cover"/>:<div className="meryo-profile-cover meryo-profile-cover--empty" role="img" aria-label="Sin portada publicada"/>}
         <div className="meryo-profile-cover-controls"><button ref={closeRef} type="button" onClick={onClose} className="meryo-profile-close min-h-11 rounded-lg px-3 py-2 text-sm font-medium">Volver</button><button type="button" onClick={shareProfile} className="meryo-profile-close min-h-11 rounded-lg px-3 py-2 text-sm font-medium">Compartir perfil</button></div>
@@ -100,7 +111,7 @@ export default function ProfileModal({selectedShop,onClose,onReserve,onStore,onI
        <div className="meryo-profile-quick-actions">{onStore&&<button type="button" onClick={()=>onStore(selectedShop)} className="meryo-profile-secondary-action meryo-profile-store-action min-h-11 rounded-lg px-3 py-2 text-sm font-medium"><StoreActionLabel /></button>}</div>
        {shareFeedback&&<p aria-live="polite" className="meryo-profile-feedback">{shareFeedback}{shareFeedback.startsWith('Copia')&&<> <a className="break-all underline" href={profileUrl}>{profileUrl}</a></>}</p>}
        <div className="meryo-profile-layout">
-        <main className="min-w-0"><div role="tablist" aria-label={`Secciones del perfil de ${selectedShop.name}`} className="meryo-profile-tabs">{tabs.map(([id,label])=><button key={id} type="button" role="tab" id={`meryo-profile-tab-${id}`} aria-selected={activeTab===id} aria-controls="meryo-profile-panel" tabIndex={activeTab===id?0:-1} onClick={()=>setActiveTab(id)} onKeyDown={event=>{if(!['ArrowLeft','ArrowRight','Home','End'].includes(event.key))return;event.preventDefault();const current=tabs.findIndex(([tabId])=>tabId===activeTab);const next=event.key==='Home'?0:event.key==='End'?tabs.length-1:(current+(event.key==='ArrowRight'?1:-1)+tabs.length)%tabs.length;setActiveTab(tabs[next][0]);document.getElementById(`meryo-profile-tab-${tabs[next][0]}`)?.focus();}}>{label}</button>)}</div>{tabContent}</main>
+        <main className="min-w-0"><div ref={tabsRef} role="tablist" aria-label={`Secciones del perfil de ${selectedShop.name}`} className="meryo-profile-tabs">{tabs.map(([id,label])=><button key={id} type="button" role="tab" id={`meryo-profile-tab-${id}`} aria-selected={activeTab===id} aria-controls="meryo-profile-panel" tabIndex={activeTab===id?0:-1} onClick={()=>selectTab(id)} onKeyDown={event=>{if(!['ArrowLeft','ArrowRight','Home','End'].includes(event.key))return;event.preventDefault();const current=tabs.findIndex(([tabId])=>tabId===activeTab);const next=event.key==='Home'?0:event.key==='End'?tabs.length-1:(current+(event.key==='ArrowRight'?1:-1)+tabs.length)%tabs.length;selectTab(tabs[next][0]);document.getElementById(`meryo-profile-tab-${tabs[next][0]}`)?.focus();}}>{label}</button>)}</div>{tabContent}</main>
         <aside className="meryo-profile-sidebar"><p className="meryo-profile-sidebar-title">{selectedShop.name}</p><p>{services.filter(service=>service.bookable).length} servicios reservables</p>{services.some(service=>service.bookable)&&<p>Desde S/ {Math.min(...services.filter(service=>service.bookable).map(service=>Number(service.price))).toFixed(2)}</p>}{onStore&&<button type="button" onClick={()=>onStore(selectedShop)} className="meryo-profile-secondary-action meryo-profile-store-action min-h-11 w-full rounded-lg px-3 py-2 text-sm font-medium"><StoreActionLabel /></button>}<button type="button" disabled={!hasBookableService} onClick={()=>onReserve(firstBookable)} className="meryo-profile-book-button min-h-12 w-full rounded-lg px-4 py-3 font-semibold">Reservar cita</button></aside>
        </div>
        <div className="meryo-profile-mobile-book"><button type="button" disabled={!hasBookableService} onClick={()=>onReserve(firstBookable)} className="meryo-profile-book-button min-h-12 w-full rounded-lg px-4 py-3 font-semibold">Reservar cita</button></div>

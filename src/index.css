@@ -566,13 +566,13 @@ body {
 .meryo-active-filter { color: var(--meryo-text-muted); }
 .meryo-catalog-shortcuts { display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); align-items: stretch; gap: .5rem; margin-block: .75rem 1rem; }
 .meryo-catalog-shortcuts > button,
-.meryo-catalog-shortcuts .meryo-turn-finder__trigger { display: flex; width: 100%; min-width: 0; min-height: 56px; flex-direction: column; align-items: center; justify-content: center; gap: .3rem; border: 0; border-radius: 0; background: transparent !important; color: var(--meryo-text); box-shadow: none !important; font-size: .84rem; font-weight: 500; line-height: 1.2; text-align: center; text-decoration: none; }
+.meryo-catalog-shortcuts .meryo-turn-finder__trigger { display: flex; width: 100%; min-width: 0; min-height: 56px; flex-direction: column; align-items: center; justify-content: center; gap: .3rem; border: 0; border-radius: 0; background: transparent; color: var(--meryo-text); box-shadow: none; font-size: .84rem; font-weight: 500; line-height: 1.2; text-align: center; text-decoration: none; }
 .meryo-catalog-shortcuts > button svg,
 .meryo-catalog-shortcuts .meryo-turn-finder__trigger svg { display: block; width: 1rem; height: 1rem; flex: 0 0 auto; }
 .meryo-catalog-shortcuts > button span,
 .meryo-catalog-shortcuts .meryo-turn-finder__trigger span { white-space: nowrap; }
 .meryo-catalog-shortcuts > button:hover,
-.meryo-catalog-shortcuts .meryo-turn-finder__trigger:hover:not(:disabled) { background: transparent !important; color: var(--meryo-gold-light); }
+.meryo-catalog-shortcuts .meryo-turn-finder__trigger:hover:not(:disabled) { background: transparent; color: var(--meryo-gold-light); }
 .meryo-catalog-shortcuts :where(button):disabled { color: var(--meryo-text-muted); opacity: .65; box-shadow: none; }
 .meryo-catalog-shortcuts :where(button):focus-visible { outline: 2px solid var(--meryo-gold-light); outline-offset: 2px; }
 .meryo-catalog-promotion-shortcut { color: #a87837 !important; }
@@ -1469,4 +1469,135 @@ body {
 [data-meryo-theme="barberia"][data-meryo-mode="dark"][data-meryo-appearance="negro-gris"] .meryo-mobile-bottom-nav button.is-active {
   background: #292929;
   color: #d6d6d6;
+}
+
+/* Compact raised shortcuts; their surfaces stay within each active theme palette. */
+.meryo-catalog-page .meryo-catalog-shortcuts { gap: .45rem; }
+.meryo-catalog-page .meryo-catalog-shortcuts .meryo-catalog-action {
+  min-height: 3.75rem;
+  gap: .25rem;
+  padding: .45rem .3rem;
+  border: 0;
+  border-radius: 8px;
+  background: linear-gradient(180deg,
+    color-mix(in srgb, var(--meryo-surface-raised) 34%, var(--meryo-surface)),
+    var(--meryo-surface)) !important;
+  color: var(--meryo-text);
+  box-shadow: 0 3px 0 color-mix(in srgb, var(--meryo-carbon) 18%, transparent),
+    0 5px 9px rgb(0 0 0 / 10%);
+  font-size: .74rem;
+  font-weight: 500;
+  line-height: 1.12;
+  text-decoration: none;
+  transition: transform .16s ease, box-shadow .16s ease, background-color .16s ease;
+}
+.meryo-catalog-page .meryo-catalog-shortcuts .meryo-catalog-action > span {
+  display: block;
+  max-width: 100%;
+  white-space: normal;
+  overflow-wrap: anywhere;
+  text-wrap: balance;
+}
+.meryo-catalog-page .meryo-catalog-shortcuts .meryo-catalog-action svg.meryo-barber-shortcut-icon {
+  width: 1.15rem;
+  height: 1.15rem;
+  flex: 0 0 auto;
+}
+.meryo-catalog-page .meryo-catalog-shortcuts .meryo-catalog-action:hover:not(:disabled) {
+  transform: translateY(-1px);
+  background: var(--meryo-surface-raised) !important;
+  color: var(--meryo-gold-light);
+  box-shadow: 0 4px 0 color-mix(in srgb, var(--meryo-carbon) 17%, transparent),
+    0 7px 12px rgb(0 0 0 / 11%);
+}
+.meryo-catalog-page .meryo-catalog-shortcuts .meryo-catalog-action:active:not(:disabled) {
+  transform: translateY(2px);
+  box-shadow: 0 1px 0 color-mix(in srgb, var(--meryo-carbon) 16%, transparent),
+    0 2px 5px rgb(0 0 0 / 8%);
+}
+.meryo-catalog-page .meryo-catalog-shortcuts .meryo-catalog-action:disabled {
+  opacity: .62;
+  box-shadow: none;
+}
+.meryo-catalog-page .meryo-catalog-shortcuts .meryo-catalog-action:focus-visible {
+  outline: 3px solid var(--meryo-gold-light);
+  outline-offset: 3px;
+}
+
+/* Selecting a profile section scrolls the cover away and pins the tabs in view. */
+.meryo-profile-tabs {
+  position: sticky;
+  top: 0;
+  z-index: 8;
+  background: var(--meryo-carbon);
+  scroll-margin-top: 0;
+}
+.meryo-profile-owner-label {
+  display: inline-block;
+  margin: 0 0 .18rem;
+  color: var(--meryo-gold-light);
+  font-size: .72rem;
+  font-weight: 600;
+  line-height: 1.2;
+}
+.meryo-profile-member-rating {
+  color: var(--meryo-gold-light) !important;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+.meryo-team-management-list { display: grid; gap: .75rem; }
+.meryo-team-management-card {
+  min-width: 0;
+  border-radius: 10px;
+  background: var(--meryo-surface, #211e19);
+  padding: .85rem;
+  box-shadow: 0 4px 12px rgb(0 0 0 / 10%);
+}
+.meryo-team-management-heading { display: flex; min-width: 0; align-items: center; gap: .7rem; }
+.meryo-team-management-avatar {
+  display: grid;
+  width: 3rem;
+  height: 3rem;
+  flex: 0 0 auto;
+  place-items: center;
+  overflow: hidden;
+  border-radius: 50%;
+  background: var(--meryo-surface-raised, #302a24);
+  color: var(--meryo-gold-light, #e8c27a);
+  font-size: .9rem;
+  font-weight: 600;
+}
+.meryo-team-management-avatar img { width: 100%; height: 100%; object-fit: cover; }
+.meryo-team-management-heading h3 { margin: 0; overflow-wrap: anywhere; font-size: 1rem; font-weight: 600; }
+.meryo-team-management-heading p:not(.meryo-profile-owner-label) { margin: .15rem 0 0; color: var(--meryo-text-muted, #b8b0a6); font-size: .78rem; overflow-wrap: anywhere; }
+.meryo-team-photo-upload { display: flex; min-width: 0; align-items: flex-start; gap: .8rem; margin-top: .8rem; }
+.meryo-team-photo-current {
+  display: grid;
+  width: 4.5rem;
+  height: 4.5rem;
+  flex: 0 0 auto;
+  place-items: center;
+  overflow: hidden;
+  border-radius: 50%;
+  background: var(--meryo-surface-raised, #302a24);
+  color: var(--meryo-text-muted, #b8b0a6);
+  font-size: 1.5rem;
+}
+.meryo-team-photo-current__image { width: 100%; height: 100%; object-fit: cover; }
+.meryo-team-photo-fields { display: grid; min-width: 0; flex: 1; gap: .5rem; }
+.meryo-team-photo-fields input[type="file"] { max-width: 100%; color: var(--meryo-text, inherit); }
+.meryo-team-photo-fields :where(button):disabled { cursor: not-allowed; opacity: .55; }
+.meryo-team-management-form { display: grid; gap: .75rem; margin-top: .9rem; }
+.meryo-team-management-form fieldset { min-width: 0; border: 0; padding: 0; }
+.meryo-team-management-form :where(label, legend) { font-size: .88rem; font-weight: 500; }
+.meryo-team-management-form :where(input[type="checkbox"]) { accent-color: var(--meryo-gold, #d4af37); }
+
+@media (max-width: 399px) {
+  .meryo-catalog-page .meryo-catalog-shortcuts { gap: .3rem; }
+  .meryo-catalog-page .meryo-catalog-shortcuts .meryo-catalog-action { min-height: 3.55rem; padding-inline: .18rem; font-size: .69rem; }
+  .meryo-catalog-page .meryo-catalog-shortcuts .meryo-catalog-action svg.meryo-barber-shortcut-icon { width: 1.05rem; height: 1.05rem; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .meryo-profile-modal { scroll-behavior: auto; }
+  .meryo-catalog-page .meryo-catalog-shortcuts .meryo-catalog-action { transition: none; }
 }

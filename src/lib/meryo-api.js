@@ -1,6 +1,6 @@
 import {normalizeBookingOrigin} from './booking-origin.js';
 import { savedOperation } from './operations.js';
-import {signContent,uploadContent,uploadProductPhoto} from './shop-content.js';
+import {signContent,uploadContent,uploadProductPhoto,uploadTeamPhoto} from './shop-content.js';
 
 export async function readResult(operation) {
   const {data,error}=await operation;
@@ -177,6 +177,7 @@ export function createMeryoApi(client) {
     revokeInvite:async(id)=>{await requireRole(['barbero']);return savedOperation(()=>client.rpc('meryo_revocar_invitacion',{p_id:id}));},
     acceptInvite:async(token)=>{await requireRole(['cliente','barbero']);return savedOperation(()=>client.rpc('meryo_aceptar_invitacion',{p_token:token}));},
     saveMember:async(m,services)=>{await requireRole(['barbero']);return savedOperation(()=>client.rpc('meryo_actualizar_integrante',{p_member:m.id,p_name:m.display_name,p_active:m.active,p_services:services.map(Number)}));},
+    uploadTeamPhoto:async(shop,memberId,file)=>{const p=await requireRole(['barbero']);if(String(p.barberia_id)!==String(shop))throw new Error('Solo puedes subir tu foto para el equipo de tu negocio');return uploadTeamPhoto(client,shop,memberId,file);},
     addWorkWindow:async(member,day,kind,start,end)=>{await requireRole(['barbero']);return savedOperation(()=>client.rpc('meryo_agregar_tramo',{p_member:member,p_day:Number(day),p_kind:kind,p_start:start,p_end:end}));},
     removeWorkWindow:async(id)=>{await requireRole(['barbero']);return savedOperation(()=>client.rpc('meryo_retirar_tramo',{p_id:id}));},
     editWorkWindow:async(id,start,end)=>{await requireRole(['barbero']);return savedOperation(()=>client.rpc('meryo_editar_tramo',{p_id:id,p_start:start,p_end:end}));},
