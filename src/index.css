@@ -1422,7 +1422,16 @@ body {
 }
 
 [data-meryo-theme="barberia"][data-meryo-mode="dark"][data-meryo-appearance="negro-gris"] .meryo-mobile-bottom-nav {
-  background: rgb(0 0 0 / 97%);
+  background: #000;
+}
+
+[data-meryo-theme="barberia"][data-meryo-mode="dark"][data-meryo-appearance="negro-gris"] .meryo-mobile-bottom-nav button {
+  color: #bdbdbd;
+}
+
+[data-meryo-theme="barberia"][data-meryo-mode="dark"][data-meryo-appearance="negro-gris"] .meryo-mobile-bottom-nav button.is-active {
+  background: #292929;
+  color: #d6d6d6;
 }
 
 .meryo-cut-promotions[data-meryo-theme="barberia"][data-meryo-mode="dark"][data-meryo-appearance="negro-gris"] {
