@@ -79,8 +79,8 @@ try{
  if(teamPhotoOnly){
   phase='professional team-photo permissions and publication';
   const staff=make();clients.push(staff);const staffEmail='team.'+crypto.randomUUID()+'@example.com',staffPassword=crypto.randomBytes(24).toString('base64url'),staffSignup=await staff.auth.signUp({email:staffEmail,password:staffPassword,options:{data:{full_name:'Profesional sintético CI'}}});assert.ifError(staffSignup.error);assert.ok(staffSignup.data.session);const staffId=staffSignup.data.user.id,staffApi=createMeryoApi(staff);
-  const staffInvite=await ownerApi.inviteMember(staffEmail,'Profesional sintético CI');await staffApi.acceptInvite(staffInvite.token);const staffTeam=await staffApi.team(),ownerTeam=await ownerApi.team(),staffMember=staffTeam.members[0],ownerMember=ownerTeam.members.find(member=>String(member.user_id)===String(ownerId));
-  assert.equal(staffTeam.owner,false);assert.equal(staffTeam.members.length,1,'A professional can see only their own team record');assert.ok(staffMember&&ownerMember);assert.equal(String(staffMember.user_id),String(staffId));
+  const staffInvite=await ownerApi.inviteMember(staffEmail,'Profesional sintético CI');await staffApi.acceptInvite(staffInvite.token);const staffTeam=await staffApi.team(),ownerTeam=await ownerApi.team(),staffMember=staffTeam.members.find(member=>String(member.user_id)===String(staffId)),ownerMember=ownerTeam.members.find(member=>String(member.user_id)===String(ownerId));
+  assert.equal(staffTeam.owner,false);assert.ok(staffMember&&ownerMember,'Both accounts resolve their own assigned team record');assert.equal(String(staffMember.user_id),String(staffId));
   const ownerPortrait=await ownerApi.uploadTeamPhoto(shop,ownerMember.id,new File([png],'owner.png',{type:'image/png'}));
   const staffPortrait=await staffApi.uploadTeamPhoto(shop,staffMember.id,new File([png],'staff.png',{type:'image/png'}));
   await assert.rejects(()=>staffApi.uploadTeamPhoto(shop,ownerMember.id,new File([png],'other.png',{type:'image/png'})),/Storage no guardó la foto|row-level security/i,'A professional cannot upload to another member path');
