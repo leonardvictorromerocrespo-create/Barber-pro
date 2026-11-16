@@ -258,6 +258,8 @@ body {
   background-size: cover;
   background-position: right center;
 }
+.meryo-beauty-promotions-page[data-meryo-mode="light"] .meryo-beauty-promotions-banner { background-image:linear-gradient(90deg,rgba(243,238,240,.78) 0%,rgba(243,238,240,.58) 38%,rgba(243,238,240,.24) 66%,transparent 82%),url('/salon-promotions-banner.jpg'); }
+.meryo-beauty-promotions-page[data-meryo-mode="dark"] .meryo-beauty-promotions-banner { background-image:linear-gradient(90deg,rgba(52,44,51,.86) 0%,rgba(52,44,51,.68) 38%,rgba(52,44,51,.3) 66%,transparent 82%),url('/salon-promotions-banner.jpg'); }
 
 .meryo-beauty-promotions-title {
   max-width: 72%;
@@ -573,14 +575,15 @@ body {
 .meryo-catalog-shortcuts .meryo-turn-finder__trigger:hover:not(:disabled) { background: transparent !important; color: var(--meryo-gold-light); }
 .meryo-catalog-shortcuts :where(button):disabled { color: var(--meryo-text-muted); opacity: .65; box-shadow: none; }
 .meryo-catalog-shortcuts :where(button):focus-visible { outline: 2px solid var(--meryo-gold-light); outline-offset: 2px; }
-.meryo-catalog-promotion-shortcut { color: var(--meryo-gold-light) !important; }
+.meryo-catalog-promotion-shortcut { color: #a87837 !important; }
+.meryo-catalog-promotion-shortcut > span { color: var(--meryo-text) !important; }
 .meryo-shop-grid { display: grid; grid-template-columns: minmax(0,1fr); gap: .7rem; }
 .meryo-shop-card { display: flex; min-height: 164px; border: 0; border-radius: 10px; background: var(--meryo-surface); color: var(--meryo-text); box-shadow: 0 4px 12px rgb(0 0 0 / 12%); }
 .meryo-shop-card__image { width: 36%; min-width: 88px; max-width: 176px; flex: 0 0 36%; overflow: hidden; background: var(--meryo-surface-raised); }
 .meryo-shop-card__image img { display: block; width: 100%; height: 100%; min-height: 164px; object-fit: cover; }
 .meryo-shop-card__placeholder { display: block; width: 100%; min-height: 164px; height: 100%; background: linear-gradient(145deg,var(--meryo-surface-raised),var(--meryo-surface-soft)); }
 .meryo-shop-card__content { display: flex; flex: 1; flex-direction: column; align-items: stretch; min-width: 0; padding: .65rem .7rem; }
-.meryo-shop-card__category { margin: 0 0 .12rem; color: var(--meryo-gold-light); font-size: .68rem; font-weight: 500; text-transform: uppercase; letter-spacing: .045em; }
+.meryo-shop-card__category { margin: 0 0 .02rem; color: var(--meryo-gold-light); font-size: .68rem; font-weight: 500; text-transform: uppercase; letter-spacing: .045em; }
 .meryo-shop-card__name { margin: 0; max-width: 100%; color: var(--meryo-text); font-size: 1rem; font-weight: 600; line-height: 1.2; overflow-wrap: anywhere; }
 .meryo-shop-card__district { margin: .18rem 0 0; color: var(--meryo-text-muted); font-size: .84rem; }
 .meryo-shop-card__facts { display: flex; flex-wrap: wrap; justify-content: space-between; gap: .25rem .55rem; margin-top: .25rem; color: var(--meryo-text-muted); font-size: .75rem; line-height: 1.25; }
@@ -859,15 +862,15 @@ body {
 
 /* Beauty catalog keeps its own smoked-plum and rose palette in both modes. */
 .meryo-catalog-page[data-meryo-theme="beauty"][data-meryo-mode="light"] {
-  --beauty-page: #faf7f4;
-  --beauty-surface: #fffefc;
-  --beauty-card: #eedde2;
-  --beauty-field: #fffaf8;
+  --beauty-page: #f3eef0;
+  --beauty-surface: #fffcfd;
+  --beauty-card: #e8dce1;
+  --beauty-field: #f9f5f7;
   --beauty-text: #352832;
   --beauty-muted: #655761;
-  --beauty-accent: #955568;
+  --beauty-accent: #916475;
   --beauty-accent-text: #fffaf8;
-  --beauty-focus: #955568;
+  --beauty-focus: #916475;
   --meryo-text: #352832;
   --meryo-text-muted: #655761;
   color-scheme: light;
@@ -875,15 +878,15 @@ body {
   color: var(--beauty-text);
 }
 .meryo-catalog-page[data-meryo-theme="beauty"][data-meryo-mode="dark"] {
-  --beauty-page: #392f38;
-  --beauty-surface: #463944;
-  --beauty-card: #51414e;
-  --beauty-field: #41343f;
+  --beauty-page: #342c33;
+  --beauty-surface: #413740;
+  --beauty-card: #4c404a;
+  --beauty-field: #413740;
   --beauty-text: #f7eff2;
   --beauty-muted: #d2c2ca;
-  --beauty-accent: #b87589;
-  --beauty-accent-text: #281e25;
-  --beauty-focus: #e8b3c0;
+  --beauty-accent: #e3b1bf;
+  --beauty-accent-text: #342c33;
+  --beauty-focus: #e3b1bf;
   --meryo-text: #f7eff2;
   --meryo-text-muted: #d2c2ca;
   color-scheme: dark;
@@ -974,6 +977,8 @@ body {
   color: var(--beauty-accent-text) !important;
 }
 .meryo-catalog-page[data-meryo-theme="beauty"] .meryo-shop-card button:disabled { background: var(--beauty-card) !important; color: var(--beauty-muted) !important; box-shadow: none; }
+.meryo-catalog-page[data-meryo-theme="beauty"] .meryo-catalog-like { background:transparent !important; color:var(--beauty-text) !important; box-shadow:none !important; }
+.meryo-catalog-page[data-meryo-theme="beauty"] .meryo-catalog-like[aria-pressed="true"] { color:var(--beauty-accent) !important; }
 .meryo-catalog-page[data-meryo-theme="beauty"] .meryo-catalog-info-section { border-color: color-mix(in srgb, var(--beauty-accent) 20%, transparent) !important; }
 .meryo-catalog-page[data-meryo-theme="beauty"] .meryo-catalog-info-section { background: var(--beauty-page) !important; }
 .meryo-catalog-page[data-meryo-theme="beauty"] .meryo-info-block {
@@ -1007,6 +1012,16 @@ body {
 .meryo-catalog-page[data-meryo-theme="beauty"] .meryo-mobile-bottom-nav button.is-active { background: var(--beauty-card); color: var(--beauty-accent); }
 .meryo-catalog-page[data-meryo-theme="beauty"] :where(button, a, input, select, textarea, [tabindex]):focus-visible { outline-color: var(--beauty-focus); }
 .meryo-catalog-page[data-meryo-theme="beauty"][data-meryo-mode="dark"] .meryo-catalog-info-section { border-color: rgb(247 239 242 / 10%) !important; }
+
+.meryo-beauty-promotions-page[data-meryo-mode="light"] { --beauty-page:#f3eef0; --beauty-surface:#fffcfd; --beauty-card:#e8dce1; --beauty-text:#352832; --beauty-muted:#675761; --beauty-accent:#916475; --beauty-accent-text:#fff; }
+.meryo-beauty-promotions-page[data-meryo-mode="dark"] { --beauty-page:#342c33; --beauty-surface:#413740; --beauty-card:#4c404a; --beauty-text:#f7eff2; --beauty-muted:#d2c2ca; --beauty-accent:#e3b1bf; --beauty-accent-text:#342c33; }
+.meryo-beauty-promotions-page .meryo-beauty-promotions-header { background:color-mix(in srgb, var(--beauty-surface) 94%, transparent); border-color:color-mix(in srgb, var(--beauty-accent) 30%, transparent); }
+.meryo-beauty-promotions-page .meryo-beauty-promotions-header button { color:var(--beauty-text); border-color:color-mix(in srgb, var(--beauty-accent) 55%, transparent); }
+.meryo-beauty-promotions-page .meryo-beauty-promotions-banner { background:var(--beauty-card); border-color:color-mix(in srgb, var(--beauty-accent) 45%, transparent); }
+.meryo-beauty-promotions-page .meryo-beauty-promotions-title { color:var(--beauty-text); }
+.meryo-beauty-promotions-page .meryo-beauty-promo-card { border-color:color-mix(in srgb, var(--beauty-accent) 38%, transparent); }
+.meryo-beauty-promotions-page .meryo-beauty-promo-action { background:var(--beauty-accent); color:var(--beauty-accent-text); }
+.meryo-beauty-promotions-page .meryo-beauty-promo-status { color:var(--beauty-text); }
 
 .meryo-turn-finder[data-meryo-theme="beauty"][data-meryo-mode="light"] {
   --turn-panel: #fffefc;
@@ -1421,19 +1436,37 @@ body {
   background-color: #000;
 }
 
-[data-meryo-theme="barberia"][data-meryo-mode="dark"][data-meryo-appearance="negro-gris"] .meryo-mobile-bottom-nav {
-  background: #000;
+.meryo-cut-promotions[data-meryo-theme="barberia"][data-meryo-mode="dark"][data-meryo-appearance="negro-gris"] {
+  background-color: #000;
 }
 
+/* Approved icon scale; silver in the black-and-gray theme. */
+.meryo-catalog-shortcuts :is(button, .meryo-turn-finder__trigger) svg.meryo-barber-shortcut-icon {
+  width: 1.45rem;
+  height: 1.45rem;
+  display: block;
+  color: #a87837;
+}
+.meryo-catalog-page[data-meryo-theme="beauty"] .meryo-catalog-shortcuts :is(button, .meryo-turn-finder__trigger) svg.meryo-barber-shortcut-icon { color:var(--beauty-accent); }
+.meryo-shortcut-reference-image { filter: none; }
+.meryo-catalog-page[data-meryo-theme="barberia"][data-meryo-mode="dark"][data-meryo-appearance="negro-gris"] .meryo-catalog-shortcuts svg.meryo-barber-shortcut-icon {
+  color: #d9dbd7;
+}
+.meryo-catalog-page[data-meryo-theme="barberia"][data-meryo-mode="dark"][data-meryo-appearance="negro-gris"] .meryo-shortcut-reference-image {
+  filter: brightness(0) invert(.86);
+}
+
+/* Luna keeps the fixed mobile navigation black with neutral gray controls. */
+[data-meryo-theme="barberia"][data-meryo-mode="dark"][data-meryo-appearance="negro-gris"] .meryo-mobile-bottom-nav {
+  border-color: #242424;
+  background: #000;
+  color: #f2f2f2;
+}
 [data-meryo-theme="barberia"][data-meryo-mode="dark"][data-meryo-appearance="negro-gris"] .meryo-mobile-bottom-nav button {
+  background: transparent;
   color: #bdbdbd;
 }
-
 [data-meryo-theme="barberia"][data-meryo-mode="dark"][data-meryo-appearance="negro-gris"] .meryo-mobile-bottom-nav button.is-active {
   background: #292929;
   color: #d6d6d6;
-}
-
-.meryo-cut-promotions[data-meryo-theme="barberia"][data-meryo-mode="dark"][data-meryo-appearance="negro-gris"] {
-  background-color: #000;
 }

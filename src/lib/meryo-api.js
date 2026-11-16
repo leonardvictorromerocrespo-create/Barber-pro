@@ -1,6 +1,6 @@
 import {normalizeBookingOrigin} from './booking-origin.js';
 import { savedOperation } from './operations.js';
-import {PROFILE_PHOTO_TITLE,signContent,uploadContent,uploadProductPhoto} from './shop-content.js';
+import {signContent,uploadContent,uploadProductPhoto} from './shop-content.js';
 
 export async function readResult(operation) {
   const {data,error}=await operation;
@@ -49,12 +49,19 @@ export function createMeryoApi(client) {
       const {error}=await client.rpc('meryo_set_barber_like',{p_shop_id:shopId,p_liked:liked});
       if(error)throw new Error(error.message);
     },
-    catalog:async(category='barberia',{signal}={})=>{
+    catalogHighlights:category=>readResult(client.rpc('meryo_catalog_highlights',{p_category:category})),
+    setCatalogLike:async(shopId,liked,category)=>{
+      const {error}=await client.rpc('meryo_set_catalog_like',{p_shop_id:shopId,p_liked:liked,p_category:category});
+      if(error)throw new Error(error.message);
+    },
+    catalog:async(category='barberia',{signal,shopId}={})=>{
       const request=client.rpc('meryo_catalogo_categoria',{p_categoria:category});
       if(signal)request.abortSignal(signal);
-      return Promise.all((await readResult(request)).map(async row=>{
+      const rows=await readResult(request);
+      const visibleRows=shopId===undefined?rows:rows.filter(row=>String(row.id)===String(shopId));
+      return Promise.all(visibleRows.map(async row=>{
         const shop=mapShop(row);
-        try{shop.assets=await signContent(client,row.assets??[]);const cover=shop.assets.find(a=>a.kind==='portada'&&a.url);const profile=shop.assets.filter(a=>a.kind==='foto'&&a.title===PROFILE_PHOTO_TITLE&&a.url).at(-1);shop.coverImage=cover?.url||shop.image;shop.profileImage=profile?.url||null;shop.assets=shop.assets.filter(a=>a.title!==PROFILE_PHOTO_TITLE);if(cover)shop.image=cover.url;}
+        try{const coverAsset=(row.assets??[]).find(asset=>asset.kind==='portada'&&asset.object_path?.startsWith(`${shop.id}/`));shop.assets=coverAsset?(await signContent(client,[coverAsset])):[];const cover=shop.assets.find(asset=>asset.url);shop.coverImage=cover?.url||shop.image;shop.profileImage=null;if(cover)shop.image=cover.url;}
         catch(error){shop.assets=[];shop.contentError=error.message;}
         return shop;
       }));
@@ -161,6 +168,9 @@ export function createMeryoApi(client) {
       return savedOperation(()=>client.rpc('registrar_negocio',{p_nombre:form.nombre.trim(),p_distrito:form.distrito.trim(),p_direccion:form.direccion.trim(),p_descripcion:form.descripcion||'',p_lat:form.lat===''||form.lat==null?null:Number(form.lat),p_lng:form.lng===''||form.lng==null?null:Number(form.lng),p_whatsapp:form.whatsapp||null,p_correo:form.correo||null,p_tipo_negocio:type}));
     },
     ownerShop:async()=>{const p=await requireRole(['barbero']);return readResult(client.from('barberias').select('*').eq('id',p.barberia_id).single());},
+    publicJobListings:async(district=null)=>readResult(client.rpc('meryo_vacantes_publicas',{p_distrito:district||null})),
+    ownerJobListings:async()=>{await requireRole(['barbero']);return readResult(client.rpc('meryo_vacantes_propietario'));},
+    saveJobListing:async(listing)=>{await requireRole(['barbero']);return savedOperation(()=>client.rpc('meryo_guardar_vacante',{p_id:listing.id||null,p_puesto:listing.puesto,p_distrito:listing.distrito,p_horario:listing.horario,p_descripcion:listing.descripcion||'',p_vence_el:listing.vence_el,p_publicada:listing.publicada===true}));},
     ownerServices:async()=>{const p=await requireRole(['barbero']);return readResult(client.from('servicios').select('*').eq('barberia_id',p.barberia_id).order('nombre'));},
     team:async()=>{await requireRole(['barbero']);return readResult(client.rpc('meryo_equipo'));},
     inviteMember:async(email,name)=>{await requireRole(['barbero']);return savedOperation(()=>client.rpc('meryo_invitar_integrante',{p_email:email,p_name:name}));},
