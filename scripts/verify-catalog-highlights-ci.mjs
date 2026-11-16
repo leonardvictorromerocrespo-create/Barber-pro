@@ -71,6 +71,15 @@ const anonKey = (() => {
   return `${unsigned}.${crypto.createHmac('sha256', jwtSecret).update(unsigned).digest('base64url')}`;
 })();
 
+function redact(value) {
+  return String(value)
+    .replaceAll(password, '[redacted]')
+    .replaceAll(jwtSecret, '[redacted]')
+    .replaceAll(anonKey, '[redacted]')
+    .replace(/\beyJ[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+\b/g, '[redacted-jwt]')
+    .replace(/postgres(?:ql)?:\/\/[^\s"']+/gi, '[redacted-database-url]');
+}
+
 async function signup(client, label) {
   const result = await client.auth.signUp({
     email: `${label}.${crypto.randomUUID()}@example.com`,
@@ -228,11 +237,14 @@ try {
   await fs.writeFile(path.join(process.env.RUNNER_TEMP, 'meryo-catalog-highlights-proof.json'), JSON.stringify(proof, null, 2));
   console.log(JSON.stringify(proof));
 } catch (error) {
-  console.error(`Isolated catalog verification failed during ${phase}: ${error.message}`);
+  const failure = `Isolated catalog verification failed during ${phase}: ${redact(error.stack || error.message)}`;
+  console.error(failure);
   for (const file of logs) {
-    let contents = await fs.readFile(file, 'utf8').catch(() => '');
-    for (const secret of [password, jwtSecret, anonKey]) contents = contents.replaceAll(secret, '[redacted]');
+    const contents = redact(await fs.readFile(file, 'utf8').catch(() => ''));
     console.error(`${path.basename(file)}\n${contents.slice(-6000)}`);
+  }
+  if (process.env.GITHUB_STEP_SUMMARY) {
+    await fs.appendFile(process.env.GITHUB_STEP_SUMMARY, `### Isolated catalog test failure\n\n\`\`\`text\n${failure}\n\`\`\`\n`);
   }
   process.exitCode = 1;
 } finally {
