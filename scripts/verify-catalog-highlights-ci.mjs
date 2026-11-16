@@ -199,7 +199,7 @@ try {
   assert.equal(beautyUnliked.liked, false, 'Removing the Beauty like clears customer state');
   await assert.rejects(customerApi.setCatalogLike(beautyShop, true, 'barberia'), /Negocio no disponible/);
   await assert.rejects(professionalApi.setCatalogLike(beautyShop, true, 'belleza'), /Inicia sesión como cliente/);
-  await assert.rejects(publicApi.setCatalogLike(beautyShop, true, 'belleza'), /Inicia sesión como cliente/);
+  await assert.rejects(publicApi.setCatalogLike(beautyShop, true, 'belleza'), /permission denied for function meryo_set_catalog_like|Inicia sesión como cliente/);
 
   await customerApi.setBarberLike(barberShop, true);
   const barberLiked = (await customerApi.barberHighlights()).find(row => String(row.shop_id) === String(barberShop));
