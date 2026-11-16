@@ -24,16 +24,12 @@ function InspirationIcon() {
 }
 
 function PromotionsIcon() {
-  return <g transform="translate(-2.4 -2.4) scale(1.15)" fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round">
-    <path d="M6.1 20.2Q5.8 19.7 6.3 19.2L17.6 7.8Q18 7.4 18.5 7.3L27.3 6.2Q28.2 6.1 28 7L26.5 15.6Q26.4 16 26 16.4L13.6 28.2Q13 28.8 12.4 28.2Z" strokeWidth="1.2" />
-    <g transform="translate(1 1)">
-      <path d="m14.4 18 3.2-3.2" strokeWidth="1.5" />
-      <circle cx="14.2" cy="15" r=".82" fill="currentColor" stroke="none" />
-      <circle cx="17.8" cy="18" r=".82" fill="currentColor" stroke="none" />
-    </g>
-    <circle cx="23.1" cy="10.3" r="1.75" strokeWidth=".7" />
-    <circle cx="23.1" cy="10.3" r=".45" fill="currentColor" stroke="none" />
-    <path d="M24.4 8.5q1.15-.85 1.85.25" strokeWidth=".65" />
+  return <g fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M7 5.5h18a2 2 0 0 1 2 2v3.1a3.4 3.4 0 0 0 0 6.8v3.1a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2v-3.1a3.4 3.4 0 0 0 0-6.8V7.5a2 2 0 0 1 2-2Z" strokeWidth="1.8" />
+    <path d="m12.2 17.2 7.6-7.6" strokeWidth="2.1" />
+    <circle cx="12.1" cy="10.1" r="1.65" fill="currentColor" stroke="none" />
+    <circle cx="19.9" cy="16.7" r="1.65" fill="currentColor" stroke="none" />
+    <path d="M15.8 3.2v2.1M15.8 21.7v2.1" strokeWidth="1.5" opacity=".65" />
   </g>;
 }
 
