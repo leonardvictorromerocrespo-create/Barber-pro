@@ -62,12 +62,13 @@ export function BookingModal({
   inspirationIssue = '',
   onClearInspiration,
 }) {
-  const [step, setStep] = useState(startStep);
+  const [step, setStep] = useState(() => Math.min(3, Math.max(1, Number(startStep) || 1)));
   const closeRef = useRef(null);
   const dialogRef = useRef(null);
   const closeHandler = useRef(closeBookingModal);
   closeHandler.current = closeBookingModal;
   const isBeauty = catalogCategory === 'belleza';
+  const selectedShopId = selectedShop ? String(selectedShop.id) : null;
   const professional = isBeauty ? 'profesional' : 'barbero';
   const team = selectedShop?.equipo ?? [];
   const bookableServices = useMemo(
@@ -93,10 +94,6 @@ export function BookingModal({
     !salonPriceDecision && !inspirationIssue && (!reservationsEnabled || (customerInfo?.name?.trim() && customerInfo?.phone?.trim())));
   const price = Number(finalPrice);
   const duration = selectedService?.duration || (selectedService?.durationMinutes ? selectedService.durationMinutes + ' min' : 'Duración por confirmar');
-
-  useEffect(() => {
-    if (selectedShop) setStep(Math.min(3, Math.max(1, Number(startStep) || 1)));
-  }, [selectedShop?.id, startStep]);
 
   useEffect(() => {
     if (!selectedShop) return undefined;
@@ -130,7 +127,7 @@ export function BookingModal({
       document.body.style.overflow = previousOverflow;
       if (previousFocus?.isConnected) previousFocus.focus();
     };
-  }, [selectedShop?.id]);
+  }, [selectedShopId]);
 
   if (!selectedShop) return null;
 
@@ -151,7 +148,11 @@ export function BookingModal({
     if (step === 1 && stepOneValid) setStep(2);
     if (step === 2 && stepTwoValid) setStep(3);
   };
-  const back = () => setStep(current => Math.max(1, current - 1));
+  const back = event => {
+    event?.preventDefault();
+    event?.stopPropagation();
+    setStep(current => Math.max(1, current - 1));
+  };
   const backdropClass = 'meryo-booking-backdrop fixed inset-0 z-50 flex items-center justify-center';
   const wrapperClass = catalogCategory === 'barberia' ? 'meryo-soft-booking' : 'meryo-beauty-booking';
 
