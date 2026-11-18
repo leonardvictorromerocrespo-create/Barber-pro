@@ -1,51 +1,77 @@
+import {useEffect,useId,useRef,useState} from 'react';
 import {DISTRITOS} from '../lib/distritos';
 
-const fieldClass='meryo-catalog-field min-h-11 min-w-0 rounded-lg px-3 py-2 text-sm';
+const fieldClass='meryo-catalog-field min-h-10 min-w-0 rounded-lg px-3 py-2 text-sm';
+
+function DistrictPicker({district,onDistrict,districtPrompt}) {
+  const [open,setOpen]=useState(false);
+  const selectedIndex=Math.max(0,DISTRITOS.indexOf(district)+1);
+  const [activeIndex,setActiveIndex]=useState(selectedIndex);
+  const pickerRef=useRef(null);
+  const triggerRef=useRef(null);
+  const optionRefs=useRef([]);
+  const listboxId=useId();
+  const options=[{value:'',label:districtPrompt},...DISTRITOS.map(value=>({value,label:value}))];
+
+  useEffect(()=>{
+    if(!open)return undefined;
+    const closeOnOutsideClick=event=>{
+      if(!pickerRef.current?.contains(event.target))setOpen(false);
+    };
+    const focusActiveOption=window.requestAnimationFrame(()=>optionRefs.current[activeIndex]?.focus());
+    document.addEventListener('pointerdown',closeOnOutsideClick);
+    return ()=>{
+      window.cancelAnimationFrame(focusActiveOption);
+      document.removeEventListener('pointerdown',closeOnOutsideClick);
+    };
+  },[open,activeIndex]);
+
+  const closePicker=({restoreFocus=false}={})=>{
+    setOpen(false);
+    if(restoreFocus)window.requestAnimationFrame(()=>triggerRef.current?.focus());
+  };
+  const moveActiveOption=(index)=>{
+    const next=Math.max(0,Math.min(options.length-1,index));
+    setActiveIndex(next);
+    optionRefs.current[next]?.focus();
+  };
+  const handleOptionKeyDown=(event,index)=>{
+    if(event.key==='ArrowDown'){event.preventDefault();moveActiveOption(index+1);}
+    else if(event.key==='ArrowUp'){event.preventDefault();moveActiveOption(index-1);}
+    else if(event.key==='Home'){event.preventDefault();moveActiveOption(0);}
+    else if(event.key==='End'){event.preventDefault();moveActiveOption(options.length-1);}
+    else if(event.key==='Escape'){event.preventDefault();closePicker({restoreFocus:true});}
+  };
+
+  return <div ref={pickerRef} className={`meryo-district-picker min-w-0 flex-1${open?' is-open':''}`}>
+    <button ref={triggerRef} type="button" className="meryo-catalog-field meryo-district-trigger min-h-10 w-full rounded-lg px-3 py-2 text-sm"
+      aria-label={`Distrito: ${district||districtPrompt}`} aria-haspopup="listbox" aria-expanded={open} aria-controls={listboxId}
+      onClick={()=>{setActiveIndex(selectedIndex);setOpen(value=>!value);}}>
+      <span className="truncate">{district||districtPrompt}</span>
+      <svg aria-hidden="true" viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.8"><path d="m5 7.5 5 5 5-5"/></svg>
+    </button>
+    {open&&<div id={listboxId} className="meryo-district-listbox" role="listbox" aria-label="Elige un distrito">
+      {options.map((option,index)=><button key={option.value||'all-districts'} ref={element=>{optionRefs.current[index]=element;}}
+        type="button" role="option" aria-selected={option.value===district} tabIndex={activeIndex===index?0:-1}
+        className={`meryo-district-option${option.value===district?' is-selected':''}`}
+        onFocus={()=>setActiveIndex(index)} onKeyDown={event=>handleOptionKeyDown(event,index)}
+        onClick={()=>{onDistrict(option.value);closePicker({restoreFocus:true});}}>{option.label}</button>)}
+    </div>}
+  </div>;
+}
 
 export default function CatalogFilters({
-  query,district,order,hasLocation,onQuery,onDistrict,onOrder,onUseLocation,
-  onClearFilters=()=>{},showSearch=true,districtPrompt='Todos los distritos',businessLabel='barbería',businessPlural='barberías',
+  query,district,hasLocation,onQuery,onDistrict,onUseLocation,
+  showSearch=true,districtPrompt='Todos los distritos',businessLabel='barbería',businessPlural='barberías',
 }) {
-  const secondaryCount=Number(Boolean(hasLocation))+Number(order!=='name');
-  const active=[
-    showSearch&&query&&{key:'query',label:`Texto: ${query}`},
-    district&&{key:'district',label:district},
-    hasLocation&&{key:'location',label:'Ubicación activa'},
-    order!=='name'&&{key:'order',label:order==='price'?'Menor precio':'Más cercanas'},
-  ].filter(Boolean);
-
   return <section className="meryo-catalog-controls" aria-label={`Buscar ${businessPlural}`}>
     {showSearch&&<><label className="sr-only" htmlFor="meryo-catalog-search">Buscar {businessLabel} por nombre o distrito</label>
     <input id="meryo-catalog-search" type="search" autoComplete="off" value={query}
       onChange={event=>onQuery(event.target.value)} placeholder="Nombre del negocio o distrito"
       className={`${fieldClass} meryo-catalog-search w-full`}/></>}
     <div className="meryo-catalog-filter-row mt-2">
-      <label className="min-w-0 flex-1">
-        <span className="sr-only">Distrito</span>
-        <select aria-label="Distrito" value={district} onChange={event=>onDistrict(event.target.value)} className={`${fieldClass} w-full`}>
-          <option value="">{districtPrompt}</option>
-          {DISTRITOS.map(value=><option key={value} value={value}>{value}</option>)}
-        </select>
-      </label>
-      <details className="meryo-catalog-more-filters min-w-0 flex-1">
-        <summary className="meryo-catalog-filter-summary min-h-11 rounded-lg px-3 py-2 text-sm font-medium">
-          <span>Filtros{secondaryCount>0&&<span className="meryo-filter-count" aria-label={`${secondaryCount} filtros activos`}>{secondaryCount}</span>}</span>
-          <svg aria-hidden="true" viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.8"><path d="m5 7.5 5 5 5-5"/></svg>
-        </summary>
-        <div className="meryo-catalog-more-panel mt-2 grid gap-2 rounded-lg p-3 md:absolute md:z-20 md:min-w-64">
-          {onUseLocation&&<button type="button" onClick={onUseLocation} className="meryo-catalog-control-button min-h-11 rounded-lg px-3 py-2 text-left text-sm font-semibold">{hasLocation?'Actualizar ubicación':'Usar mi ubicación'}</button>}
-          <label className="block text-xs font-semibold">Ordenar
-            <select aria-label={`Ordenar ${businessPlural}`} value={order} onChange={event=>onOrder(event.target.value)} className={`${fieldClass} mt-1 w-full`}>
-              <option value="name">Por nombre</option><option value="price">Menor precio</option>
-              <option value="distance" disabled={!hasLocation}>Más cercanas</option>
-            </select>
-          </label>
-        </div>
-      </details>
+      <DistrictPicker district={district} onDistrict={onDistrict} districtPrompt={districtPrompt}/>
+      {onUseLocation&&<button type="button" aria-label="Usar mi ubicación" aria-pressed={hasLocation} onClick={onUseLocation} className="meryo-catalog-control-button min-h-10 min-w-0 flex-1 rounded-lg px-2 py-2 text-center text-[.8rem] font-semibold">Usar mi ubicación</button>}
     </div>
-    {active.length>0&&<div className="meryo-active-filters mt-2 flex flex-wrap items-center gap-2" aria-label="Filtros activos">
-      {active.map(item=><span key={item.key} className="meryo-active-filter min-h-8 rounded-md px-2 py-1 text-xs">{item.label}</span>)}
-      <button type="button" className="meryo-clear-filters min-h-8 rounded-md px-2 py-1 text-xs font-semibold" onClick={onClearFilters}>Limpiar filtros</button>
-    </div>}
   </section>;
 }

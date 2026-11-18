@@ -1,5 +1,5 @@
 export const DISTRITOS = [
-  "Ate", "Ate Vitarte", "Barranco", "Bellavista", "Breña", "Callao", "Carabayllo", "Carmen de la Legua", "Chaclacayo",
+  "Ate Vitarte", "Barranco", "Bellavista", "Breña", "Callao", "Carabayllo", "Carmen de la Legua", "Chaclacayo",
   "Chorrillos", "Cieneguilla", "Comas", "El Agustino", "Independencia", "Jesús María", "La Molina",
   "La Perla", "La Punta", "La Victoria", "Lima (Cercado)", "Lince", "Los Olivos", "Lurigancho-Chosica",
   "Lurín", "Magdalena del Mar", "Miraflores", "Mi Perú", "Pachacámac", "Pucusana", "Pueblo Libre",
