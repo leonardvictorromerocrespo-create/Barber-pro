@@ -450,3 +450,19 @@
   }
   .meryo-job-board-tab { top: 65%; }
 }
+
+/* The two category entries keep distinct button treatments from the approved reference. */
+.meryo-cover__entry--barber .meryo-cover__entry-copy button {
+  border: 1px solid #c8c8c6;
+  border-radius: 999px;
+  background: #fafafa;
+  color: #292826;
+  box-shadow: 0 4px 12px rgb(35 31 27 / 12%);
+}
+.meryo-cover__entry--beauty .meryo-cover__entry-copy button {
+  border: 0;
+  border-radius: 999px;
+  background: #d6d3d1;
+  color: #302832;
+  box-shadow: 0 4px 12px rgb(45 35 40 / 14%);
+}

@@ -4,6 +4,7 @@ import beautyPhoto from '../assets/meryo-entry-beauty-reference.png';
 import MeryoHeader from './MeryoHeader';
 import JobBoardTab from './JobBoardTab';
 import WelcomeOnboarding, {shouldShowWelcome} from './WelcomeOnboarding';
+import LandingCampaignCarousel from './LandingCampaignCarousel';
 import './LandingPage.css';
 
 const categoryCopy={
@@ -39,6 +40,7 @@ export default function LandingPage({setView, onExplore, onFindNearby, profile=n
       <JobBoardTab onOpen={onJobs}/>
 
       <main className="meryo-cover__main">
+        <LandingCampaignCarousel />
         <section className="meryo-cover__hero" aria-labelledby="meryo-cover-title">
           <h1 id="meryo-cover-title" className="meryo-cover__sr-only">Explora barberías y salones de belleza en MERYO</h1>
           <div className="meryo-cover__entry-grid" aria-label="Elige qué explorar">

@@ -9,6 +9,14 @@
 }
 
 @font-face {
+  font-family: "Indie Flower";
+  src: url("/fonts/IndieFlower-Regular.ttf") format("truetype");
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+}
+
+@font-face {
   font-family: "Quicksand";
   src: url("/fonts/Quicksand-latin-ext.woff2") format("woff2");
   font-style: normal;
@@ -535,14 +543,9 @@ body {
 .meryo-catalog-page :where(*) {
   font-family: "Quicksand", sans-serif;
 }
-.meryo-catalog-map-control { display: flex; justify-content: flex-end; margin: 0 0 .5rem; }
-.meryo-catalog-map-control > button { display: inline-flex; min-height: 2.5rem; align-items: center; justify-content: center; gap: .45rem; border: 0; border-radius: 7px; background: var(--meryo-surface-soft); padding: .35rem .65rem; color: var(--meryo-text); box-shadow: 0 2px 6px rgb(0 0 0 / 9%); font-size: .84rem; font-weight: 500; }
-.meryo-catalog-map-control > button svg { width: 1rem; height: 1rem; flex: 0 0 auto; }
-.meryo-catalog-map-control > button:hover { background: var(--meryo-surface-raised); }
-.meryo-catalog-map-control > button:focus-visible { outline: 2px solid var(--meryo-gold-light); outline-offset: 2px; }
 .meryo-catalog-topline { display: flex; min-width: 0; flex-direction: column; align-items: flex-start; gap: .45rem; }
 .meryo-catalog-top-actions { display: flex; width: 100%; min-width: 0; align-items: center; justify-content: space-between; gap: .65rem; }
-.meryo-catalog-heading { margin: 0; color: var(--meryo-text); font-size: clamp(1.45rem, 3vw, 2.1rem); font-weight: 600; line-height: 1.15; }
+.meryo-catalog-heading { margin: 0; color: var(--meryo-text); font-family: "Indie Flower", "Quicksand", sans-serif; font-size: clamp(1.6rem, 3.2vw, 2.2rem); font-weight: 400; line-height: 1.15; }
 .meryo-catalog-count { margin: 0; max-width: 100%; border: 0; border-radius: 0; padding: 0; background: transparent; color: var(--meryo-text-muted); box-shadow: none; font-size: .84rem; line-height: 1.3; }
 .meryo-catalog-controls { position: relative; min-width: 0; }
 .meryo-catalog-field { border: 0; background: var(--meryo-surface); color: var(--meryo-text); box-shadow: 0 3px 10px rgb(0 0 0 / 12%); }
@@ -1385,6 +1388,71 @@ body {
 [data-meryo-theme="barberia"][data-meryo-mode="dark"] .meryo-booking-dialog .meryo-booking-day.is-selected,
 [data-meryo-theme="barberia"][data-meryo-mode="dark"] .meryo-booking-dialog .meryo-time-slot.is-selected { color: #102027; }
 [data-meryo-theme="barberia"][data-meryo-mode="dark"] .meryo-booking-dialog :where(button, input, textarea):focus-visible { outline-color: #aecad6; }
+
+/* Marfil uses the approved neutral gray surfaces; the gold accents and logo remain unchanged. */
+[data-meryo-theme="barberia"][data-meryo-mode="light"][data-meryo-appearance="marfil"] {
+  --meryo-carbon: #f2f2f0;
+  --meryo-surface: #fafafa;
+  --meryo-surface-raised: #e8e8e6;
+  --meryo-surface-soft: #d6d6d4;
+  --color-neutral-950: #f2f2f0;
+  --color-neutral-900: #fafafa;
+  --color-neutral-800: #e8e8e6;
+  --color-neutral-700: #d6d6d4;
+  background-color: #f2f2f0;
+}
+[data-meryo-theme="barberia"][data-meryo-mode="light"][data-meryo-appearance="marfil"] .meryo-site-header {
+  background-color: #f2f2f0 !important;
+}
+[data-meryo-theme="barberia"][data-meryo-mode="light"][data-meryo-appearance="marfil"] .meryo-site-header button:hover { background-color: #e8e8e6; }
+[data-meryo-theme="barberia"][data-meryo-mode="light"][data-meryo-appearance="marfil"] .meryo-catalog-filters,
+[data-meryo-theme="barberia"][data-meryo-mode="light"][data-meryo-appearance="marfil"] .meryo-soft-catalog .meryo-catalog-filters,
+[data-meryo-theme="barberia"][data-meryo-mode="light"][data-meryo-appearance="marfil"] .meryo-soft-catalog .meryo-shop-card__services,
+[data-meryo-theme="barberia"][data-meryo-mode="light"][data-meryo-appearance="marfil"] .meryo-soft-catalog-info .meryo-info-block > .rounded-2xl {
+  background: #e8e8e6 !important;
+}
+[data-meryo-theme="barberia"][data-meryo-mode="light"][data-meryo-appearance="marfil"] .meryo-catalog-filters :where(input, select),
+[data-meryo-theme="barberia"][data-meryo-mode="light"][data-meryo-appearance="marfil"] .meryo-soft-catalog .meryo-shop-card,
+[data-meryo-theme="barberia"][data-meryo-mode="light"][data-meryo-appearance="marfil"] .meryo-soft-catalog-info .meryo-info-block,
+[data-meryo-theme="barberia"][data-meryo-mode="light"][data-meryo-appearance="marfil"] .meryo-booking-card {
+  background-color: #fafafa !important;
+}
+[data-meryo-theme="barberia"][data-meryo-mode="light"][data-meryo-appearance="marfil"] .meryo-mobile-bottom-nav {
+  background: rgb(250 250 250 / 97%);
+}
+[data-meryo-theme="barberia"][data-meryo-mode="light"][data-meryo-appearance="marfil"] .meryo-mobile-bottom-nav button.is-active { background: #d6d6d4; }
+[data-meryo-theme="barberia"][data-meryo-mode="light"][data-meryo-appearance="marfil"] .meryo-profile-modal {
+  --meryo-carbon: #f2f2f0;
+  --meryo-surface: #fafafa;
+  --meryo-surface-raised: #e8e8e6;
+  --meryo-surface-soft: #d6d6d4;
+  background-color: #f2f2f0 !important;
+}
+[data-meryo-theme="barberia"][data-meryo-mode="light"][data-meryo-appearance="marfil"] .meryo-profile-modal .meryo-profile-close { background: #e8e8e6 !important; }
+[data-meryo-theme="barberia"][data-meryo-mode="light"][data-meryo-appearance="marfil"] .meryo-soft-booking {
+  background: #fafafa !important;
+  color: #34291e !important;
+}
+[data-meryo-theme="barberia"][data-meryo-mode="light"][data-meryo-appearance="marfil"] .meryo-soft-booking .meryo-booking-close,
+[data-meryo-theme="barberia"][data-meryo-mode="light"][data-meryo-appearance="marfil"] .meryo-soft-booking .meryo-booking-field { background-color: #e8e8e6; }
+[data-meryo-theme="barberia"][data-meryo-mode="light"][data-meryo-appearance="marfil"] .meryo-soft-booking .meryo-booking-option { background-color: #f2f2f0; }
+[data-meryo-theme="barberia"][data-meryo-mode="light"][data-meryo-appearance="marfil"] .meryo-soft-booking .meryo-booking-option:hover:not(:disabled) { background-color: #e8e8e6; }
+[data-meryo-theme="barberia"][data-meryo-mode="light"][data-meryo-appearance="marfil"] .meryo-soft-booking .meryo-booking-option.is-selected { background: #a77d49; }
+[data-meryo-theme="barberia"][data-meryo-mode="light"][data-meryo-appearance="marfil"] .meryo-soft-booking .meryo-booking-panel { background: #e8e8e6 !important; }
+[data-meryo-theme="barberia"][data-meryo-mode="light"][data-meryo-appearance="marfil"] .meryo-booking-dialog { --booking-selected-bg: #a77d49; --booking-selected-fg: #21190f; }
+[data-meryo-theme="barberia"][data-meryo-mode="light"][data-meryo-appearance="marfil"] .meryo-turn-finder {
+  --turn-panel: #e8e8e6;
+  --turn-card: #fafafa;
+  --turn-field: #fafafa;
+}
+[data-meryo-theme="barberia"][data-meryo-mode="light"][data-meryo-appearance="marfil"] .meryo-turn-finder__trigger,
+[data-meryo-theme="barberia"][data-meryo-mode="light"][data-meryo-appearance="marfil"] .meryo-turn-finder__close { background: #e8e8e6; }
+[data-meryo-theme="barberia"][data-meryo-mode="light"][data-meryo-appearance="marfil"] .meryo-turn-finder__trigger:hover,
+[data-meryo-theme="barberia"][data-meryo-mode="light"][data-meryo-appearance="marfil"] .meryo-turn-finder__close:hover { background: #d6d6d4; }
+[data-meryo-theme="barberia"][data-meryo-mode="light"][data-meryo-appearance="marfil"] .meryo-promotions-banner {
+  background-image: linear-gradient(90deg, rgb(242 242 240 / 96%) 0%, rgb(242 242 240 / 86%) 40%, rgb(242 242 240 / 42%) 68%, rgb(242 242 240 / 8%) 100%), var(--meryo-promotion-banner);
+}
+[data-meryo-theme="barberia"][data-meryo-mode="light"][data-meryo-appearance="marfil"] .meryo-barber-sticky { --meryo-barber-sticky-bg: #f2f2f0; }
 [data-meryo-theme="barberia"][data-meryo-mode="dark"] .meryo-turn-finder {
   --turn-panel: #10191f;
   --turn-card: #1b2a32;

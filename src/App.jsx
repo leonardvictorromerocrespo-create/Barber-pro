@@ -22,7 +22,7 @@ import {createCatalogLoader} from './lib/catalog-loader';
 import {createProfileRefreshCoordinator} from './lib/profile-refresh';
 import {isPublicShopIndexable,isPublicShopPath,publicShopCanonical,publicShopIdFromPath,publicShopUrl} from './lib/public-shop-url.js';
 const api = createMeryoApi(supabase);
-import { selectShops, catalogMarkers, coordinates } from "./lib/catalog";
+import { selectShops, coordinates } from "./lib/catalog";
 import { listaDias,sumarDias } from "./lib/dates";
 const PushCenter = lazy(() => import('./components/PushCenter'));
 const ShopRegistration = lazy(() => import('./components/ShopRegistration'));
@@ -45,7 +45,6 @@ const CatalogStatus = lazy(() => import('./components/CatalogStatus'));
 const TurnFinder = lazy(() => import('./components/TurnFinder'));
 const ProfileModalView = lazy(() => import('./components/ProfileModal'));
 const BookingModalView = lazy(() => import('./components/BookingModal').then(module => ({default: module.BookingModal})));
-const CatalogMap = lazy(() => import("./components/CatalogMap"));
 const StoreModal=lazy(()=>import('./components/store/StoreModal'));
 const MyPickupOrders=lazy(()=>import('./components/store/MyPickupOrders'));
 const lazyFallback=<main className="min-h-screen bg-neutral-950 p-8 text-white" role="status">Cargando MERYO…</main>;
@@ -104,7 +103,6 @@ export default function BarberProApp() {
 function MeryoScreens({identity,view,setView}) {
   const [location, setLocation] = useState(null);
   const [locationError, setLocationError] = useState("");
-  const [showMap, setShowMap] = useState(false);
   const [query, setQuery] = useState("");
   const [district, setDistrict] = useState("");
   const [order, setOrder] = useState("name");
@@ -325,8 +323,6 @@ useEffect(() => { cargarBarberiasActivas(); }, [cargarBarberiasActivas,catalogLo
     () => selectShops(catalogRows, { query:catalogCategory==='barberia'?'':query, district, order, location }),
     [catalogRows, catalogCategory, query, district, order, location]
   );
-
-  const markers = useMemo(() => catalogMarkers(ranking), [ranking]);
 
   const handleAffiliateSubmit = async () => {
     if(affiliateBusy)return;setAffiliateBusy(true);setAffiliateError('');
@@ -921,11 +917,9 @@ if (view === "admin" && adminAccess) return <Suspense fallback={lazyFallback}><A
             <button type="button" className="meryo-catalog-action" onClick={()=>{setSelectedInspiration(null);setInspirationIssue('');setView('inspiration');}}><BarberShortcutIcon kind="inspiration"/><span>Inspiración</span></button>
             <button type="button" className="meryo-catalog-action meryo-catalog-promotion-shortcut" onClick={catalogCategory==='belleza'?openBeautyPromotions:()=>setView('promotions')}><BarberShortcutIcon kind="promotions"/><span>Promociones</span></button>
           </div>
-          <div className="meryo-catalog-map-control"><button type="button" onClick={()=>setShowMap(value=>!value)} aria-expanded={showMap}><span>{showMap?'Ocultar mapa':catalogCategory==='barberia'?'Ver en el mapa':'Ver mapa'}</span><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="m3 6 6-3 6 3 6-3v15l-6 3-6-3-6 3z"/><path d="M9 3v15m6-12v15"/></svg></button></div>
-          {catalogCategory==='barberia'&&!showMap&&!showProfileModal&&!showBookingModal&&<Suspense fallback={null}><CatalogFox /></Suspense>}
+          {catalogCategory==='barberia'&&!showProfileModal&&!showBookingModal&&<Suspense fallback={null}><CatalogFox /></Suspense>}
           </div>
           </div>
-          {showMap&&<div className="meryo-catalog-map-panel"><Suspense fallback={<p role="status">Cargando mapa…</p>}><CatalogMap markers={markers} location={location} onSelect={id=>{const shop=catalogRows.find(item=>item.id===id);if(shop)openProfileModal(shop);}}/></Suspense>{markers.length===0&&<p className="mt-3 text-sm text-neutral-400">No hay ubicaciones verificables para estos resultados.</p>}</div>}
           {catalogMatchesCategory&&!catalogLoading&&!catalogError&&catalogRows.length>0&&ranking.length===0&&<p role="status" className="meryo-catalog-no-match">No encontramos {catalogCategory==='belleza'?'peluquerías ni salones':'barberías'} con esos filtros.</p>}
           <CatalogStatus loading={catalogLoading||!catalogMatchesCategory} error={catalogMatchesCategory?catalogError:''} empty={catalogRows.length===0} businessLabel={catalogCategory==='belleza'?'peluquerías y salones':'barberías'} onRetry={cargarBarberiasActivas}/>
           {!catalogLoading&&!catalogError&&catalogMatchesCategory&&<BarberCatalogHighlights key={`${catalogCategory}-${identity.profile?.id??'guest'}`} api={api} shops={ranking} identity={identity.profile} category={catalogCategory} onLogin={()=>openLogin('client')} onView={openProfileModal} onReserve={shop=>openBookingModal(shop,null,{startStep:1})}/>}
