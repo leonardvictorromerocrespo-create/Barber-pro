@@ -12,9 +12,9 @@
 }
 .meryo-inspiration-page[data-meryo-theme="beauty"] { --inspiration-button-text: #fffaf7; }
 .meryo-inspiration-page[data-meryo-theme="barberia"][data-meryo-mode="light"] {
-  --inspiration-bg: #f4efe6;
-  --inspiration-card: #fffbf4;
-  --inspiration-raised: #ebe3d8;
+  --inspiration-bg: #f2f2f0;
+  --inspiration-card: #fafafa;
+  --inspiration-raised: #e8e8e6;
   --inspiration-text: #34291e;
   --inspiration-muted: #6e6254;
   --inspiration-accent: #795b37;

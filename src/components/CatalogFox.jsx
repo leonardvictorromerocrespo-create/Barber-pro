@@ -43,11 +43,11 @@ export default function CatalogFox() {
         return;
       }
       const turn = area.querySelector('.meryo-turn-finder__trigger');
-      const map = area.querySelector('.meryo-catalog-map-control > button');
-      if (!turn || !map) return;
+      const shortcut = area.querySelector('.meryo-catalog-shortcuts > button:last-child');
+      if (!turn || !shortcut) return;
       const areaBox = area.getBoundingClientRect();
       const from = turn.getBoundingClientRect();
-      const to = map.getBoundingClientRect();
+      const to = shortcut.getBoundingClientRect();
       const size = 58;
       const clamp = x => Math.max(0, Math.min(areaBox.width - size, x));
       const x = clamp(from.left - areaBox.left + 3);
