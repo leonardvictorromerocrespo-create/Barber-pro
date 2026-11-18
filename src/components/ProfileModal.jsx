@@ -7,7 +7,7 @@ function StoreActionLabel() {
   return <><span>Tienda</span><svg className="meryo-profile-store-icon" width="23" height="23" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" focusable="false"><path d="M4 10v10h16V10M3 7l2-4h14l2 4v2a3 3 0 0 1-4.5 2.6 3 3 0 0 1-4.5 0 3 3 0 0 1-4.5 0A3 3 0 0 1 3 9V7Z"/><path d="M3 7h18M9 20v-5h6v5"/></svg></>;
 }
 
-export default function ProfileModal({selectedShop,onClose,onReserve,onStore,onInspiration,catalogCategory='barberia',themeMode='dark',themeAppearance,initialTab='servicios',contentLoading=false,contentError=''}) {
+export default function ProfileModal({selectedShop,onClose,onReserve,onStore,onInspiration,onRefreshServices,catalogCategory='barberia',themeMode='dark',themeAppearance,initialTab='servicios',contentLoading=false,contentError=''}) {
   const [shareFeedback,setShareFeedback]=useState('');
   const [activeTab,setActiveTab]=useState(initialTab);
   const [aboutExpanded,setAboutExpanded]=useState(false);
@@ -16,6 +16,7 @@ export default function ProfileModal({selectedShop,onClose,onReserve,onStore,onI
   const tabsRef=useRef(null);
   const onCloseRef=useRef(onClose);
   onCloseRef.current=onClose;
+  const selectedShopId=selectedShop?String(selectedShop.id):null;
   useEffect(()=>{
     if(!selectedShop)return undefined;
     const previousFocus=document.activeElement;
@@ -33,8 +34,8 @@ export default function ProfileModal({selectedShop,onClose,onReserve,onStore,onI
     };
     window.addEventListener('keydown',onKeyDown);
     return()=>{window.removeEventListener('keydown',onKeyDown);document.body.style.overflow=previousOverflow;if(previousFocus?.isConnected)previousFocus.focus();};
-  },[selectedShop?.id]);
-  useEffect(()=>{setActiveTab(initialTab);setAboutExpanded(false);setShareFeedback('');},[selectedShop?.id,initialTab]);
+  },[selectedShopId]);
+  useEffect(()=>{setActiveTab(initialTab);setAboutExpanded(false);setShareFeedback('');},[selectedShopId,initialTab]);
   if(!selectedShop)return null;
 
   const photos=selectedShop.assets?.filter(asset=>asset.kind==='foto'&&asset.url&&asset.title!==PROFILE_PHOTO_TITLE)??[];
@@ -68,6 +69,7 @@ export default function ProfileModal({selectedShop,onClose,onReserve,onStore,onI
   };
   const selectTab=id=>{
     setActiveTab(id);
+    if(id==='servicios')onRefreshServices?.();
     window.requestAnimationFrame(scrollTabsToTop);
   };
 

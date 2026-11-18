@@ -935,9 +935,11 @@ if (view === "admin" && adminAccess) return <Suspense fallback={lazyFallback}><A
         themeAppearance={themeAppearance}
         contentLoading={profileAssetsLoading}
         contentError={profileAssetsError}
+        onRefreshServices={()=>{if(selectedShop)void profileRefresh.current.refresh(selectedShop,catalogCategory);}}
         onClose={closeProfileModal}
         onStore={openStoreModal}
         onReserve={service => {
+          profileRefresh.current.invalidate();
           setShowProfileModal(false);
           openBookingModal(selectedShop,null,{service});
         }}
