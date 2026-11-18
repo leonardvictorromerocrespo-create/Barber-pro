@@ -1,10 +1,8 @@
-import {useEffect,useState} from 'react';
-import beautyInspiration from '../assets/beauty-carousel/salon-styling.webp';
+import {useEffect,useRef,useState} from 'react';
 import './LandingCampaignCarousel.css';
 
 const slides=[
   {src:'/campaign-carousel/inspiracion.png',alt:'Inspiración: estilos para barberías y peluquerías.'},
-  {src:beautyInspiration,alt:'Una estilista realiza un peinado a una clienta en un salón.',title:'Inspiración para peluquerías',description:'Ideas y trabajos de profesionales de belleza.'},
   {src:'/campaign-carousel/turnos-para-hoy.png',alt:'Turnos para hoy: encuentra un horario en una barbería o peluquería.'},
   {src:'/campaign-carousel/promociones.png',alt:'Promociones para servicios de barbería y peluquería.'},
 ];
@@ -12,6 +10,7 @@ const slides=[
 export default function LandingCampaignCarousel(){
   const [index,setIndex]=useState(0);
   const [playing,setPlaying]=useState(true);
+  const pointerStart=useRef(null);
 
   useEffect(()=>{
     if(!playing||window.matchMedia('(prefers-reduced-motion: reduce)').matches)return undefined;
@@ -19,24 +18,30 @@ export default function LandingCampaignCarousel(){
     return()=>window.clearInterval(timer);
   },[playing]);
 
-  const select=next=>{
+  const move=direction=>{
     setPlaying(false);
-    setIndex((next+slides.length)%slides.length);
+    setIndex(current=>(current+direction+slides.length)%slides.length);
   };
   const slide=slides[index];
+  const handlePointerDown=event=>{
+    if(event.pointerType==='mouse'&&event.button!==0)return;
+    pointerStart.current=event.clientX;
+    event.currentTarget.setPointerCapture?.(event.pointerId);
+  };
+  const handlePointerUp=event=>{
+    if(pointerStart.current===null)return;
+    const distance=event.clientX-pointerStart.current;
+    pointerStart.current=null;
+    if(Math.abs(distance)>=36)move(distance<0?1:-1);
+  };
+  const handleKeyDown=event=>{
+    if(event.key==='ArrowRight'){event.preventDefault();move(1);}
+    if(event.key==='ArrowLeft'){event.preventDefault();move(-1);}
+  };
 
-  return <section className="meryo-campaign-carousel" aria-label="Novedades de MERYO" aria-roledescription="carrusel" onPointerDown={()=>setPlaying(false)} onFocusCapture={()=>setPlaying(false)}>
-    <div className={`meryo-campaign-carousel__frame${slide.title?' meryo-campaign-carousel__frame--captioned':''}`}>
-      <img key={slide.src} src={slide.src} alt={slide.alt} fetchPriority={index===0?'high':'auto'} decoding="async"/>
-      {slide.title&&<div className="meryo-campaign-carousel__caption"><h2>{slide.title}</h2><p>{slide.description}</p></div>}
-    </div>
-    <div className="meryo-campaign-carousel__controls" role="group" aria-label="Controles del carrusel">
-      <button type="button" className="meryo-campaign-carousel__arrow" onClick={()=>select(index-1)} aria-label="Imagen anterior">‹</button>
-      <div className="meryo-campaign-carousel__dots">
-        {slides.map((item,itemIndex)=><button key={item.src} type="button" className={index===itemIndex?'is-active':''} aria-label={`Mostrar imagen ${itemIndex+1} de ${slides.length}`} aria-current={index===itemIndex?'true':undefined} onClick={()=>select(itemIndex)}/>) }
-      </div>
-      <button type="button" className="meryo-campaign-carousel__arrow" onClick={()=>select(index+1)} aria-label="Imagen siguiente">›</button>
-      <button type="button" className="meryo-campaign-carousel__play" onClick={()=>setPlaying(value=>!value)} aria-label={playing?'Pausar carrusel':'Reanudar carrusel'}>{playing?'Pausar':'Reanudar'}</button>
+  return <section className="meryo-campaign-carousel" role="group" tabIndex={0} aria-label="Imágenes de Inspiración, Turnos para hoy y Promociones" aria-roledescription="carrusel" aria-live="off" onKeyDown={handleKeyDown} onPointerDown={handlePointerDown} onPointerUp={handlePointerUp} onPointerCancel={()=>{pointerStart.current=null;}}>
+    <div className="meryo-campaign-carousel__frame">
+      <img key={slide.src} src={slide.src} alt={slide.alt} fetchPriority={index===0?'high':'auto'} decoding="async" draggable="false"/>
     </div>
   </section>;
 }

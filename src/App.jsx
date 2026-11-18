@@ -17,7 +17,6 @@ import {saveDraft,readDraft,clearDraft,beginGoogle} from './lib/booking-draft';
 import {rememberAccess,consumeAccess,accessView,oauthFailure} from './lib/access-navigation';
 import {bookingDestination,bookingIdFromSearch,pickupOrderIdFromSearch} from './lib/booking-link';
 import {clearPickupCart,readPickupCart} from './lib/pickup-cart';
-import {catalogCountLabel} from './lib/catalog-copy';
 import {createCatalogLoader} from './lib/catalog-loader';
 import {createProfileRefreshCoordinator} from './lib/profile-refresh';
 import {isPublicShopIndexable,isPublicShopPath,publicShopCanonical,publicShopIdFromPath,publicShopUrl} from './lib/public-shop-url.js';
@@ -43,6 +42,7 @@ const BarberCatalogHighlights = lazy(() => import('./components/BarberCatalogHig
 const CatalogFilters = lazy(() => import('./components/CatalogFilters'));
 const CatalogStatus = lazy(() => import('./components/CatalogStatus'));
 const TurnFinder = lazy(() => import('./components/TurnFinder'));
+const CatalogCampaignCarousel = lazy(() => import('./components/LandingCampaignCarousel'));
 const ProfileModalView = lazy(() => import('./components/ProfileModal'));
 const BookingModalView = lazy(() => import('./components/BookingModal').then(module => ({default: module.BookingModal})));
 const StoreModal=lazy(()=>import('./components/store/StoreModal'));
@@ -904,18 +904,20 @@ if (view === "admin" && adminAccess) return <Suspense fallback={lazyFallback}><A
         {identity.error&&<p role="alert" className="px-6 text-red-300">{identity.error}</p>}
         {accessMessage&&<p role="status" className="px-6 text-amber-300">{accessMessage}</p>}
         {profileUnavailable&&<div role="alert" className="mx-auto my-5 max-w-4xl rounded-2xl border border-white/15 bg-neutral-900 p-5"><h1 className="text-xl font-bold">Este negocio ya no está disponible</h1><p className="mt-2 text-neutral-300">No mostramos perfiles que ya no están publicados.</p><button onClick={closeProfileModal} className="mt-4 rounded-xl border border-amber-400/50 px-4 py-2 text-amber-200">Volver al catálogo</button></div>}
-        <section id="catalogo" className="meryo-catalog-section mx-auto max-w-7xl px-4 pt-4 pb-10 md:px-6 md:pt-8 md:pb-16">
+        <section id="catalogo" className="meryo-catalog-section mx-auto max-w-7xl px-4 pt-1 pb-10 md:px-6 md:pt-8 md:pb-16">
           <div className={catalogCategory==='barberia'?'meryo-barber-sticky':undefined}>
           <div className="meryo-catalog-topline">
             <div className="min-w-0"><h1 className="meryo-catalog-heading">{catalogCategory==='belleza'?'Encuentra tu salón':'Encuentra tu barbería'}</h1>{district&&<p className="mt-1 text-sm text-neutral-400">Distrito: {district}</p>}</div>
-            <div className="meryo-catalog-top-actions"><p className="meryo-catalog-count" aria-live="polite">{catalogLoading||!catalogMatchesCategory?'Cargando…':catalogError?'Catálogo no disponible':catalogCountLabel(catalogCategory,ranking.length)}</p></div>
           </div>
           {catalogControls}
           <div className="meryo-catalog-fox-stage">
-          <div className="meryo-catalog-shortcuts" aria-label="Accesos rápidos">
-            <TurnFinder key={`turn-finder-${catalogCategory}`} category={catalogCategory} shops={catalogMatchesCategory&&!catalogLoading&&!catalogError?catalogRows:[]} disabled={!catalogMatchesCategory||catalogLoading||Boolean(catalogError)||catalogRows.length===0} slots={api.slots} themeMode={themeMode} themeAppearance={themeAppearance} triggerClassName="meryo-catalog-action" onReserve={turn=>openBookingModal(turn.shop,turn,{startStep:3})}/>
-            <button type="button" className="meryo-catalog-action" onClick={()=>{setSelectedInspiration(null);setInspirationIssue('');setView('inspiration');}}><BarberShortcutIcon kind="inspiration"/><span>Inspiración</span></button>
-            <button type="button" className="meryo-catalog-action meryo-catalog-promotion-shortcut" onClick={catalogCategory==='belleza'?openBeautyPromotions:()=>setView('promotions')}><BarberShortcutIcon kind="promotions"/><span>Promociones</span></button>
+          <div className="meryo-catalog-feature-row">
+            <div className="meryo-catalog-shortcuts" aria-label="Accesos rápidos">
+              <TurnFinder key={`turn-finder-${catalogCategory}`} category={catalogCategory} shops={catalogMatchesCategory&&!catalogLoading&&!catalogError?catalogRows:[]} disabled={!catalogMatchesCategory||catalogLoading||Boolean(catalogError)||catalogRows.length===0} slots={api.slots} themeMode={themeMode} themeAppearance={themeAppearance} triggerClassName="meryo-catalog-action" onReserve={turn=>openBookingModal(turn.shop,turn,{startStep:3})}/>
+              <button type="button" className="meryo-catalog-action" onClick={()=>{setSelectedInspiration(null);setInspirationIssue('');setView('inspiration');}}><BarberShortcutIcon kind="inspiration"/><span>Inspiración</span></button>
+              <button type="button" className="meryo-catalog-action meryo-catalog-promotion-shortcut" onClick={catalogCategory==='belleza'?openBeautyPromotions:()=>setView('promotions')}><BarberShortcutIcon kind="promotions"/><span>Promoción</span></button>
+            </div>
+            <Suspense fallback={null}><CatalogCampaignCarousel /></Suspense>
           </div>
           {catalogCategory==='barberia'&&!showProfileModal&&!showBookingModal&&<Suspense fallback={null}><CatalogFox /></Suspense>}
           </div>
