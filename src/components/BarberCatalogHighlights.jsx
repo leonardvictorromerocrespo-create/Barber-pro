@@ -2,7 +2,7 @@ import {useEffect,useRef,useState} from 'react';
 import CatalogShopGrid from './CatalogShopGrid';
 import './BarberCatalogHighlights.css';
 
-function Featured({shops,onView,onReserve,category='barberia',renderLike,title='DESTACADOS',description,titleId}) {
+function Featured({shops,onView,onReserve,category='barberia',renderLike,title='Destacados',titleId}) {
   const rail=useRef(null);
   const loopGroup=useRef(null);
   const hinted=useRef(false);
@@ -18,7 +18,7 @@ function Featured({shops,onView,onReserve,category='barberia',renderLike,title='
   const pointerStart=useRef(null);
   const interactionTimer=useRef(null);
   const beauty=category==='belleza';
-  const sectionKind=title==='MÁS ME GUSTA'?'con más Me gusta':'destacadas';
+  const sectionKind=title==='Más me gusta'?'con más Me gusta':'destacadas';
   const autoLoop=['barberia','belleza'].includes(category)&&shops.length>1;
   const loopCycleWidth=loopMeasurement?.shops===shops?loopMeasurement.cycleWidth:0;
   const loopCloneCount=loopMeasurement?.shops===shops?loopMeasurement.cloneCount:1;
@@ -128,7 +128,7 @@ function Featured({shops,onView,onReserve,category='barberia',renderLike,title='
   };
   return <section className="meryo-discovery-shelf" aria-labelledby={titleId}>
     <div className="meryo-discovery-heading">
-      <div><h2 id={titleId}>{title}</h2><p>{description}</p></div>
+      <div><h2 id={titleId}>{title}</h2></div>
       {(edges.previous||edges.next)&&<div className="meryo-rail-controls">
         {loopReady&&!userStoppedLoop&&<button type="button" className="meryo-loop-toggle" onClick={()=>setUserPausedLoop(value=>!value)} aria-label={`${userPausedLoop?'Reanudar':'Pausar'} movimiento de ${beauty?'salones':'barberías'} ${sectionKind}`}>
           {isPlaying?<svg aria-hidden="true" viewBox="0 0 24 24"><path d="M8 5v14M16 5v14"/></svg>:<svg aria-hidden="true" viewBox="0 0 24 24"><path d="m8 5 12 7-12 7z"/></svg>}
@@ -182,13 +182,13 @@ export default function BarberCatalogHighlights({api,shops,identity,onLogin,onVi
   const categoryLabel=category==='belleza'?'salones':'barberías';
   const featuredTitleId=`meryo-${category}-featured-title`;
   const likesTitleId=`meryo-${category}-likes-title`;
-  const emptyShelf=(id,title,description,emptyText)=><section className="meryo-discovery-shelf" aria-labelledby={id}><div className="meryo-discovery-heading"><div><h2 id={id}>{title}</h2><p>{description}</p></div></div><p className="meryo-discovery-empty">{emptyText}</p></section>;
+  const emptyShelf=(id,title,emptyText)=><section className="meryo-discovery-shelf" aria-labelledby={id}><div className="meryo-discovery-heading"><div><h2 id={id}>{title}</h2></div></div><p className="meryo-discovery-empty">{emptyText}</p></section>;
 
   return <>
-    {shops.length>0&&data!==null&&featured.length>0&&<Featured shops={featured} category={category} onView={onView} onReserve={onReserve} title="DESTACADOS" titleId={featuredTitleId} description={category==='belleza'?'Salones con campaña promocionada.':'Barberías con campaña promocionada.'}/>}
-    {shops.length>0&&data!==null&&featured.length===0&&emptyShelf(featuredTitleId,'DESTACADOS',category==='belleza'?'Campañas promocionadas de peluquerías y salones.':'Campañas promocionadas de barberías.',category==='belleza'?'Todavía no hay salones destacados.':'Todavía no hay barberías destacadas.')}
-    {liked.length>0&&<Featured shops={liked} category={category} onView={onView} onReserve={onReserve} renderLike={renderLike} title="MÁS ME GUSTA" titleId={likesTitleId} description={category==='belleza'?'Ordenados por los Me gusta de clientes.':'Ordenadas por los Me gusta de clientes.'}/>}
-    {shops.length>0&&data!==null&&liked.length===0&&emptyShelf(likesTitleId,'MÁS ME GUSTA',category==='belleza'?'Peluquerías y salones que reciben Me gusta de clientes.':'Barberías que reciben Me gusta de clientes.',`Todavía no hay ${categoryLabel} con Me gusta.`)}
+    {shops.length>0&&data!==null&&featured.length>0&&<Featured shops={featured} category={category} onView={onView} onReserve={onReserve} title="Destacados" titleId={featuredTitleId}/>}
+    {shops.length>0&&data!==null&&featured.length===0&&emptyShelf(featuredTitleId,'Destacados',category==='belleza'?'Todavía no hay salones destacados.':'Todavía no hay barberías destacadas.')}
+    {liked.length>0&&<Featured shops={liked} category={category} onView={onView} onReserve={onReserve} renderLike={renderLike} title="Más me gusta" titleId={likesTitleId}/>}
+    {shops.length>0&&data!==null&&liked.length===0&&emptyShelf(likesTitleId,'Más me gusta',`Todavía no hay ${categoryLabel} con Me gusta.`)}
     {shops.length>0&&(featured.length>0||liked.length>0)&&<div className="meryo-discovery-heading"><h2>{category==='belleza'?'Todos los salones':'Todas las barberías'}</h2></div>}
     {message&&<p role="status">{message}</p>}
     <CatalogShopGrid shops={shops} category={category} onView={onView} onReserve={onReserve} renderLike={renderLike}/>
