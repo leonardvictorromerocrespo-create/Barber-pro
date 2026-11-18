@@ -13,6 +13,10 @@ const servicesFromCatalog = [
   { id: 3, name: 'Diseño con evaluación', price: null, duration: null, requiresEvaluation: true, bookable: false },
 ];
 const team = [{ id: 7, nombre: 'Profesional de prueba', servicios: [1, 2] }];
+const testDate = new Intl.DateTimeFormat('en-CA', {
+  timeZone: 'America/Lima', year: 'numeric', month: '2-digit', day: '2-digit',
+}).format(Date.now() + 2 * 86400000);
+const testSlot = { time: `${testDate}T09:00:00-05:00`, label: '09:00', occupied: false };
 const initialShop = {
   id: 41,
   name: 'Barbería de prueba',
@@ -30,7 +34,7 @@ export function Fixture() {
   const [screen, setScreen] = useState('profile');
   const [selectedService, setSelectedService] = useState(servicesBeforeRefresh[0]);
   const [selectedBarber, setSelectedBarber] = useState('7');
-  const [selectedDate, setSelectedDate] = useState('2026-11-20');
+  const [selectedDate, setSelectedDate] = useState(testDate);
   const [selectedTime, setSelectedTime] = useState('');
   const [customerInfo, setCustomerInfo] = useState({ name: '', phone: '' });
   const [customRequest, setCustomRequest] = useState('');
@@ -75,6 +79,11 @@ export function Fixture() {
         clickButton('Continuar');
         await wait(50);
         if (activeStep() !== '2') throw new Error('No se avanzó al paso 2.');
+        const availableSlot = document.querySelector('.meryo-time-grid button[aria-label^="09:00"]');
+        if (!availableSlot) throw new Error('No apareció el horario sintético disponible.');
+        availableSlot.click();
+        await wait(30);
+        if (availableSlot.getAttribute('aria-pressed') !== 'true') throw new Error('No se seleccionó el horario sintético.');
         clickButton('Simular respuesta tardía del perfil');
         await wait(50);
         if (activeStep() !== '2') throw new Error('El refresco de negocio reinició el paso de reserva.');
@@ -84,7 +93,15 @@ export function Fixture() {
         const selectedService = [...document.querySelectorAll('.meryo-booking-service-option[aria-pressed="true"] strong')].some(node => node.textContent.trim() === serviceName);
         if (!selectedService) throw new Error('«Volver» perdió el servicio seleccionado.');
         if (!document.querySelector('.meryo-booking-member-option[aria-pressed="true"]')) throw new Error('«Volver» perdió el profesional seleccionado.');
-        report('pass', `Flujo correcto a ${window.innerWidth}px: servicios actualizados, paso 2 → Volver → paso 1 y selección conservada.`);
+        clickButton('Continuar');
+        await wait(50);
+        if (activeStep() !== '2' || !document.querySelector('.meryo-time-grid button[aria-pressed="true"]')) {
+          throw new Error('«Volver» perdió el horario seleccionado.');
+        }
+        clickButton('Volver');
+        await wait(50);
+        if (activeStep() !== '1') throw new Error('La reserva no permaneció en el paso 1 al volver.');
+        report('pass', `Flujo correcto a ${window.innerWidth}px: catálogo consistente, horario elegido y conservado al volver al paso 1; sin recarga ni desbordamiento.`);
       } catch (error) {
         report('fail', error.message || String(error));
       }
@@ -142,7 +159,7 @@ export function Fixture() {
         setCustomerInfo={setCustomerInfo}
         customRequest={customRequest}
         setCustomRequest={setCustomRequest}
-        activeSlots={[]}
+        activeSlots={[testSlot]}
         finalPrice={selectedService?.price || 0}
         requestSaved={false}
         submitReservation={() => {}}
