@@ -1826,3 +1826,49 @@ body {
   .meryo-catalog-filter-row { gap: .4rem; }
   .meryo-catalog-filter-row :where(select, button) { padding-inline: .45rem; font-size: .76rem; }
 }
+
+/* Barbería catalog card and profile actions: refined outline treatment. */
+.meryo-shop-card--barberia .meryo-shop-card__image { width: 34%; flex-basis: 34%; }
+.meryo-shop-card--barberia .meryo-shop-card__content { padding: .7rem .8rem; }
+.meryo-shop-card--barberia .meryo-shop-card__name { padding-right: 3.1rem; }
+.meryo-shop-card--barberia .meryo-shop-card__district--barberia { display: flex; align-items: center; gap: .32rem; margin-top: .32rem; line-height: 1.2; }
+.meryo-shop-card__district--barberia svg,.meryo-profile-district svg { width: 1rem; height: 1rem; flex: 0 0 auto; color: #000000; }
+.meryo-shop-card--barberia .meryo-shop-card__facts { margin-top: .4rem; }
+.meryo-shop-card--barberia .meryo-shop-card__actions { gap: .5rem; }
+.meryo-shop-card--barberia .meryo-shop-card__actions button { min-height: 44px; border: 1px solid color-mix(in srgb,var(--meryo-text) 32%,transparent); border-radius: 999px; padding-inline: .4rem; box-shadow: 0 1px 3px rgb(0 0 0 / 7%); font-size: .76rem; }
+.meryo-shop-card--barberia .meryo-shop-card__profile-action { background: transparent; color: var(--meryo-text); }
+.meryo-shop-card--barberia .meryo-shop-card__booking-action { border-color: var(--meryo-gold); background: var(--meryo-gold); color: var(--meryo-carbon); }
+.meryo-shop-card--barberia .meryo-shop-card__actions button:disabled { border-color: transparent; background: var(--meryo-surface-soft); color: var(--meryo-text-muted); box-shadow: none; }
+.meryo-shop-card--barberia .meryo-catalog-like { top: 0; right: .65rem; }
+.meryo-profile-meta--barberia { display: flex; align-items: center; flex-wrap: wrap; gap: .25rem; }
+.meryo-profile-district { display: inline-flex; align-items: center; gap: .28rem; }
+.meryo-profile-district svg { width: 1rem; height: 1rem; }
+[data-meryo-theme="barberia"] .meryo-profile-modal :is(.meryo-profile-premium-action,.meryo-profile-row-action--premium,.meryo-profile-close--premium),
+.meryo-profile-modal[data-meryo-theme="barberia"] :is(.meryo-profile-premium-action,.meryo-profile-row-action--premium,.meryo-profile-close--premium) {
+  border: 1px solid color-mix(in srgb,var(--meryo-text) 32%,transparent);
+  border-radius: .8rem;
+  background: transparent !important;
+  color: var(--meryo-text) !important;
+  box-shadow: none !important;
+  font-family: inherit;
+  transition: background-color .16s ease,border-color .16s ease;
+}
+[data-meryo-theme="barberia"] .meryo-profile-modal :is(.meryo-profile-premium-action,.meryo-profile-row-action--premium):hover:not(:disabled),
+.meryo-profile-modal[data-meryo-theme="barberia"] :is(.meryo-profile-premium-action,.meryo-profile-row-action--premium):hover:not(:disabled) {
+  background: color-mix(in srgb,var(--meryo-text) 5%,transparent) !important;
+}
+[data-meryo-theme="barberia"] .meryo-profile-modal .meryo-profile-close--premium,
+.meryo-profile-modal[data-meryo-theme="barberia"] .meryo-profile-close--premium {
+  display: grid;
+  width: 44px;
+  min-width: 44px;
+  height: 44px;
+  place-items: center;
+  padding: 0;
+  border-color: rgb(0 0 0 / 22%);
+  background: rgb(255 255 255 / 92%) !important;
+  color: #000000 !important;
+}
+[data-meryo-theme="barberia"] .meryo-profile-close--premium svg,
+.meryo-profile-modal[data-meryo-theme="barberia"] .meryo-profile-close--premium svg { width: 1.2rem; height: 1.2rem; }
+[data-meryo-theme="barberia"][data-meryo-mode="light"] .meryo-profile-modal :is(.meryo-profile-premium-action,.meryo-profile-row-action--premium) { border-color: rgb(76 58 38 / 34%); }

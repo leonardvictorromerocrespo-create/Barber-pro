@@ -12,15 +12,18 @@ export default function CatalogShopGrid({shops,category='barberia',onView,onRese
       const serviceSummary=services.length
         ?`${services.slice(0,2).map(service=>service.name).join(' · ')}${services.length>2?` · +${services.length-2}`:''}`
         :'Servicios aún no publicados';
-      return <article key={shop.id} className="meryo-shop-card min-w-0 overflow-hidden rounded-xl">
+      return <article key={shop.id} className={`meryo-shop-card meryo-shop-card--${category} min-w-0 overflow-hidden rounded-xl`}>
         <div className="meryo-shop-card__image">
           {shop.image?<img src={shop.image} alt={`Portada de ${shop.name}`} loading="lazy"/>:<div className="meryo-shop-card__placeholder" role="img" aria-label="Sin fotografía de portada publicada"/>}
         </div>
         <div className={`meryo-shop-card__content min-w-0${renderLike?' meryo-shop-card__content--likes':''}`}>
-          <p className="meryo-shop-card__category">{label}</p>
+          <p className={`meryo-shop-card__category${category==='barberia'?' sr-only':''}`}>{label}</p>
           {renderLike&&renderLike(shop,{decorativeClone})}
           <h2 className="meryo-shop-card__name">{shop.name}</h2>
-          <p className="meryo-shop-card__district">{shop.district||'Distrito no publicado'}</p>
+          <p className={`meryo-shop-card__district${category==='barberia'?' meryo-shop-card__district--barberia':''}`}>
+            {category==='barberia'&&shop.district&&<svg aria-hidden="true" viewBox="0 0 24 24" fill="none"><path d="M12 21s7-6.1 7-12a7 7 0 1 0-14 0c0 5.9 7 12 7 12Z" fill="#000000"/><circle cx="12" cy="9" r="2.4" fill="#ffffff"/></svg>}
+            {category==='barberia'?<span>{shop.district||'Distrito no publicado'}</span>:shop.district||'Distrito no publicado'}
+          </p>
           <div className="meryo-shop-card__facts">
             <span className="meryo-shop-card__rating">{ratingIsVerified?<span aria-label={`${Number(shop.rating).toFixed(1)} de 5 según ${shop.reviews} reseñas`}>★ {Number(shop.rating).toFixed(1)} · {shop.reviews}</span>:'Aún sin reseñas'}</span>
             <span className="meryo-shop-card__price">{price!==null?`Desde S/ ${price.toFixed(2)}`:'Precio por consultar'}</span>
