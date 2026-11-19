@@ -61,7 +61,7 @@ function DistrictPicker({district,onDistrict,districtPrompt}) {
 }
 
 export default function CatalogFilters({
-  query,district,hasLocation,onQuery,onDistrict,onUseLocation,
+  query,district,hasLocation,onQuery,onDistrict,onUseLocation,locationStatus='idle',
   showSearch=true,districtPrompt='Todos los distritos',businessLabel='barbería',businessPlural='barberías',
 }) {
   return <section className="meryo-catalog-controls" aria-label={`Buscar ${businessPlural}`}>
@@ -71,7 +71,7 @@ export default function CatalogFilters({
       className={`${fieldClass} meryo-catalog-search w-full`}/></>}
     <div className="meryo-catalog-filter-row mt-2">
       <DistrictPicker district={district} onDistrict={onDistrict} districtPrompt={districtPrompt}/>
-      {onUseLocation&&<button type="button" aria-label="Usar mi ubicación" aria-pressed={hasLocation} onClick={onUseLocation} className="meryo-catalog-control-button min-h-10 min-w-0 flex-1 rounded-lg px-2 py-2 text-center text-[.8rem] font-semibold">Usar mi ubicación</button>}
+      {onUseLocation&&<button type="button" aria-label={locationStatus==='loading'?'Obteniendo ubicación':'Usar mi ubicación'} aria-pressed={hasLocation} aria-busy={locationStatus==='loading'} disabled={locationStatus==='loading'} onClick={onUseLocation} className="meryo-catalog-control-button min-h-10 min-w-0 flex-1 rounded-lg px-2 py-2 text-center text-[.8rem] font-semibold disabled:cursor-wait disabled:opacity-70">{locationStatus==='loading'?'Buscando…':hasLocation?'Ubicación encontrada':'Usar mi ubicación'}</button>}
     </div>
   </section>;
 }

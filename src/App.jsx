@@ -22,6 +22,7 @@ import {createProfileRefreshCoordinator} from './lib/profile-refresh';
 import {isPublicShopIndexable,isPublicShopPath,publicShopCanonical,publicShopIdFromPath,publicShopUrl} from './lib/public-shop-url.js';
 const api = createMeryoApi(supabase);
 import { selectShops, coordinates } from "./lib/catalog";
+import { catalogLocationErrorMessage, requestCatalogLocation } from './lib/catalog-location';
 import { listaDias,sumarDias } from "./lib/dates";
 const PushCenter = lazy(() => import('./components/PushCenter'));
 const ShopRegistration = lazy(() => import('./components/ShopRegistration'));
@@ -104,6 +105,8 @@ export default function BarberProApp() {
 function MeryoScreens({identity,view,setView}) {
   const [location, setLocation] = useState(null);
   const [locationError, setLocationError] = useState("");
+  const [locationStatus, setLocationStatus] = useState('idle');
+  const locationRequest=useRef({nextId:0,pendingId:null,generation:0});
   const [query, setQuery] = useState("");
   const [district, setDistrict] = useState("");
   const [order, setOrder] = useState("name");
@@ -373,17 +376,32 @@ useEffect(() => { cargarBarberiasActivas(); }, [cargarBarberiasActivas,catalogLo
     return()=>{beautyOffersRequest.current++;window.removeEventListener('focus',refresh);document.removeEventListener('visibilitychange',refresh);};
   },[view,loadBeautyOffers]);
 
-  const enableLocation = () => {
-    setLocationError("");
-    if (!navigator.geolocation) return setLocationError("Este navegador no permite obtener tu ubicación.");
-    navigator.geolocation.getCurrentPosition(position => {
-      const point = coordinates({ lat: position.coords.latitude, lng: position.coords.longitude });
-      if (!point) return setLocationError("No se obtuvo una ubicación válida.");
-      setLocation(point); setOrder("distance");
-    }, () => setLocationError("No pudimos obtener tu ubicación. Puedes buscar por distrito."), { timeout: 10000 });
+  const enableLocation = async () => {
+    if(locationRequest.current.pendingId!==null)return;
+    const requestId=++locationRequest.current.nextId;
+    locationRequest.current.pendingId=requestId;
+    locationRequest.current.generation=requestId;
+    setLocation(null);
+    setLocationError('');
+    setLocationStatus('loading');
+    try{
+      const point=await requestCatalogLocation({geolocation:navigator.geolocation,isSecureContext:window.isSecureContext});
+      if(locationRequest.current.generation!==requestId)return;
+      setLocation(point);
+      setOrder('distance');
+      setLocationStatus('success');
+    }catch(error){
+      if(locationRequest.current.generation!==requestId)return;
+      setLocation(null);
+      setOrder(current=>current==='distance'?'name':current);
+      setLocationError(catalogLocationErrorMessage(error));
+      setLocationStatus('error');
+    }finally{
+      if(locationRequest.current.pendingId===requestId)locationRequest.current.pendingId=null;
+    }
   };
 
-  const clearCatalogFilters=()=>{setQuery('');setDistrict('');setOrder('name');setLocation(null);setLocationError('');};
+  const clearCatalogFilters=()=>{locationRequest.current.generation=++locationRequest.current.nextId;setQuery('');setDistrict('');setOrder('name');setLocation(null);setLocationError('');setLocationStatus('idle');};
 
   const openProfileModal = (shop) => {
     const categoryAtOpen=catalogCategory;
@@ -887,8 +905,12 @@ if (view === "client-login") {
   );
 }
 if (view === "admin" && adminAccess) return <Suspense fallback={lazyFallback}><AdminShops api={api} profile={identity.profile} onSecurity={()=>setAdminSecurityOpen(true)} onLogout={handleLogout} onBack={()=>setView('client')} onChanged={cargarBarberiasActivas}/></Suspense>;
-  const catalogControls=<><CatalogFilters showSearch={false} query={query} district={district} order={order} hasLocation={!!location} onQuery={setQuery} onDistrict={setDistrict} onOrder={setOrder} onUseLocation={enableLocation} onClearFilters={clearCatalogFilters} districtPrompt={catalogCategory==='barberia'?'Escoge tu distrito':undefined} businessLabel={catalogCategory==='belleza'?'salón':'barbería'} businessPlural={catalogCategory==='belleza'?'peluquerías y salones':'barberías'} />
-    {locationError&&<p role="alert" className="mt-2 text-sm text-amber-300">{locationError}</p>}</>;
+  const locationStatusTextClass=themeMode==='dark'?'text-neutral-300':'text-neutral-600';
+  const locationErrorTextClass=themeMode==='dark'?'text-amber-300':'text-amber-800';
+  const catalogControls=<><CatalogFilters showSearch={false} query={query} district={district} order={order} hasLocation={!!location} locationStatus={locationStatus} onQuery={setQuery} onDistrict={setDistrict} onOrder={setOrder} onUseLocation={enableLocation} onClearFilters={clearCatalogFilters} districtPrompt={catalogCategory==='barberia'?'Escoge tu distrito':undefined} businessLabel={catalogCategory==='belleza'?'salón':'barbería'} businessPlural={catalogCategory==='belleza'?'peluquerías y salones':'barberías'} />
+    {locationStatus==='loading'&&<p role="status" aria-live="polite" className={`mt-2 text-sm ${locationStatusTextClass}`}>Obteniendo la ubicación del dispositivo…</p>}
+    {locationStatus==='success'&&<p role="status" aria-live="polite" className={`mt-2 text-sm ${locationStatusTextClass}`}>Ubicación encontrada. Mostramos primero los negocios cercanos.</p>}
+    {locationError&&<p role="alert" aria-live="assertive" className={`mt-2 text-sm ${locationErrorTextClass}`}>{locationError}</p>}</>;
   return (
     <Suspense fallback={catalogFallback}>
     <div data-meryo-theme={catalogCategory==='belleza'?'beauty':'barberia'} data-meryo-mode={themeMode} data-meryo-appearance={themeAppearance} className="meryo-catalog-page min-h-screen bg-neutral-950 pb-24 text-white md:pb-0">
