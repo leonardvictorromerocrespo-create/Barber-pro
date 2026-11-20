@@ -7,6 +7,7 @@ import { supabase, googleAuthEnabled, emailSignupEnabled } from "./lib/supabase"
 import { lazy, Suspense, useCallback, useEffect, useEffectEvent, useMemo, useRef, useState } from "react";
 import { createMeryoApi } from './lib/meryo-api';
 import MeryoLogo from './components/MeryoLogo';
+import './components/MeryoIntelligence.css';
 import LandingPage from './components/LandingPage';
 import { DEFAULT_THEME_APPEARANCE, themeAppearanceOption } from './lib/theme-appearances';
 import { useIdentity } from './lib/useIdentity';
@@ -48,6 +49,7 @@ const ProfileModalView = lazy(() => import('./components/ProfileModal'));
 const BookingModalView = lazy(() => import('./components/BookingModal').then(module => ({default: module.BookingModal})));
 const StoreModal=lazy(()=>import('./components/store/StoreModal'));
 const MyPickupOrders=lazy(()=>import('./components/store/MyPickupOrders'));
+const MeryoIntelligence=lazy(()=>import('./components/MeryoIntelligence'));
 const lazyFallback=<main className="min-h-screen bg-neutral-950 p-8 text-white" role="status">Cargando MERYO…</main>;
 const catalogFallback=<main className="min-h-screen bg-[#fffefa] text-[#302b27]" role="status" aria-label="Cargando catálogo"><div className="h-[4.5rem] bg-[#0b0b0b]"/><div className="mx-auto max-w-7xl space-y-4 px-4 py-8"><div className="h-9 w-72 rounded-lg bg-[#302b27]/[.08]"/><div className="grid grid-cols-2 gap-3"><div className="h-14 rounded-xl bg-[#302b27]/[.06]"/><div className="h-14 rounded-xl bg-[#302b27]/[.06]"/></div><div className="mt-8 flex justify-between"><div className="h-11 w-40 rounded-lg bg-[#302b27]/[.06]"/><div className="h-11 w-28 rounded-lg bg-[#302b27]/[.06]"/></div><div className="mt-8 h-44 rounded-2xl bg-[#302b27]/[.05]"/></div></main>;
 
@@ -204,6 +206,7 @@ function MeryoScreens({identity,view,setView}) {
   const [showBookingModal, setShowBookingModal] = useState(false);
   const [bookingStartStep,setBookingStartStep]=useState(1);
   const [showProfileModal, setShowProfileModal] = useState(false);
+  const [showMeryoIntelligence,setShowMeryoIntelligence]=useState(false);
   const [profileAssetsLoading,setProfileAssetsLoading]=useState(false);
   const [profileAssetsError,setProfileAssetsError]=useState('');
   const [profileUnavailable,setProfileUnavailable]=useState(false);
@@ -931,6 +934,7 @@ if (view === "admin" && adminAccess) return <Suspense fallback={lazyFallback}><A
           <div className={catalogCategory==='barberia'?'meryo-barber-sticky':undefined}>
           <div className="meryo-catalog-topline">
             <div className="min-w-0"><h1 className="meryo-catalog-heading">{catalogCategory==='belleza'?'Encuentra tu salón':'Encuentra tu barbería'}</h1>{district&&<p className="mt-1 text-sm text-neutral-400">Distrito: {district}</p>}</div>
+            <button type="button" className="meryo-intelligence-trigger" onClick={()=>setShowMeryoIntelligence(true)} aria-haspopup="dialog"><svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M12 2.7 14 9.9l7.3 2.1-7.3 2.1-2 7.2-2-7.2-7.3-2.1 7.3-2.1 2-7.2Z" stroke="currentColor" strokeWidth="1.5" strokeLinejoin="round"/><path d="m19.2 2 .8 2.7 2.7.8-2.7.8-.8 2.7-.8-2.7-2.7-.8 2.7-.8.8-2.7Z" fill="currentColor"/></svg><span>MERYO Intelligence</span></button>
           </div>
           {catalogControls}
           <div className="meryo-catalog-fox-stage">
@@ -968,6 +972,7 @@ if (view === "admin" && adminAccess) return <Suspense fallback={lazyFallback}><A
         onInspiration={()=>{const url=new URL(window.location.href);url.pathname='/';url.search='';url.searchParams.set('catalogo',catalogCategory);url.hash='inspiration';window.history.replaceState(window.history.state,'',url.href);setLocationPath('/');setShowProfileModal(false);setSelectedInspiration(null);setInspirationIssue('');setView('inspiration');}}
       /></Suspense>}
 
+      {showMeryoIntelligence&&(catalogCategory==='barberia'||catalogCategory==='belleza')&&<Suspense fallback={null}><MeryoIntelligence open category={catalogCategory} themeMode={themeMode} themeAppearance={themeAppearance} district={district} onClose={()=>setShowMeryoIntelligence(false)} onOpenShop={(recommendationCategory,shopId)=>{if(recommendationCategory!==catalogCategory)return;const shop=catalogRows.find(row=>String(row.id)===String(shopId)&&row.businessTypes?.includes(recommendationCategory));if(!shop)return;setShowMeryoIntelligence(false);openProfileModal(shop);}}/></Suspense>}
       {showStoreModal&&storeShop&&<Suspense fallback={null}><StoreModal key={`${storeShop.id}-${Boolean(restoredPickupCart)}`} api={api} shop={storeShop} profile={identity.profile} category={storeCategory} themeMode={themeModes[storeCategory]||'light'} themeAppearance={themePalettes[storeCategory]||DEFAULT_THEME_APPEARANCE[storeCategory]?.[themeModes[storeCategory]||'light']} initialCart={restoredPickupCart} onLogin={destination=>openLogin(destination)} onClose={()=>{setShowStoreModal(false);setRestoredPickupCart(null);}} onOpenOrders={orderId=>{setShowStoreModal(false);const url=new URL(window.location.href);url.searchParams.set('pedido',orderId);window.history.replaceState(null,'',url.pathname+url.search+'#my-orders');setView('my-orders');}}/></Suspense>}
 
       {renderBookingModal()}
