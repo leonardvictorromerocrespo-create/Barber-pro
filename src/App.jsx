@@ -113,6 +113,7 @@ function MeryoScreens({identity,view,setView}) {
   const [district, setDistrict] = useState("");
   const [order, setOrder] = useState("name");
   const [catalogCategory,setCatalogCategory]=useState(()=>new URLSearchParams(typeof window==='undefined'?'':window.location.search).get('catalogo')==='belleza'?'belleza':'barberia');
+  const [discoverOpen,setDiscoverOpen]=useState(false);
   const [themeModes,setThemeModes]=useState(()=>({barberia:readThemeMode('barberia','light'),belleza:readThemeMode('belleza','light')}));
   const [themePalettes,setThemePalettes]=useState(()=>({barberia:readThemeAppearance('barberia',readThemeMode('barberia','light')),belleza:readThemeAppearance('belleza',readThemeMode('belleza','light'))}));
   const [themePalettePreferences,setThemePalettePreferences]=useState(()=>({
@@ -935,10 +936,10 @@ if (view === "admin" && adminAccess) return <Suspense fallback={lazyFallback}><A
           <div className="meryo-catalog-topline">
             <div className="min-w-0"><h1 className="meryo-catalog-heading">{catalogCategory==='belleza'?'Encuentra tu salón':'Encuentra tu barbería'}</h1>{district&&<p className="mt-1 text-sm text-neutral-400">Distrito: {district}</p>}</div>
           </div>
-          <CatalogDiscoverLayer key={catalogCategory} category={catalogCategory}>
+          <CatalogDiscoverLayer key={catalogCategory} category={catalogCategory} themeMode={themeMode} themeAppearance={themeAppearance} open={discoverOpen} onOpenChange={setDiscoverOpen}>
             <div className="meryo-discover__action">
-              <button type="button" className="meryo-intelligence-trigger" onClick={()=>setShowMeryoIntelligence(true)} aria-haspopup="dialog"><svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M12 2.7 14 9.9 21.3 12 14 14.1 12 21.3 9.9 14.1 2.7 12 9.9 9.9 12 2.7Z" stroke="currentColor" strokeWidth="1.5" strokeLinejoin="round"/><path d="m19.2 2 .8 2.7 2.7.8-2.7.8-.8 2.7-.8-2.7-2.7-.8 2.7-.8.8-2.7Z" fill="currentColor"/></svg><span>Inteligencia MERYO</span></button>
-              <p>Tu asistente para resolver dudas y recibir recomendaciones personalizadas.</p>
+              <button type="button" className="meryo-intelligence-trigger" onClick={()=>setShowMeryoIntelligence(true)} aria-haspopup="dialog"><svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M12 2.7 14 9.9 21.3 12 14 14.1 12 21.3 9.9 14.1 2.7 12 9.9 9.9 12 2.7Z" stroke="currentColor" strokeWidth="1.5" strokeLinejoin="round"/><path d="m19.2 2 .8 2.7 2.7.8-2.7.8-.8 2.7-.8-2.7-2.7-.8 2.7-.8.8-2.7Z" fill="currentColor"/></svg><span>Asistente MERYO</span></button>
+              <p>Tu asistencia IA para resolver dudas y recibir recomendaciones personalizadas.</p>
             </div>
             <div className="meryo-discover__action">
               <div className="meryo-discover__turn-finder">
@@ -955,11 +956,13 @@ if (view === "admin" && adminAccess) return <Suspense fallback={lazyFallback}><A
               <p>Descubre ofertas y servicios especiales.</p>
             </div>
           </CatalogDiscoverLayer>
-          {catalogControls}
           </div>
+          <div className="meryo-discover__catalog-frame" hidden={discoverOpen} inert={discoverOpen}>
+          {catalogControls}
           {catalogMatchesCategory&&!catalogLoading&&!catalogError&&catalogRows.length>0&&ranking.length===0&&<p role="status" className="meryo-catalog-no-match">No encontramos {catalogCategory==='belleza'?'peluquerías ni salones':'barberías'} con esos filtros.</p>}
           <CatalogStatus loading={catalogLoading||!catalogMatchesCategory} error={catalogMatchesCategory?catalogError:''} empty={catalogRows.length===0} businessLabel={catalogCategory==='belleza'?'peluquerías y salones':'barberías'} onRetry={cargarBarberiasActivas}/>
           {!catalogLoading&&!catalogError&&catalogMatchesCategory&&<Suspense fallback={<p role="status" className="mt-4 text-center text-sm text-neutral-500">Cargando barberías…</p>}><BarberCatalogHighlights key={`${catalogCategory}-${identity.profile?.id??'guest'}`} api={api} shops={ranking} identity={identity.profile} category={catalogCategory} onLogin={()=>openLogin('client')} onView={openProfileModal} onReserve={shop=>openBookingModal(shop,null,{startStep:1})}/></Suspense>}
+          </div>
         </section>
       </main>
 
