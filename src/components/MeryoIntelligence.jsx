@@ -31,10 +31,6 @@ function SparkleMark() {
   return <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M12 2.7 14 9.9l7.3 2.1-7.3 2.1-2 7.2-2-7.2-7.3-2.1 7.3-2.1 2-7.2Z" stroke="currentColor" strokeWidth="1.5" strokeLinejoin="round"/><path d="m19.2 2 .8 2.7 2.7.8-2.7.8-.8 2.7-.8-2.7-2.7-.8 2.7-.8.8-2.7Z" fill="currentColor"/></svg>;
 }
 
-function CloseMark() {
-  return <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="m6 6 12 12M18 6 6 18" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round"/></svg>;
-}
-
 export default function MeryoIntelligence({ open, category = 'barberia', themeMode = 'light', themeAppearance, district = '', onClose, onOpenShop }) {
   const activeCategory = category === 'belleza' ? 'belleza' : 'barberia';
   const isBeauty = activeCategory === 'belleza';
@@ -151,12 +147,11 @@ export default function MeryoIntelligence({ open, category = 'barberia', themeMo
           <span aria-hidden="true" className="meryo-intelligence-brand-divider" />
           <p>MERYO<br/><strong>INTELLIGENCE</strong></p>
         </div>
-        <button ref={closeRef} type="button" className="meryo-intelligence-close" onClick={onClose} aria-label="Cerrar MERYO Intelligence"><CloseMark /></button>
+        <button ref={closeRef} type="button" className="meryo-intelligence-back" onClick={onClose} aria-label="Volver al catálogo"><span aria-hidden="true">←</span><span className="meryo-intelligence-back-label-full">Volver al catálogo</span><span className="meryo-intelligence-back-label-short">Volver</span></button>
       </header>
 
       <div className="meryo-intelligence-content">
         <div className="meryo-intelligence-intro">
-          <img className="meryo-function-artwork" src="/meryo-intelligence-welcome.png" alt="Asesora de estilo de MERYO." loading="lazy" decoding="async" />
           <p className="meryo-intelligence-eyebrow"><SparkleMark /> Asesora de estilo</p>
           <h1 id="meryo-intelligence-title">Encuentra un estilo que hable por ti</h1>
           <p>{isBeauty ? 'Cuéntame qué servicio de peluquería buscas. Te ayudaré a explorar opciones y profesionales disponibles en el catálogo.' : 'Cuéntame qué tienes en mente. Te ayudaré a encontrar el corte y el profesional adecuados.'}</p>

@@ -31,7 +31,7 @@ export function CutPromotions({ offers, loading, error, notice='', onRetry, onBa
     <header className="sticky top-0 z-20 border-b border-white/10 bg-neutral-950/95 px-4 py-3 backdrop-blur sm:px-6">
       <div className="mx-auto flex max-w-7xl items-center justify-between gap-4">
         <MeryoLogo variant={themeMode==='light'?'light':'dark'} className="h-7 w-auto sm:h-9" />
-        <div className="flex items-center gap-2"><MeryoThemeToggle mode={themeMode} onToggle={onToggleTheme} className="meryo-promotion-theme-toggle"/><button type="button" onClick={onBack} className="min-h-11 rounded-xl border border-white/20 px-4 py-2 text-sm"><span aria-hidden="true">← </span>Volver</button></div>
+        <div className="flex items-center gap-2"><MeryoThemeToggle mode={themeMode} onToggle={onToggleTheme} className="meryo-promotion-theme-toggle"/><button type="button" onClick={onBack} className="min-h-11 rounded-xl border border-white/20 px-4 py-2 text-sm"><span aria-hidden="true">← </span>Volver al catálogo</button></div>
       </div>
     </header>
     <main className="mx-auto max-w-7xl px-4 py-5 sm:px-6 sm:py-8">
@@ -42,8 +42,6 @@ export function CutPromotions({ offers, loading, error, notice='', onRetry, onBa
           <p className="mt-3 text-base font-semibold text-amber-200 sm:text-xl">{hasLiveOffers?'En barberías y horarios participantes':'Consulta las ofertas disponibles'}</p>
         </div>
       </section>
-      <img className="meryo-function-artwork" src="/campaign-carousel/promociones.png" alt="Promociones de Barberías y Peluquerías." loading="lazy" decoding="async" />
-
       <section className="mt-7" aria-labelledby="cut-promotions-heading">
         <div className="mb-5 flex flex-wrap items-end justify-between gap-3">
           <div><h2 id="cut-promotions-heading" className="text-2xl font-black sm:text-3xl">Promociones disponibles</h2><p className="mt-1 text-sm text-neutral-400">Solo en cortes y horarios participantes. No incluye barba sola, tintes ni paquetes.</p></div>

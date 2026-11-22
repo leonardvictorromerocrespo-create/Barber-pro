@@ -28,7 +28,7 @@ export default function CatalogDiscoverLayer({category,themeMode,themeAppearance
   useLayoutEffect(()=>{
     const updatePanelTop=()=>{
       const rect=handleRef.current?.getBoundingClientRect();
-      if(rect)setPanelTop(Math.round(rect.bottom+5));
+      if(rect)setPanelTop(Math.round(rect.bottom));
     };
     updatePanelTop();
     if(!open)return undefined;
