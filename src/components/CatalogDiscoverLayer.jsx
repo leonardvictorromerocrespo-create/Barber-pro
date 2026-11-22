@@ -9,7 +9,7 @@ const slides=[
   {src:'/meryo-intelligence-welcome.png',alt:'Asesora de estilo de MERYO.'},
 ];
 
-export default function CatalogDiscoverLayer({category,themeMode,themeAppearance,open,onOpenChange,children}) {
+export default function CatalogDiscoverLayer({category,themeMode,themeAppearance,open,onOpenChange,onPanelMotionChange,children}) {
   const [peeking,setPeeking]=useState(()=>typeof window!=='undefined'&&!window.matchMedia('(prefers-reduced-motion: reduce)').matches);
   const [panelMetrics,setPanelMetrics]=useState({top:null,height:0});
   const [dragProgress,setDragProgress]=useState(null);
@@ -21,10 +21,14 @@ export default function CatalogDiscoverLayer({category,themeMode,themeAppearance
 
   useEffect(()=>{
     onOpenChange(false);
+    onPanelMotionChange?.({height:0,dragging:false,peeking:!window.matchMedia('(prefers-reduced-motion: reduce)').matches});
     if(window.matchMedia('(prefers-reduced-motion: reduce)').matches)return undefined;
     const timer=window.setTimeout(()=>setPeeking(false),1900);
-    return()=>window.clearTimeout(timer);
-  },[category,onOpenChange]);
+    return()=>{
+      window.clearTimeout(timer);
+      onPanelMotionChange?.({height:0,dragging:false,peeking:false});
+    };
+  },[category,onOpenChange,onPanelMotionChange]);
 
   useLayoutEffect(()=>{
     const updatePanelMetrics=()=>{
@@ -109,6 +113,9 @@ export default function CatalogDiscoverLayer({category,themeMode,themeAppearance
   };
 
   const progress=dragProgress??(open?1:0);
+  const panelMotionHeight=panelMetrics.height*progress;
+  const panelMotionDragging=dragProgress!==null;
+  useLayoutEffect(()=>{onPanelMotionChange?.({height:panelMotionHeight,dragging:panelMotionDragging,peeking});},[panelMotionHeight,panelMotionDragging,peeking,onPanelMotionChange]);
   const panel=<div ref={panelRef} id="meryo-discover-panel" data-meryo-theme={category==='belleza'?'beauty':'barberia'} data-meryo-mode={themeMode} data-meryo-appearance={themeAppearance} className={`meryo-discover__panel${open?' is-open':''}${dragProgress!==null?' is-dragging':''}${peeking?' is-peeking':''}`} style={{top:panelMetrics.top===null?'-10000px':`${panelMetrics.top}px`,'--meryo-discover-panel-height':`${panelMetrics.height}px`,'--meryo-discover-panel-current-height':`${panelMetrics.height*progress}px`}} aria-hidden={!open} inert={!open}>
     <div className="meryo-discover__content">
       <h2>Descubre nuestras funciones</h2>
