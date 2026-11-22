@@ -790,8 +790,8 @@ body {
   box-shadow: 0 9px 24px rgb(0 0 0 / 22%);
 }
 .meryo-turn-finder__backdrop {
-  background: rgb(9 8 7 / 76%);
-  backdrop-filter: blur(2px);
+  background: var(--turn-panel) !important;
+  backdrop-filter: none;
 }
 .meryo-turn-finder__field {
   border: 0;
@@ -810,6 +810,22 @@ body {
 .meryo-turn-finder__action:disabled { color: var(--turn-muted); background: var(--turn-card); box-shadow: none; }
 .meryo-turn-finder :where(button, input, select):focus-visible { outline: 3px solid #e8c766; outline-offset: 2px; }
 .meryo-turn-finder select option { background: var(--turn-field); color: var(--turn-text); }
+
+@media (max-width: 640px) {
+  .meryo-turn-finder__backdrop {
+    align-items: stretch;
+    justify-content: stretch;
+    padding: 0 !important;
+  }
+  .meryo-turn-finder .meryo-turn-finder__dialog {
+    width: 100%;
+    max-width: none !important;
+    height: 100dvh;
+    max-height: 100dvh !important;
+    border-radius: 0 !important;
+    box-shadow: none !important;
+  }
+}
 
 .meryo-turn-finder .turn-dialog { max-height: min(92dvh, 55rem); }
 .meryo-turn-finder .turn-muted { color: var(--turn-muted); }
