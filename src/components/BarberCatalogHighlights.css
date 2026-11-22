@@ -4,8 +4,6 @@
   z-index: 10;
   padding-block: .5rem .25rem;
   background: var(--meryo-barber-sticky-bg, #000);
-  border-bottom: 1px solid currentColor;
-  border-color: color-mix(in srgb, currentColor 13%, transparent);
 }
 [data-meryo-theme="barberia"][data-meryo-mode="light"] .meryo-barber-sticky { --meryo-barber-sticky-bg: #f2eee5; }
 @media (max-height: 500px) { .meryo-barber-sticky { position: static; } }
