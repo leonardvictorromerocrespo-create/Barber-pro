@@ -9,7 +9,7 @@ const slides=[
   {src:'/meryo-intelligence-welcome.png',alt:'Asesora de estilo de MERYO.'},
 ];
 
-export default function CatalogDiscoverLayer({category,themeMode,themeAppearance,open,onOpenChange,onPanelMotionChange,children}) {
+export default function CatalogDiscoverLayer({category,themeMode,themeAppearance,open,onOpenChange,onPanelMotionChange,control,children}) {
   const [peeking,setPeeking]=useState(()=>typeof window!=='undefined'&&!window.matchMedia('(prefers-reduced-motion: reduce)').matches);
   const [panelMetrics,setPanelMetrics]=useState({top:null,height:0});
   const [dragProgress,setDragProgress]=useState(null);
@@ -20,7 +20,6 @@ export default function CatalogDiscoverLayer({category,themeMode,themeAppearance
   const suppressClickUntil=useRef(0);
 
   useEffect(()=>{
-    onOpenChange(false);
     onPanelMotionChange?.({height:0,dragging:false,peeking:!window.matchMedia('(prefers-reduced-motion: reduce)').matches});
     if(window.matchMedia('(prefers-reduced-motion: reduce)').matches)return undefined;
     const timer=window.setTimeout(()=>setPeeking(false),1900);
@@ -28,7 +27,7 @@ export default function CatalogDiscoverLayer({category,themeMode,themeAppearance
       window.clearTimeout(timer);
       onPanelMotionChange?.({height:0,dragging:false,peeking:false});
     };
-  },[category,onOpenChange,onPanelMotionChange]);
+  },[category,onPanelMotionChange]);
 
   useLayoutEffect(()=>{
     const updatePanelMetrics=()=>{
@@ -36,20 +35,19 @@ export default function CatalogDiscoverLayer({category,themeMode,themeAppearance
       const panel=panelRef.current;
       if(rect&&panel){
         const bottom=Number.parseFloat(window.getComputedStyle(panel).bottom)||0;
-        const top=Math.round(rect.bottom);
+        const top=Math.round(rect.bottom)+12;
         setPanelMetrics({top,height:Math.max(0,window.innerHeight-top-bottom)});
       }
     };
     updatePanelMetrics();
-    if(!open)return undefined;
     const previousOverflow=document.body.style.overflow;
-    document.body.style.overflow='hidden';
+    if(open)document.body.style.overflow='hidden';
     window.addEventListener('resize',updatePanelMetrics);
     window.addEventListener('scroll',updatePanelMetrics,true);
-    const closeOnEscape=event=>{if(event.key==='Escape'){onOpenChange(false);handleRef.current?.focus();}};
-    window.addEventListener('keydown',closeOnEscape);
+    const closeOnEscape=event=>{if(open&&event.key==='Escape'){onOpenChange(false);handleRef.current?.focus();}};
+    if(open)window.addEventListener('keydown',closeOnEscape);
     return()=>{
-      document.body.style.overflow=previousOverflow;
+      if(open)document.body.style.overflow=previousOverflow;
       window.removeEventListener('resize',updatePanelMetrics);
       window.removeEventListener('scroll',updatePanelMetrics,true);
       window.removeEventListener('keydown',closeOnEscape);
@@ -136,6 +134,7 @@ export default function CatalogDiscoverLayer({category,themeMode,themeAppearance
     <div className="meryo-discover" data-category={category}>
       <p className="meryo-discover__label">Nuestras Funciones</p>
       <div className="meryo-discover__switch-row">
+        {control}
         <div ref={handleRef} className="meryo-discover__track" role="slider" aria-label="Desliza para abrir o cerrar las funciones" aria-controls="meryo-discover-panel" aria-orientation="horizontal" aria-valuemin="0" aria-valuemax="100" aria-valuenow={Math.round(progress*100)} aria-valuetext={open?'Funciones abiertas':'Funciones cerradas'} tabIndex="0"
           onPointerDown={onPointerDown} onPointerMove={onPointerMove} onPointerUp={onPointerUp} onPointerCancel={onPointerUp} onLostPointerCapture={onPointerUp} onKeyDown={onKeyDown}
           onClick={()=>{if(Date.now()<suppressClickUntil.current)return;setPeeking(false);onOpenChange(!open);}}>

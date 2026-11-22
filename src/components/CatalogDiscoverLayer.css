@@ -1,21 +1,25 @@
 .meryo-discover {
   position: relative;
   z-index: 12;
-  margin: .2rem 0 .35rem;
+  margin: .2rem 0 .7rem;
 }
 
 .meryo-discover__label {
-  margin: 0 0 .22rem .25rem;
+  margin: 0 .25rem .4rem 0;
   color: var(--meryo-text-muted);
-  font-size: .78rem;
-  font-weight: 650;
-  line-height: 1.15;
+  font-size: 1.05rem;
+  font-weight: 700;
+  line-height: 1.2;
+  text-align: right;
 }
 
-.meryo-discover__switch-row { display: flex; align-items: center; }
+.meryo-discover__switch-row { display: flex; align-items: center; justify-content: space-between; gap: .55rem; }
+.meryo-discover__search { flex: 1 1 0; }
+.meryo-discover__search input { font-size: .8rem; }
 .meryo-discover__track {
   position: relative;
   width: min(8.5rem, 100%);
+  flex: 0 0 min(8.5rem, 43%);
   height: 2.35rem;
   border: 1px solid color-mix(in srgb, var(--meryo-text) 32%, transparent);
   border-radius: 999px;
@@ -60,23 +64,23 @@
   bottom: calc(4.35rem + env(safe-area-inset-bottom));
   left: 0;
   margin: 0;
-  height: 0;
-  visibility: hidden;
+  height: 1px;
+  visibility: visible;
   overflow: hidden;
   border: 0;
-  border-top: 2px solid #555;
-  border-radius: 1.35rem 1.35rem 0 0;
-  background: color-mix(in srgb, var(--meryo-carbon) 96%, #000 4%);
+  border-radius: 1.65rem 1.65rem 0 0;
+  background: #fff;
   color: var(--meryo-text);
-  box-shadow: none;
+  box-shadow: 0 -7px 20px rgb(0 0 0 / 12%);
   opacity: 1;
   pointer-events: none;
   will-change: height;
-  transition: height 1.5s cubic-bezier(.22,.75,.22,1), visibility 0s linear 1.5s;
+  transition: height 1.5s cubic-bezier(.22,.75,.22,1);
 }
-.meryo-discover__panel[data-meryo-mode="dark"] { background: color-mix(in srgb, var(--meryo-carbon) 90%, #000 10%); }
+.meryo-discover__panel[data-meryo-theme][data-meryo-mode="light"][data-meryo-appearance],
+.meryo-discover__panel[data-meryo-theme][data-meryo-mode="dark"][data-meryo-appearance] { background: #fff; }
+.meryo-discover__panel[data-meryo-theme][data-meryo-mode="dark"][data-meryo-appearance] { background: #575757; }
 .meryo-discover__panel.is-open {
-  visibility: visible;
   height: var(--meryo-discover-panel-height, 0px);
   opacity: 1;
   pointer-events: auto;
@@ -84,22 +88,20 @@
   overflow-y: auto;
   overscroll-behavior: contain;
   padding: .55rem .75rem .75rem;
-  transition: height 1.5s cubic-bezier(.22,.75,.22,1), visibility 0s linear;
+  transition: height 1.5s cubic-bezier(.22,.75,.22,1);
 }
 .meryo-discover__panel.is-dragging {
-  visibility: visible;
-  height: var(--meryo-discover-panel-current-height, 0px);
+  height: max(1px, var(--meryo-discover-panel-current-height, 0px));
   overflow: hidden;
   padding: .55rem .75rem .75rem;
   transition: none;
 }
 .meryo-discover__panel.is-peeking {
-  visibility: visible;
   animation: meryo-discover-peek 1.9s ease-in-out both;
 }
 .meryo-discover__content { flex: 0 0 auto; width: min(100%, 76rem); margin-inline: auto; }
 .meryo-discover__content h2 {
-  margin: .35rem 0 .7rem;
+  margin: .35rem .35rem .7rem;
   color: var(--meryo-text);
   font-size: clamp(1.25rem, 3vw, 1.8rem);
   font-weight: 650;
@@ -148,15 +150,15 @@
   display: flex;
   width: 100%;
   min-width: 0;
-  min-height: 2.8rem;
+  min-height: 2.65rem;
   flex-direction: row;
   align-items: center;
   justify-content: center;
   gap: .4rem;
   border: 1px solid color-mix(in srgb, var(--meryo-text) 34%, transparent);
   border-radius: 999px;
-  padding: .45rem .7rem;
-  background: color-mix(in srgb, var(--meryo-surface) 70%, #777 30%);
+  padding: .4rem .65rem;
+  background: #e6e6e4;
   color: var(--meryo-text);
   box-shadow: none;
   font-size: .82rem;
@@ -177,24 +179,54 @@
 }
 .meryo-discover__action > .meryo-intelligence-trigger { padding-inline: 1.7rem; }
 .meryo-discover__action > .meryo-intelligence-trigger svg { color: var(--meryo-text); }
-.meryo-discover__action > .meryo-catalog-promotion-shortcut,
-.meryo-discover__action > .meryo-catalog-promotion-shortcut > span { color: var(--meryo-text) !important; }
+.meryo-discover__panel .meryo-discover__shortcut,
+.meryo-discover__panel .meryo-discover__action > .meryo-intelligence-trigger,
+.meryo-discover__panel .meryo-discover__turn-finder .meryo-turn-finder__trigger {
+  background: #e6e6e4 !important;
+  color: #302b27 !important;
+}
+.meryo-discover__panel[data-meryo-mode="dark"] .meryo-discover__shortcut,
+.meryo-discover__panel[data-meryo-mode="dark"] .meryo-discover__action > .meryo-intelligence-trigger,
+.meryo-discover__panel[data-meryo-mode="dark"] .meryo-discover__turn-finder .meryo-turn-finder__trigger {
+  background: #929292 !important;
+  color: #242424 !important;
+}
+.meryo-discover__panel[data-meryo-mode="dark"] .meryo-discover__action > .meryo-intelligence-trigger svg { color: #242424; }
+.meryo-discover__panel .meryo-discover__action > .meryo-catalog-promotion-shortcut,
+.meryo-discover__panel .meryo-discover__action > .meryo-catalog-promotion-shortcut > span { color: #302b27 !important; }
+.meryo-discover__panel[data-meryo-mode="dark"] .meryo-discover__action > .meryo-catalog-promotion-shortcut,
+.meryo-discover__panel[data-meryo-mode="dark"] .meryo-discover__action > .meryo-catalog-promotion-shortcut > span { color: #242424 !important; }
 .meryo-discover__action > .meryo-intelligence-trigger span,
 .meryo-discover__shortcut > span,
 .meryo-discover__turn-finder .meryo-turn-finder__trigger > span { white-space: normal; }
-.meryo-discover__shortcut:hover,
-.meryo-discover__turn-finder .meryo-turn-finder__trigger:hover:not(:disabled) { background: color-mix(in srgb, var(--meryo-surface) 58%, #777 42%); color: var(--meryo-text); }
+.meryo-discover__panel .meryo-discover__shortcut:hover,
+.meryo-discover__panel .meryo-discover__turn-finder .meryo-turn-finder__trigger:hover:not(:disabled) { background: #d9d9d7 !important; color: #302b27 !important; }
+.meryo-discover__panel[data-meryo-mode="dark"] .meryo-discover__shortcut:hover,
+.meryo-discover__panel[data-meryo-mode="dark"] .meryo-discover__turn-finder .meryo-turn-finder__trigger:hover:not(:disabled) { background: #a0a0a0 !important; color: #242424 !important; }
 .meryo-discover__shortcut:focus-visible,
 .meryo-discover__turn-finder .meryo-turn-finder__trigger:focus-visible { outline: 2px solid var(--meryo-gold-light); outline-offset: 2px; }
 .meryo-discover__turn-finder .meryo-turn-finder { margin: 0; border: 0; background: transparent; box-shadow: none; }
-.meryo-discover__turn-finder .meryo-turn-finder__trigger { background: color-mix(in srgb, var(--meryo-surface) 70%, #777 30%); box-shadow: none; }
+.meryo-discover__turn-finder .meryo-turn-finder__trigger { background: #e6e6e4; box-shadow: none; }
 .meryo-discover__turn-finder .meryo-turn-finder__trigger:disabled { color: var(--meryo-text-muted); opacity: .65; }
 .meryo-discover__panel .meryo-turn-finder .meryo-turn-finder__trigger {
   border: 1px solid color-mix(in srgb, var(--meryo-text) 34%, transparent) !important;
+  border-color: #aaa !important;
   border-radius: 999px !important;
-  background: color-mix(in srgb, var(--meryo-surface) 70%, #777 30%) !important;
-  color: var(--meryo-text) !important;
+  background: #e6e6e4 !important;
+  color: #302b27 !important;
   box-shadow: none !important;
+  appearance: none;
+  -webkit-appearance: none;
+  outline: none;
+}
+.meryo-discover__panel[data-meryo-mode="dark"] .meryo-turn-finder .meryo-turn-finder__trigger {
+  background: #929292 !important;
+  color: #242424 !important;
+  border-color: #aaa !important;
+}
+.meryo-discover__panel .meryo-turn-finder .meryo-turn-finder__trigger:focus-visible {
+  outline: 2px solid #aaa !important;
+  outline-offset: 2px;
 }
 
 .meryo-discover__panel[data-meryo-theme="beauty"][data-meryo-mode="dark"] {
@@ -221,7 +253,7 @@
 .meryo-discover__catalog-frame[hidden] { display: none !important; }
 
 @keyframes meryo-discover-peek {
-  0%, 100% { height: 0; opacity: 0; }
+  0%, 100% { height: 1px; opacity: 1; }
   22%, 76% { height: min(9rem, 18dvh); opacity: 1; }
 }
 @keyframes meryo-discover-catalog-peek {
@@ -235,7 +267,7 @@
   .meryo-discover__action > p { margin: .3rem .15rem 0; font-size: .73rem; text-align: left; }
   .meryo-discover__shortcut,
   .meryo-discover__action > .meryo-intelligence-trigger,
-  .meryo-discover__turn-finder .meryo-turn-finder__trigger { min-height: 2.65rem; font-size: .74rem; }
+  .meryo-discover__turn-finder .meryo-turn-finder__trigger { min-height: 2.5rem; font-size: .74rem; }
   .meryo-discover__shortcut svg,
   .meryo-discover__turn-finder .meryo-turn-finder__trigger svg,
   .meryo-discover__action > .meryo-intelligence-trigger svg { left: .45rem; width: .85rem; height: .85rem; }
