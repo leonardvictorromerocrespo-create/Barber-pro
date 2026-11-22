@@ -52,41 +52,47 @@
 
 .meryo-discover__panel {
   position: fixed;
+  box-sizing: border-box;
   display: flex;
   flex-direction: column;
   z-index: 65;
   right: 0;
   bottom: calc(4.35rem + env(safe-area-inset-bottom));
   left: 0;
+  margin: 0;
+  height: 0;
   visibility: hidden;
   overflow: hidden;
-  clip-path: inset(0 0 100% 0 round 1.35rem 1.35rem 0 0);
-  border: 1px solid color-mix(in srgb, var(--meryo-text) 24%, transparent);
-  border-bottom: 0;
+  border: 0;
   border-radius: 1.35rem 1.35rem 0 0;
   background: color-mix(in srgb, var(--meryo-carbon) 92%, #777 8%);
   color: var(--meryo-text);
-  box-shadow: 0 -6px 18px rgb(0 0 0 / 9%);
+  box-shadow: none;
   opacity: 1;
   pointer-events: none;
-  will-change: clip-path;
-  transition: clip-path 1.5s cubic-bezier(.22,.75,.22,1), visibility 0s linear 1.5s;
+  will-change: height;
+  transition: height 1.5s cubic-bezier(.22,.75,.22,1), visibility 0s linear 1.5s;
 }
 .meryo-discover__panel.is-open {
   visibility: visible;
-  clip-path: inset(0 round 1.35rem 1.35rem 0 0);
+  height: var(--meryo-discover-panel-height, 0px);
   opacity: 1;
   pointer-events: auto;
   overflow-x: hidden;
   overflow-y: auto;
   overscroll-behavior: contain;
   padding: .55rem .75rem .75rem;
-  transition: clip-path 1.5s cubic-bezier(.22,.75,.22,1), visibility 0s linear;
+  transition: height 1.5s cubic-bezier(.22,.75,.22,1), visibility 0s linear;
+}
+.meryo-discover__panel.is-dragging {
+  visibility: visible;
+  height: var(--meryo-discover-panel-current-height, 0px);
+  overflow: hidden;
+  padding: .55rem .75rem .75rem;
+  transition: none;
 }
 .meryo-discover__panel.is-peeking {
   visibility: visible;
-  bottom: auto;
-  height: min(24rem, 60dvh);
   animation: meryo-discover-peek 1.9s ease-in-out both;
 }
 .meryo-discover__content { flex: 0 0 auto; width: min(100%, 76rem); margin-inline: auto; }
@@ -203,16 +209,14 @@
 }
 
 .meryo-discover__catalog-frame {
-  border: 1px solid color-mix(in srgb, var(--meryo-text) 22%, transparent);
-  border-bottom: 0;
   border-radius: 1.35rem 1.35rem 0 0;
   padding: .8rem .65rem 0;
 }
 .meryo-discover__catalog-frame[hidden] { display: none !important; }
 
 @keyframes meryo-discover-peek {
-  0%, 100% { clip-path: inset(0 0 100% 0 round 1.35rem 1.35rem 0 0); opacity: 0; }
-  22%, 76% { clip-path: inset(0 0 72% 0 round 1.35rem 1.35rem 0 0); opacity: .96; }
+  0%, 100% { height: 0; opacity: 0; }
+  22%, 76% { height: min(9rem, 18dvh); opacity: 1; }
 }
 
 @media (max-width: 520px) {
@@ -230,7 +234,9 @@
   .meryo-discover__catalog-frame { padding: .65rem .35rem 0; }
 }
 @media (min-width: 768px) {
-  .meryo-discover__panel.is-open { bottom: 0; padding: .85rem 1.5rem 1rem; }
+  .meryo-discover__panel { bottom: 0; }
+  .meryo-discover__panel.is-open,
+  .meryo-discover__panel.is-dragging { padding: .85rem 1.5rem 1rem; }
   .meryo-discover__actions { gap: 1rem 1.5rem; }
   .meryo-discover__slide { width: min(44vw, 34rem); flex-basis: min(44vw, 34rem); }
 }
