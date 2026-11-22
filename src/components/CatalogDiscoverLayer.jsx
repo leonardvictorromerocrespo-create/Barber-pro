@@ -11,9 +11,10 @@ const slides=[
 
 export default function CatalogDiscoverLayer({category,themeMode,themeAppearance,open,onOpenChange,children}) {
   const [peeking,setPeeking]=useState(()=>typeof window!=='undefined'&&!window.matchMedia('(prefers-reduced-motion: reduce)').matches);
-  const [panelTop,setPanelTop]=useState(null);
+  const [panelMetrics,setPanelMetrics]=useState({top:null,height:0});
   const [dragProgress,setDragProgress]=useState(null);
   const handleRef=useRef(null);
+  const panelRef=useRef(null);
   const carouselRef=useRef(null);
   const dragStart=useRef(null);
   const suppressClickUntil=useRef(0);
@@ -26,22 +27,27 @@ export default function CatalogDiscoverLayer({category,themeMode,themeAppearance
   },[category,onOpenChange]);
 
   useLayoutEffect(()=>{
-    const updatePanelTop=()=>{
+    const updatePanelMetrics=()=>{
       const rect=handleRef.current?.getBoundingClientRect();
-      if(rect)setPanelTop(Math.round(rect.bottom));
+      const panel=panelRef.current;
+      if(rect&&panel){
+        const bottom=Number.parseFloat(window.getComputedStyle(panel).bottom)||0;
+        const top=Math.round(rect.bottom);
+        setPanelMetrics({top,height:Math.max(0,window.innerHeight-top-bottom)});
+      }
     };
-    updatePanelTop();
+    updatePanelMetrics();
     if(!open)return undefined;
     const previousOverflow=document.body.style.overflow;
     document.body.style.overflow='hidden';
-    window.addEventListener('resize',updatePanelTop);
-    window.addEventListener('scroll',updatePanelTop,true);
+    window.addEventListener('resize',updatePanelMetrics);
+    window.addEventListener('scroll',updatePanelMetrics,true);
     const closeOnEscape=event=>{if(event.key==='Escape'){onOpenChange(false);handleRef.current?.focus();}};
     window.addEventListener('keydown',closeOnEscape);
     return()=>{
       document.body.style.overflow=previousOverflow;
-      window.removeEventListener('resize',updatePanelTop);
-      window.removeEventListener('scroll',updatePanelTop,true);
+      window.removeEventListener('resize',updatePanelMetrics);
+      window.removeEventListener('scroll',updatePanelMetrics,true);
       window.removeEventListener('keydown',closeOnEscape);
     };
   },[open,onOpenChange]);
@@ -68,8 +74,9 @@ export default function CatalogDiscoverLayer({category,themeMode,themeAppearance
     return()=>window.cancelAnimationFrame(frame);
   },[open]);
 
-  const openFromSlider=()=>onOpenChange(true);
+  const openFromSlider=()=>{setPeeking(false);onOpenChange(true);};
   const onPointerDown=event=>{
+    setPeeking(false);
     const rect=event.currentTarget.getBoundingClientRect();
     const knobWidth=event.currentTarget.querySelector('.meryo-discover__knob')?.getBoundingClientRect().width??82;
     const travel=Math.max(1,rect.width-knobWidth-6);
@@ -95,12 +102,14 @@ export default function CatalogDiscoverLayer({category,themeMode,themeAppearance
     setDragProgress(null);
   };
   const onKeyDown=event=>{
+    setPeeking(false);
     if(event.key==='ArrowRight'||event.key==='End'){event.preventDefault();openFromSlider();}
     else if(event.key==='ArrowLeft'||event.key==='Home'){event.preventDefault();onOpenChange(false);}
     else if(event.key===' '||event.key==='Enter'){event.preventDefault();onOpenChange(!open);}
   };
 
-  const panel=<div id="meryo-discover-panel" data-meryo-theme={category==='belleza'?'beauty':'barberia'} data-meryo-mode={themeMode} data-meryo-appearance={themeAppearance} className={`meryo-discover__panel${open?' is-open':peeking?' is-peeking':''}`} style={{top:panelTop===null?'-10000px':`${panelTop}px`}} aria-hidden={!open} inert={!open}>
+  const progress=dragProgress??(open?1:0);
+  const panel=<div ref={panelRef} id="meryo-discover-panel" data-meryo-theme={category==='belleza'?'beauty':'barberia'} data-meryo-mode={themeMode} data-meryo-appearance={themeAppearance} className={`meryo-discover__panel${open?' is-open':''}${dragProgress!==null?' is-dragging':''}${peeking?' is-peeking':''}`} style={{top:panelMetrics.top===null?'-10000px':`${panelMetrics.top}px`,'--meryo-discover-panel-height':`${panelMetrics.height}px`,'--meryo-discover-panel-current-height':`${panelMetrics.height*progress}px`}} aria-hidden={!open} inert={!open}>
     <div className="meryo-discover__content">
       <h2>Descubre nuestras funciones</h2>
       <div ref={carouselRef} className="meryo-discover__carousel" role="region" aria-label="Funciones de MERYO; desliza horizontalmente" tabIndex="0">
@@ -116,14 +125,13 @@ export default function CatalogDiscoverLayer({category,themeMode,themeAppearance
     </div>
   </div>;
 
-  const progress=dragProgress??(open?1:0);
   return <>
     <div className="meryo-discover" data-category={category}>
       <p className="meryo-discover__label">Nuestras Funciones</p>
       <div className="meryo-discover__switch-row">
         <div ref={handleRef} className="meryo-discover__track" role="slider" aria-label="Desliza para abrir o cerrar las funciones" aria-controls="meryo-discover-panel" aria-orientation="horizontal" aria-valuemin="0" aria-valuemax="100" aria-valuenow={Math.round(progress*100)} aria-valuetext={open?'Funciones abiertas':'Funciones cerradas'} tabIndex="0"
           onPointerDown={onPointerDown} onPointerMove={onPointerMove} onPointerUp={onPointerUp} onPointerCancel={onPointerUp} onLostPointerCapture={onPointerUp} onKeyDown={onKeyDown}
-          onClick={()=>{if(Date.now()<suppressClickUntil.current)return;onOpenChange(!open);}}>
+          onClick={()=>{if(Date.now()<suppressClickUntil.current)return;setPeeking(false);onOpenChange(!open);}}>
           <span className="meryo-discover__knob" style={{transform:`translateX(${progress*4.31}rem)`}}><span>{open?'Volver':'Deslizar'}</span></span>
         </div>
       </div>
