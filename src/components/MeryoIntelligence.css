@@ -58,7 +58,7 @@
 .meryo-intelligence-brand-divider { width: 1px; height: 1.8rem; background: var(--meryo-border); }
 .meryo-intelligence-brand p { margin: 0; color: var(--meryo-text-muted); font-size: .62rem; letter-spacing: .13em; line-height: 1.25; }
 .meryo-intelligence-brand strong { color: var(--meryo-text); font-size: .7rem; letter-spacing: .1em; }
-.meryo-intelligence-back { display: inline-flex; min-height: 2.55rem; flex: 0 0 auto; align-items: center; justify-content: center; gap: .38rem; border: 1px solid var(--meryo-border); border-radius: .7rem; padding: .45rem .68rem; color: var(--meryo-text); font-size: .75rem; font-weight: 650; white-space: nowrap; }
+.meryo-intelligence-back { display: inline-grid; width: 2.55rem; height: 2.55rem; flex: 0 0 auto; place-items: center; border: 1px solid var(--meryo-border); border-radius: 999px; padding: 0; color: var(--meryo-text); }
 .meryo-intelligence-back:hover { background: var(--meryo-surface); }
 .meryo-intelligence-back-label-short { display: none; }
 .meryo-intelligence-content { display: flex; min-height: 0; flex: 1; flex-direction: column; padding: 1.25rem clamp(1rem, 4vw, 2.4rem) .85rem; }
@@ -114,9 +114,7 @@
   .meryo-intelligence-logo { width: 5.8rem; max-height: 1.75rem; }
   .meryo-intelligence-brand { gap: .55rem; }
   .meryo-intelligence-header { gap: .45rem; }
-  .meryo-intelligence-back { min-height: 2.35rem; gap: .28rem; padding: .35rem .5rem; font-size: .72rem; }
-  .meryo-intelligence-back-label-full { display: none; }
-  .meryo-intelligence-back-label-short { display: inline; }
+  .meryo-intelligence-back { width: 2.35rem; height: 2.35rem; }
   .meryo-intelligence-content { padding: .85rem .9rem max(.65rem, env(safe-area-inset-bottom)); }
   .meryo-intelligence-intro h1 { font-size: clamp(1.45rem, 7vw, 1.85rem); }
   .meryo-intelligence-intro > p:last-child { margin-top: .45rem; font-size: .83rem; }
