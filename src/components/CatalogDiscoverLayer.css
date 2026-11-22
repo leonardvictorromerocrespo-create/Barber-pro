@@ -64,7 +64,8 @@
   bottom: calc(4.35rem + env(safe-area-inset-bottom));
   left: 0;
   margin: 0;
-  height: 1px;
+  height: 1.5rem;
+  padding: .55rem .75rem .75rem;
   visibility: visible;
   overflow: hidden;
   border: 0;
@@ -87,13 +88,11 @@
   overflow-x: hidden;
   overflow-y: auto;
   overscroll-behavior: contain;
-  padding: .55rem .75rem .75rem;
   transition: height 1.5s cubic-bezier(.22,.75,.22,1);
 }
 .meryo-discover__panel.is-dragging {
-  height: max(1px, var(--meryo-discover-panel-current-height, 0px));
+  height: max(1.5rem, var(--meryo-discover-panel-current-height, 0px));
   overflow: hidden;
-  padding: .55rem .75rem .75rem;
   transition: none;
 }
 .meryo-discover__panel.is-peeking {
@@ -253,7 +252,7 @@
 .meryo-discover__catalog-frame[hidden] { display: none !important; }
 
 @keyframes meryo-discover-peek {
-  0%, 100% { height: 1px; opacity: 1; }
+  0%, 100% { height: 1.5rem; opacity: 1; }
   22%, 76% { height: min(9rem, 18dvh); opacity: 1; }
 }
 @keyframes meryo-discover-catalog-peek {
@@ -262,7 +261,7 @@
 }
 
 @media (max-width: 520px) {
-  .meryo-discover__panel.is-open { padding-inline: .55rem; }
+  .meryo-discover__panel { padding-inline: .55rem; }
   .meryo-discover__actions { gap: .75rem .55rem; }
   .meryo-discover__action > p { margin: .3rem .15rem 0; font-size: .73rem; text-align: left; }
   .meryo-discover__shortcut,
@@ -277,8 +276,7 @@
 }
 @media (min-width: 768px) {
   .meryo-discover__panel { bottom: 0; }
-  .meryo-discover__panel.is-open,
-  .meryo-discover__panel.is-dragging { padding: .85rem 1.5rem 1rem; }
+  .meryo-discover__panel { padding: .85rem 1.5rem 1rem; }
   .meryo-discover__actions { gap: 1rem 1.5rem; }
   .meryo-discover__slide { width: min(44vw, 34rem); flex-basis: min(44vw, 34rem); }
 }
