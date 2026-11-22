@@ -156,6 +156,7 @@ export default function MeryoIntelligence({ open, category = 'barberia', themeMo
 
       <div className="meryo-intelligence-content">
         <div className="meryo-intelligence-intro">
+          <img className="meryo-function-artwork" src="/meryo-intelligence-welcome.png" alt="Asesora de estilo de MERYO." loading="lazy" decoding="async" />
           <p className="meryo-intelligence-eyebrow"><SparkleMark /> Asesora de estilo</p>
           <h1 id="meryo-intelligence-title">Encuentra un estilo que hable por ti</h1>
           <p>{isBeauty ? 'Cuéntame qué servicio de peluquería buscas. Te ayudaré a explorar opciones y profesionales disponibles en el catálogo.' : 'Cuéntame qué tienes en mente. Te ayudaré a encontrar el corte y el profesional adecuados.'}</p>

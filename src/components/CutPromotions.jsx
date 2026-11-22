@@ -42,6 +42,7 @@ export function CutPromotions({ offers, loading, error, notice='', onRetry, onBa
           <p className="mt-3 text-base font-semibold text-amber-200 sm:text-xl">{hasLiveOffers?'En barberías y horarios participantes':'Consulta las ofertas disponibles'}</p>
         </div>
       </section>
+      <img className="meryo-function-artwork" src="/campaign-carousel/promociones.png" alt="Promociones de Barberías y Peluquerías." loading="lazy" decoding="async" />
 
       <section className="mt-7" aria-labelledby="cut-promotions-heading">
         <div className="mb-5 flex flex-wrap items-end justify-between gap-3">

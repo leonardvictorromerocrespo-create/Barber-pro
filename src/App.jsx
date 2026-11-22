@@ -8,6 +8,7 @@ import { lazy, Suspense, useCallback, useEffect, useEffectEvent, useMemo, useRef
 import { createMeryoApi } from './lib/meryo-api';
 import MeryoLogo from './components/MeryoLogo';
 import './components/MeryoIntelligence.css';
+import CatalogDiscoverLayer from './components/CatalogDiscoverLayer';
 import LandingPage from './components/LandingPage';
 import { DEFAULT_THEME_APPEARANCE, themeAppearanceOption } from './lib/theme-appearances';
 import { useIdentity } from './lib/useIdentity';
@@ -44,7 +45,6 @@ const BarberCatalogHighlights = lazy(() => import('./components/BarberCatalogHig
 const CatalogFilters = lazy(() => import('./components/CatalogFilters'));
 const CatalogStatus = lazy(() => import('./components/CatalogStatus'));
 const TurnFinder = lazy(() => import('./components/TurnFinder'));
-const CatalogCampaignCarousel = lazy(() => import('./components/LandingCampaignCarousel'));
 const ProfileModalView = lazy(() => import('./components/ProfileModal'));
 const BookingModalView = lazy(() => import('./components/BookingModal').then(module => ({default: module.BookingModal})));
 const StoreModal=lazy(()=>import('./components/store/StoreModal'));
@@ -934,19 +934,28 @@ if (view === "admin" && adminAccess) return <Suspense fallback={lazyFallback}><A
           <div className={catalogCategory==='barberia'?'meryo-barber-sticky':undefined}>
           <div className="meryo-catalog-topline">
             <div className="min-w-0"><h1 className="meryo-catalog-heading">{catalogCategory==='belleza'?'Encuentra tu salón':'Encuentra tu barbería'}</h1>{district&&<p className="mt-1 text-sm text-neutral-400">Distrito: {district}</p>}</div>
-            <button type="button" className="meryo-intelligence-trigger" onClick={()=>setShowMeryoIntelligence(true)} aria-haspopup="dialog"><svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M12 2.7 14 9.9l7.3 2.1-7.3 2.1-2 7.2-2-7.2-7.3-2.1 7.3-2.1 2-7.2Z" stroke="currentColor" strokeWidth="1.5" strokeLinejoin="round"/><path d="m19.2 2 .8 2.7 2.7.8-2.7.8-.8 2.7-.8-2.7-2.7-.8 2.7-.8.8-2.7Z" fill="currentColor"/></svg><span>MERYO Intelligence</span></button>
           </div>
-          {catalogControls}
-          <div className="meryo-catalog-fox-stage">
-          <div className="meryo-catalog-feature-row">
-            <div className="meryo-catalog-shortcuts" aria-label="Accesos rápidos">
-              <TurnFinder key={`turn-finder-${catalogCategory}`} category={catalogCategory} shops={catalogMatchesCategory&&!catalogLoading&&!catalogError?catalogRows:[]} disabled={!catalogMatchesCategory||catalogLoading||Boolean(catalogError)||catalogRows.length===0} slots={api.slots} themeMode={themeMode} themeAppearance={themeAppearance} triggerClassName="meryo-catalog-action" onReserve={turn=>openBookingModal(turn.shop,turn,{startStep:3})}/>
-              <button type="button" className="meryo-catalog-action" onClick={()=>{setSelectedInspiration(null);setInspirationIssue('');setView('inspiration');}}><BarberShortcutIcon kind="inspiration"/><span>Inspiración</span></button>
-              <button type="button" className="meryo-catalog-action meryo-catalog-promotion-shortcut" onClick={catalogCategory==='belleza'?openBeautyPromotions:()=>setView('promotions')}><BarberShortcutIcon kind="promotions"/><span>Promoción</span></button>
+          <CatalogDiscoverLayer key={catalogCategory} category={catalogCategory}>
+            <div className="meryo-discover__action">
+              <button type="button" className="meryo-intelligence-trigger" onClick={()=>setShowMeryoIntelligence(true)} aria-haspopup="dialog"><svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M12 2.75 14.05 9.95 21.25 12 14.05 14.05 12 21.25 9.95 14.05 2.75 12 9.95 9.95 12 2.75Z" stroke="currentColor" strokeWidth="1.5" strokeLinejoin="round"/><path d="m19.2 2 .8 2.7 2.7.8-2.7.8-.8 2.7-.8-2.7-2.7-.8 2.7-.8.8-2.7Z" fill="currentColor"/></svg><span>Inteligencia MERYO</span></button>
+              <p>Tu asistente para resolver dudas y recibir recomendaciones personalizadas.</p>
             </div>
-            <Suspense fallback={null}><CatalogCampaignCarousel /></Suspense>
-          </div>
-          </div>
+            <div className="meryo-discover__action">
+              <div className="meryo-discover__turn-finder">
+                <TurnFinder key={`turn-finder-${catalogCategory}`} category={catalogCategory} shops={catalogMatchesCategory&&!catalogLoading&&!catalogError?catalogRows:[]} disabled={!catalogMatchesCategory||catalogLoading||Boolean(catalogError)||catalogRows.length===0} slots={api.slots} themeMode={themeMode} themeAppearance={themeAppearance} onReserve={turn=>openBookingModal(turn.shop,turn,{startStep:3})}/>
+              </div>
+              <p>Descubre horarios disponibles y encuentra tu próxima cita.</p>
+            </div>
+            <div className="meryo-discover__action">
+              <button type="button" className="meryo-discover__shortcut" onClick={()=>{setSelectedInspiration(null);setInspirationIssue('');setView('inspiration');}}><BarberShortcutIcon kind="inspiration"/><span>Inspiración</span></button>
+              <p>Explora estilos, cortes, peinados y tendencias.</p>
+            </div>
+            <div className="meryo-discover__action">
+              <button type="button" className="meryo-discover__shortcut meryo-catalog-promotion-shortcut" onClick={catalogCategory==='belleza'?openBeautyPromotions:()=>setView('promotions')}><BarberShortcutIcon kind="promotions"/><span>Promociones</span></button>
+              <p>Descubre ofertas y servicios especiales.</p>
+            </div>
+          </CatalogDiscoverLayer>
+          {catalogControls}
           </div>
           {catalogMatchesCategory&&!catalogLoading&&!catalogError&&catalogRows.length>0&&ranking.length===0&&<p role="status" className="meryo-catalog-no-match">No encontramos {catalogCategory==='belleza'?'peluquerías ni salones':'barberías'} con esos filtros.</p>}
           <CatalogStatus loading={catalogLoading||!catalogMatchesCategory} error={catalogMatchesCategory?catalogError:''} empty={catalogRows.length===0} businessLabel={catalogCategory==='belleza'?'peluquerías y salones':'barberías'} onRetry={cargarBarberiasActivas}/>
