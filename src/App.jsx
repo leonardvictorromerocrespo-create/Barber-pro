@@ -937,7 +937,7 @@ if (view === "admin" && adminAccess) return <Suspense fallback={lazyFallback}><A
           </div>
           <CatalogDiscoverLayer key={catalogCategory} category={catalogCategory}>
             <div className="meryo-discover__action">
-              <button type="button" className="meryo-intelligence-trigger" onClick={()=>setShowMeryoIntelligence(true)} aria-haspopup="dialog"><svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M12 2.75 14.05 9.95 21.25 12 14.05 14.05 12 21.25 9.95 14.05 2.75 12 9.95 9.95 12 2.75Z" stroke="currentColor" strokeWidth="1.5" strokeLinejoin="round"/><path d="m19.2 2 .8 2.7 2.7.8-2.7.8-.8 2.7-.8-2.7-2.7-.8 2.7-.8.8-2.7Z" fill="currentColor"/></svg><span>Inteligencia MERYO</span></button>
+              <button type="button" className="meryo-intelligence-trigger" onClick={()=>setShowMeryoIntelligence(true)} aria-haspopup="dialog"><svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M12 2.7 14 9.9 21.3 12 14 14.1 12 21.3 9.9 14.1 2.7 12 9.9 9.9 12 2.7Z" stroke="currentColor" strokeWidth="1.5" strokeLinejoin="round"/><path d="m19.2 2 .8 2.7 2.7.8-2.7.8-.8 2.7-.8-2.7-2.7-.8 2.7-.8.8-2.7Z" fill="currentColor"/></svg><span>Inteligencia MERYO</span></button>
               <p>Tu asistente para resolver dudas y recibir recomendaciones personalizadas.</p>
             </div>
             <div className="meryo-discover__action">
