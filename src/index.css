@@ -815,6 +815,7 @@ body {
 .meryo-turn-finder .turn-hero__eyebrow { display: flex; align-items: center; gap: .5rem; color: var(--turn-muted); font-size: .72rem; font-weight: 600; }
 .meryo-turn-finder .turn-hero__eyebrow > span { width: .52rem; height: .52rem; flex: 0 0 auto; border-radius: 50%; background: var(--turn-action); }
 .meryo-turn-finder .turn-hero__close { display: grid; width: 2.75rem; height: 2.75rem; flex: 0 0 auto; place-items: center; }
+.meryo-turn-finder .meryo-turn-finder__back { display: inline-flex; width: auto; min-width: 0; min-height: 2.75rem; align-items: center; justify-content: center; gap: .35rem; padding: .5rem .7rem; white-space: nowrap; font-size: .78rem; }
 .meryo-turn-finder .turn-hero__title { margin: .15rem 0 .3rem; font-size: clamp(1.65rem, 5vw, 2.5rem); font-weight: 650; line-height: 1.12; }
 .meryo-turn-finder .turn-body { display: grid; gap: 1rem; padding: clamp(1rem, 3vw, 1.75rem); }
 .meryo-turn-finder .turn-form { display: grid; gap: .75rem; font-size: .9rem; }

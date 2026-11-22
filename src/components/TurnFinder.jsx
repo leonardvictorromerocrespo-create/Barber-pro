@@ -1,5 +1,6 @@
 import BarberShortcutIcon from './BarberShortcutIcon';
 import { useCallback, useEffect, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { fechaLima, sumarDias } from '../lib/dates';
 import { findTurns, turnKey } from '../lib/turn-finder';
 
@@ -41,7 +42,7 @@ function TurnCard({ turn, onReserve }) {
   </li>;
 }
 
-export default function TurnFinder({ shops, slots, onReserve, themeMode = 'dark', themeAppearance, category = 'barberia', disabled = false, triggerClassName = '' }) {
+export default function TurnFinder({ shops, slots, onReserve, onBeforeOpen, themeMode = 'dark', themeAppearance, category = 'barberia', disabled = false, triggerClassName = '' }) {
   const activeCategory = category === 'belleza' ? 'belleza' : 'barberia';
   const [district, setDistrict] = useState('');
   const [service, setService] = useState('');
@@ -169,13 +170,15 @@ export default function TurnFinder({ shops, slots, onReserve, themeMode = 'dark'
     <button ref={triggerRef} type="button" aria-haspopup="dialog" aria-expanded={open}
       aria-controls="meryo-turn-finder-dialog"
       disabled={disabled}
-      onClick={() => setOpen(true)}
+      onClick={() => { onBeforeOpen?.(); setOpen(true); }}
       className={`meryo-turn-finder__trigger ${triggerClassName} inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-md px-3 py-2 font-medium shadow-sm`}>
       <BarberShortcutIcon kind="today"/>
       <span>Turnos para hoy</span>
     </button>
 
-    {open&&<div className="meryo-turn-finder__backdrop fixed inset-0 z-[60] flex items-center justify-center p-2 sm:p-5"
+    {open&&createPortal(<div data-meryo-theme={activeCategory === 'belleza' ? 'beauty' : 'barberia'} data-meryo-mode={themeMode} data-meryo-appearance={themeAppearance}>
+    <div className="meryo-turn-finder" data-meryo-theme={activeCategory === 'belleza' ? 'beauty' : 'barberia'} data-meryo-mode={themeMode} data-meryo-appearance={themeAppearance}>
+    <div className="meryo-turn-finder__backdrop fixed inset-0 z-[80] flex items-center justify-center p-2 sm:p-5"
       onMouseDown={event=>{if(event.target===event.currentTarget)closeFinder();}}>
       <section ref={dialogRef} id="meryo-turn-finder-dialog" role="dialog" aria-modal="true" aria-labelledby="meryo-turn-finder-title"
         data-meryo-theme={activeCategory === 'belleza' ? 'beauty' : 'barberia'} data-meryo-mode={themeMode} data-meryo-appearance={themeAppearance}
@@ -183,12 +186,12 @@ export default function TurnFinder({ shops, slots, onReserve, themeMode = 'dark'
         <header className="turn-hero">
           <div className="turn-hero__top">
             <p className="turn-hero__eyebrow"><span aria-hidden="true"/> {activeCategory === 'belleza' ? 'Salones y belleza' : 'Barberías'} · Horarios en vivo</p>
-            <button ref={closeRef} type="button" onClick={closeFinder} aria-label="Cerrar buscador de turnos"
-              className="meryo-turn-finder__close turn-hero__close rounded-lg">
-              <svg aria-hidden="true" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" strokeWidth="1.8"><path d="m6 6 12 12M18 6 6 18"/></svg>
+            <button ref={closeRef} type="button" onClick={closeFinder} aria-label="Volver al catálogo"
+              className="meryo-turn-finder__close turn-hero__close meryo-turn-finder__back rounded-lg">
+              <svg aria-hidden="true" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" strokeWidth="1.8"><path d="m15 18-6-6 6-6M9 12h11" strokeLinecap="round" strokeLinejoin="round"/></svg>
+              <span>Volver al catálogo</span>
             </button>
           </div>
-          <img className="meryo-function-artwork" src="/campaign-carousel/turnos-para-hoy.png" alt="Turnos para hoy en Barberías y Peluquerías." loading="lazy" decoding="async" />
           <h2 id="meryo-turn-finder-title" className="turn-hero__title">{day === 'today' ? 'Turnos para hoy' : day === 'tomorrow' ? 'Turnos para mañana' : 'Encuentra un turno'}</h2>
           <p className="turn-muted text-sm">Encuentra un horario disponible, compara precios y elige a tu profesional.</p>
         </header>
@@ -260,6 +263,8 @@ export default function TurnFinder({ shops, slots, onReserve, themeMode = 'dark'
           </div>
         </div>
       </section>
-    </div>}
+    </div>
+    </div>
+    </div>, document.body)}
   </section>;
 }
