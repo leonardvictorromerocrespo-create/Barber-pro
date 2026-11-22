@@ -546,6 +546,12 @@ body {
 .meryo-catalog-topline { display: flex; min-width: 0; flex-direction: column; align-items: flex-start; gap: .45rem; }
 .meryo-catalog-top-actions { display: flex; width: 100%; min-width: 0; align-items: center; justify-content: space-between; gap: .65rem; }
 .meryo-catalog-heading { margin: 0; color: var(--meryo-text); font-family: "Indie Flower", "Quicksand", sans-serif; font-size: clamp(1.6rem, 3.2vw, 2.2rem); font-weight: 400; line-height: 1.15; }
+.meryo-catalog-search-inline { display: flex; min-width: 0; min-height: 2.35rem; align-items: center; gap: .45rem; border: 1px solid color-mix(in srgb, var(--meryo-text) 18%, transparent); border-radius: 999px; padding: 0 .65rem; background: var(--meryo-surface); color: var(--meryo-text-muted); }
+.meryo-catalog-search-inline svg { width: 1rem; height: 1rem; flex: 0 0 auto; opacity: .72; }
+.meryo-catalog-search-inline input { width: 100%; min-width: 0; border: 0; outline: 0; background: transparent; color: var(--meryo-text); font: inherit; font-size: .88rem; }
+.meryo-catalog-search-inline input::placeholder { color: var(--meryo-text-muted); opacity: .62; }
+.meryo-catalog-search-inline:focus-within { border-color: color-mix(in srgb, var(--meryo-text) 38%, transparent); }
+.meryo-catalog-search-inline:focus-within input { outline: 0; }
 .meryo-catalog-count { margin: 0; max-width: 100%; border: 0; border-radius: 0; padding: 0; background: transparent; color: var(--meryo-text-muted); box-shadow: none; font-size: .84rem; line-height: 1.3; }
 .meryo-catalog-controls { position: relative; min-width: 0; }
 .meryo-catalog-field { border: 0; background: var(--meryo-surface); color: var(--meryo-text); box-shadow: 0 3px 10px rgb(0 0 0 / 12%); }
