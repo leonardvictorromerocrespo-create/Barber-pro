@@ -169,13 +169,6 @@
 }
 .meryo-discover__action > .meryo-intelligence-trigger { padding-inline: 1.7rem; }
 .meryo-discover__action > .meryo-intelligence-trigger svg { color: var(--meryo-text); }
-.meryo-discover__panel .meryo-discover__action > .meryo-intelligence-trigger {
-  border-color: #22bd0b;
-  background: #39f51d;
-  color: #10220b;
-}
-.meryo-discover__panel .meryo-discover__action > .meryo-intelligence-trigger svg { color: #10220b; }
-.meryo-discover__panel .meryo-discover__action > .meryo-intelligence-trigger:hover { background: #4cff32; color: #10220b; }
 .meryo-discover__action > .meryo-catalog-promotion-shortcut,
 .meryo-discover__action > .meryo-catalog-promotion-shortcut > span { color: var(--meryo-text) !important; }
 .meryo-discover__action > .meryo-intelligence-trigger span,
@@ -233,7 +226,6 @@
   .meryo-discover__turn-finder .meryo-turn-finder__trigger svg,
   .meryo-discover__action > .meryo-intelligence-trigger svg { left: .45rem; width: .85rem; height: .85rem; }
   .meryo-discover__action > .meryo-intelligence-trigger { padding-inline: 1.45rem; }
-  .meryo-discover__panel .meryo-discover__action > .meryo-intelligence-trigger { background: #39f51d; color: #10220b; }
   .meryo-discover__slide { width: 82vw; flex-basis: 82vw; }
   .meryo-discover__catalog-frame { padding: .65rem .35rem 0; }
 }
