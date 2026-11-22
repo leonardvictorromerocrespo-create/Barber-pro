@@ -31,7 +31,7 @@ export function CutPromotions({ offers, loading, error, notice='', onRetry, onBa
     <header className="sticky top-0 z-20 border-b border-white/10 bg-neutral-950/95 px-4 py-3 backdrop-blur sm:px-6">
       <div className="mx-auto flex max-w-7xl items-center justify-between gap-4">
         <MeryoLogo variant={themeMode==='light'?'light':'dark'} className="h-7 w-auto sm:h-9" />
-        <div className="flex items-center gap-2"><MeryoThemeToggle mode={themeMode} onToggle={onToggleTheme} className="meryo-promotion-theme-toggle"/><button type="button" onClick={onBack} className="min-h-11 rounded-xl border border-white/20 px-4 py-2 text-sm"><span aria-hidden="true">← </span>Volver al catálogo</button></div>
+        <div className="flex items-center gap-2"><MeryoThemeToggle mode={themeMode} onToggle={onToggleTheme} className="meryo-promotion-theme-toggle"/><button type="button" onClick={onBack} aria-label="Volver a Nuestras funciones" title="Volver a Nuestras funciones" className="grid size-10 place-items-center rounded-full border border-white/20 p-0"><svg aria-hidden="true" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M19 12H5m7 7-7-7 7-7"/></svg></button></div>
       </div>
     </header>
     <main className="mx-auto max-w-7xl px-4 py-5 sm:px-6 sm:py-8">

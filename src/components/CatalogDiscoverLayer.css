@@ -64,8 +64,9 @@
   visibility: hidden;
   overflow: hidden;
   border: 0;
+  border-top: 2px solid #555;
   border-radius: 1.35rem 1.35rem 0 0;
-  background: color-mix(in srgb, var(--meryo-carbon) 92%, #777 8%);
+  background: color-mix(in srgb, var(--meryo-carbon) 96%, #000 4%);
   color: var(--meryo-text);
   box-shadow: none;
   opacity: 1;
@@ -73,6 +74,7 @@
   will-change: height;
   transition: height 1.5s cubic-bezier(.22,.75,.22,1), visibility 0s linear 1.5s;
 }
+.meryo-discover__panel[data-meryo-mode="dark"] { background: color-mix(in srgb, var(--meryo-carbon) 90%, #000 10%); }
 .meryo-discover__panel.is-open {
   visibility: visible;
   height: var(--meryo-discover-panel-height, 0px);

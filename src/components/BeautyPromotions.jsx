@@ -24,7 +24,7 @@ export function BeautyPromotions({offers,loading,error,notice='',onRetry,onBack,
     <header className="meryo-beauty-promotions-header sticky top-0 z-20 border-b px-4 py-3 backdrop-blur sm:px-6">
       <div className="mx-auto flex w-full min-w-0 max-w-5xl items-center justify-between gap-2 sm:gap-4">
         <MeryoLogo variant={themeMode==='light'?'light':'dark'} className="h-6 w-auto min-w-0 shrink sm:h-9" />
-        <div className="flex shrink-0 items-center gap-2"><MeryoThemeToggle mode={themeMode} onToggle={onToggleTheme} className="meryo-promotion-theme-toggle"/><button type="button" onClick={onBack} className="min-h-11 shrink-0 whitespace-nowrap rounded-xl border px-2 py-2 text-xs font-semibold sm:px-4 sm:text-sm">← Volver al catálogo</button></div>
+        <div className="flex shrink-0 items-center gap-2"><MeryoThemeToggle mode={themeMode} onToggle={onToggleTheme} className="meryo-promotion-theme-toggle"/><button type="button" onClick={onBack} aria-label="Volver a Nuestras funciones" title="Volver a Nuestras funciones" className="grid size-10 place-items-center rounded-full border p-0"><svg aria-hidden="true" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M19 12H5m7 7-7-7 7-7"/></svg></button></div>
       </div>
     </header>
     <main className="mx-auto max-w-5xl space-y-6 px-4 py-5 sm:space-y-8 sm:px-6 sm:py-8">

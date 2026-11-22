@@ -42,7 +42,7 @@ function TurnCard({ turn, onReserve }) {
   </li>;
 }
 
-export default function TurnFinder({ shops, slots, onReserve, onBeforeOpen, themeMode = 'dark', themeAppearance, category = 'barberia', disabled = false, triggerClassName = '' }) {
+export default function TurnFinder({ shops, slots, onReserve, onBeforeOpen, onBackToFunctions, themeMode = 'dark', themeAppearance, category = 'barberia', disabled = false, triggerClassName = '' }) {
   const activeCategory = category === 'belleza' ? 'belleza' : 'barberia';
   const [district, setDistrict] = useState('');
   const [service, setService] = useState('');
@@ -69,8 +69,9 @@ export default function TurnFinder({ shops, slots, onReserve, onBeforeOpen, them
     generation.current += 1;
     setResult(null);
     setOpen(false);
+    onBackToFunctions?.();
     window.requestAnimationFrame(() => triggerRef.current?.focus());
-  }, []);
+  }, [onBackToFunctions]);
   useEffect(() => () => { generation.current += 1; }, []);
   useEffect(() => {
     generation.current += 1;
@@ -186,10 +187,9 @@ export default function TurnFinder({ shops, slots, onReserve, onBeforeOpen, them
         <header className="turn-hero">
           <div className="turn-hero__top">
             <p className="turn-hero__eyebrow"><span aria-hidden="true"/> {activeCategory === 'belleza' ? 'Salones y belleza' : 'Barberías'} · Horarios en vivo</p>
-            <button ref={closeRef} type="button" onClick={closeFinder} aria-label="Volver al catálogo"
+            <button ref={closeRef} type="button" onClick={closeFinder} aria-label="Volver a Nuestras funciones" title="Volver a Nuestras funciones"
               className="meryo-turn-finder__close turn-hero__close meryo-turn-finder__back rounded-lg">
-              <svg aria-hidden="true" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" strokeWidth="1.8"><path d="m15 18-6-6 6-6M9 12h11" strokeLinecap="round" strokeLinejoin="round"/></svg>
-              <span>Volver al catálogo</span>
+              <svg aria-hidden="true" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M19 12H5m7 7-7-7 7-7"/></svg>
             </button>
           </div>
           <h2 id="meryo-turn-finder-title" className="turn-hero__title">{day === 'today' ? 'Turnos para hoy' : day === 'tomorrow' ? 'Turnos para mañana' : 'Encuentra un turno'}</h2>

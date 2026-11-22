@@ -62,7 +62,7 @@
 .meryo-inspiration-page h1 { margin-top: .3rem; font-size: clamp(1.9rem,4vw,3rem); font-weight: 800; letter-spacing: -.035em; line-height: 1.06; }
 .meryo-inspiration-kicker { margin-top: 1.4rem; color: var(--inspiration-accent); font-size: .72rem; font-weight: 750; letter-spacing: .16em; }
 .meryo-inspiration-intro { margin-top: .75rem; color: var(--inspiration-muted); }
-.meryo-inspiration-back { min-height: 38px; padding: .35rem .65rem; border-radius: 7px; color: var(--inspiration-muted); font-size: .86rem; }
+.meryo-inspiration-back { display: inline-grid; width: 2.5rem; height: 2.5rem; place-items: center; border: 1px solid color-mix(in srgb, var(--inspiration-muted) 35%, transparent); border-radius: 999px; color: var(--inspiration-muted); }
 .meryo-inspiration-back:hover { background: var(--inspiration-raised); color: var(--inspiration-text); }
 .meryo-inspiration-filters { display: flex; gap: .45rem; margin: 1.4rem 0 1.25rem; overflow-x: auto; padding: 2px 1px 6px; scrollbar-width: thin; }
 .meryo-inspiration-filters button { flex: 0 0 auto; min-height: 40px; padding: .45rem .8rem; border-radius: 7px; background: var(--inspiration-raised); color: var(--inspiration-muted); font-size: .88rem; transition: background .15s ease,color .15s ease; }

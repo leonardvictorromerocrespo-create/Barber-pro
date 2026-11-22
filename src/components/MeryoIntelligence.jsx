@@ -147,7 +147,7 @@ export default function MeryoIntelligence({ open, category = 'barberia', themeMo
           <span aria-hidden="true" className="meryo-intelligence-brand-divider" />
           <p>MERYO<br/><strong>INTELLIGENCE</strong></p>
         </div>
-        <button ref={closeRef} type="button" className="meryo-intelligence-back" onClick={onClose} aria-label="Volver al catálogo"><span aria-hidden="true">←</span><span className="meryo-intelligence-back-label-full">Volver al catálogo</span><span className="meryo-intelligence-back-label-short">Volver</span></button>
+        <button ref={closeRef} type="button" className="meryo-intelligence-back" onClick={onClose} aria-label="Volver a Nuestras funciones" title="Volver a Nuestras funciones"><svg aria-hidden="true" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M19 12H5m7 7-7-7 7-7"/></svg></button>
       </header>
 
       <div className="meryo-intelligence-content">
