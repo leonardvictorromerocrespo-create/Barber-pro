@@ -63,6 +63,7 @@
 .meryo-intelligence-close:hover { background: var(--meryo-surface); }
 .meryo-intelligence-content { display: flex; min-height: 0; flex: 1; flex-direction: column; padding: 1.25rem clamp(1rem, 4vw, 2.4rem) .85rem; }
 .meryo-intelligence-intro { max-width: 46rem; margin: 0 auto; text-align: center; }
+.meryo-function-artwork { display: block; width: 100%; max-width: 36rem; max-height: min(32vh, 18rem); margin: 0 auto 1rem; border-radius: .85rem; object-fit: contain; }
 .meryo-intelligence-eyebrow { display: inline-flex; align-items: center; gap: .4rem; margin: 0 0 .6rem; color: var(--meryo-gold-light); font-size: .75rem; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; }
 .meryo-intelligence-eyebrow svg { width: .95rem; height: .95rem; }
 .meryo-intelligence-intro h1 { margin: 0; color: var(--meryo-text); font-size: clamp(1.55rem, 3.6vw, 2.35rem); font-weight: 600; letter-spacing: -.035em; line-height: 1.14; }

@@ -31,6 +31,7 @@ export function BeautyPromotions({offers,loading,error,notice='',onRetry,onBack,
       <section aria-labelledby="beauty-promotions-title" className="meryo-beauty-promotions-banner relative isolate flex min-h-64 items-center overflow-hidden rounded-3xl border px-5 py-7 sm:min-h-80 sm:px-10">
         <h1 id="beauty-promotions-title" className="meryo-beauty-promotions-title relative z-10">Promociones de peluquerías y salones</h1>
       </section>
+      <img className="meryo-function-artwork" src="/campaign-carousel/promociones.png" alt="Promociones de Barberías y Peluquerías." loading="lazy" decoding="async" />
       <section aria-label="Promociones de hoy">
         {loading&&<p role="status" className="rounded-2xl border bg-[var(--beauty-surface)] p-5">Buscando promociones disponibles para hoy…</p>}
         {error&&<div role="alert" className="rounded-2xl border bg-[var(--beauty-surface)] p-5"><p>No pudimos cargar las promociones: {error}</p><button type="button" onClick={onRetry} className="mt-3 min-h-11 rounded-xl bg-[var(--beauty-accent)] px-4 py-2 font-semibold text-[var(--beauty-accent-text)]">Reintentar</button></div>}

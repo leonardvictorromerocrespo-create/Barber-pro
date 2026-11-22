@@ -1,0 +1,195 @@
+.meryo-discover {
+  position: relative;
+  z-index: 12;
+  margin: .35rem 0 .8rem;
+}
+
+.meryo-discover__handle {
+  display: flex;
+  width: 100%;
+  min-height: 2.75rem;
+  align-items: center;
+  justify-content: center;
+  gap: .75rem;
+  border: 1.5px solid var(--meryo-text);
+  border-radius: 999px;
+  padding: .5rem .9rem;
+  background: var(--meryo-surface, #fff);
+  color: var(--meryo-text);
+  box-shadow: none;
+  font: inherit;
+  font-size: .9rem;
+  font-weight: 600;
+  touch-action: none;
+  cursor: grab;
+}
+
+.meryo-discover__handle:active { cursor: grabbing; }
+.meryo-discover__handle:focus-visible { outline: 2px solid var(--meryo-gold-light); outline-offset: 3px; }
+
+.meryo-discover__panel { display: none; }
+.meryo-discover.is-peeking .meryo-discover__panel {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  display: block;
+  width: 100%;
+  height: min(19rem, 58dvh);
+  overflow: hidden;
+  border: 1px solid var(--meryo-border);
+  border-radius: 1rem;
+  background: color-mix(in srgb, var(--meryo-carbon, #111) 92%, var(--meryo-text, #fff) 8%);
+  box-shadow: 0 8px 20px rgb(0 0 0 / 16%);
+  animation: meryo-discover-peek 1.8s ease-in-out both;
+  pointer-events: none;
+}
+.meryo-discover.is-open {
+  position: fixed;
+  z-index: 35;
+  top: var(--meryo-catalog-header-height, 3.5625rem);
+  right: 0;
+  bottom: calc(4.35rem + env(safe-area-inset-bottom));
+  left: 0;
+  display: flex;
+  flex-direction: column;
+  margin: 0;
+  padding: .45rem .75rem .7rem;
+  background: color-mix(in srgb, var(--meryo-carbon, #111) 92%, var(--meryo-text, #fff) 8%);
+  color: var(--meryo-text);
+}
+.meryo-discover.is-open .meryo-discover__handle {
+  position: relative;
+  z-index: 1;
+  flex: 0 0 auto;
+  background: transparent;
+  box-shadow: none;
+}
+.meryo-discover.is-open .meryo-discover__panel {
+  display: block;
+  min-height: 0;
+  flex: 1 1 auto;
+  overflow-x: hidden;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding: .35rem 0 .8rem;
+}
+.meryo-discover__content { width: min(100%, 76rem); margin-inline: auto; }
+.meryo-discover__content h2 {
+  margin: .6rem 0 .85rem;
+  color: var(--meryo-text);
+  font-size: clamp(1.25rem, 3vw, 1.8rem);
+  font-weight: 650;
+  line-height: 1.2;
+}
+.meryo-discover__carousel {
+  display: flex;
+  gap: .75rem;
+  overflow-x: auto;
+  overscroll-behavior-inline: contain;
+  scroll-snap-type: x mandatory;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+  padding: .1rem .05rem .7rem;
+  -webkit-overflow-scrolling: touch;
+}
+.meryo-discover__carousel::-webkit-scrollbar { display: none; }
+.meryo-discover__slide {
+  width: min(82vw, 54rem);
+  flex: 0 0 min(82vw, 54rem);
+  scroll-snap-align: start;
+}
+.meryo-discover__slide img {
+  display: block;
+  width: 100%;
+  height: auto;
+  border-radius: .85rem;
+}
+.meryo-discover__actions {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: .85rem 1rem;
+  padding: .2rem 0 .8rem;
+}
+.meryo-discover__action { min-width: 0; }
+.meryo-discover__action > p {
+  margin: .35rem .2rem 0;
+  color: var(--meryo-text-muted);
+  font-size: .82rem;
+  line-height: 1.4;
+}
+.meryo-discover__shortcut,
+.meryo-discover__action > .meryo-intelligence-trigger,
+.meryo-discover__turn-finder .meryo-turn-finder__trigger {
+  position: relative;
+  display: flex;
+  width: 100%;
+  min-width: 0;
+  min-height: 3rem;
+  flex-direction: row;
+  align-items: center;
+  justify-content: center;
+  gap: .45rem;
+  border: 1.5px solid var(--meryo-text);
+  border-radius: 999px;
+  padding: .5rem 2.35rem;
+  background: var(--meryo-surface, #fff);
+  color: var(--meryo-text);
+  box-shadow: none;
+  font-size: .84rem;
+  font-weight: 500;
+  line-height: 1.2;
+  text-align: center;
+  text-decoration: none;
+}
+.meryo-discover__shortcut svg,
+.meryo-discover__turn-finder .meryo-turn-finder__trigger svg,
+.meryo-discover__action > .meryo-intelligence-trigger svg {
+  position: absolute;
+  left: .9rem;
+  display: block;
+  width: 1rem;
+  height: 1rem;
+  flex: 0 0 auto;
+}
+.meryo-discover__action > .meryo-intelligence-trigger { border-color: var(--meryo-text); padding-inline: 2.35rem; }
+.meryo-discover__action > .meryo-intelligence-trigger svg { color: var(--meryo-text); }
+.meryo-discover__action > .meryo-catalog-promotion-shortcut { color: var(--meryo-text) !important; }
+.meryo-discover__action > .meryo-catalog-promotion-shortcut > span { color: var(--meryo-text) !important; }
+.meryo-discover__action > .meryo-intelligence-trigger span,
+.meryo-discover__shortcut > span,
+.meryo-discover__turn-finder .meryo-turn-finder__trigger > span { white-space: nowrap; }
+.meryo-discover__shortcut:hover,
+.meryo-discover__turn-finder .meryo-turn-finder__trigger:hover:not(:disabled) { background: transparent; color: var(--meryo-gold-light); }
+.meryo-discover__shortcut:focus-visible,
+.meryo-discover__turn-finder .meryo-turn-finder__trigger:focus-visible { outline: 2px solid var(--meryo-gold-light); outline-offset: 2px; }
+.meryo-discover__turn-finder .meryo-turn-finder { margin: 0; border: 0; background: transparent; box-shadow: none; }
+.meryo-discover__turn-finder .meryo-turn-finder__trigger { background: transparent; box-shadow: none; }
+.meryo-discover__turn-finder .meryo-turn-finder__trigger:disabled { color: var(--meryo-text-muted); opacity: .65; }
+
+@keyframes meryo-discover-peek {
+  0%, 100% { transform: translateY(-96%); }
+  20%, 80% { transform: translateY(0); }
+}
+
+@media (max-width: 520px) {
+  .meryo-discover.is-open { padding-inline: .55rem; }
+  .meryo-discover__actions { grid-template-columns: minmax(0, 1fr); gap: .5rem; }
+  .meryo-discover__action { display: block; }
+  .meryo-discover__action > p { margin: .2rem .35rem .45rem; font-size: .78rem; text-align: center; }
+  .meryo-discover__shortcut,
+  .meryo-discover__action > .meryo-intelligence-trigger,
+  .meryo-discover__turn-finder .meryo-turn-finder__trigger { min-height: 48px; font-size: .78rem; }
+  .meryo-discover__shortcut svg,
+  .meryo-discover__turn-finder .meryo-turn-finder__trigger svg,
+  .meryo-discover__action > .meryo-intelligence-trigger svg { width: .95rem; height: .95rem; }
+  .meryo-discover__slide { width: 82vw; flex-basis: 82vw; }
+}
+@media (min-width: 768px) {
+  .meryo-discover.is-open { bottom: 0; padding: .75rem 1.5rem 1rem; }
+  .meryo-discover.is-open .meryo-discover__handle { max-width: 76rem; margin-inline: auto; }
+  .meryo-discover__actions { gap: 1rem 1.5rem; }
+  .meryo-discover__slide { width: min(68vw, 54rem); flex-basis: min(68vw, 54rem); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .meryo-discover.is-peeking .meryo-discover__panel { animation: none; }
+}

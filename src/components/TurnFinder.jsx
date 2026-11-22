@@ -188,6 +188,7 @@ export default function TurnFinder({ shops, slots, onReserve, themeMode = 'dark'
               <svg aria-hidden="true" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" strokeWidth="1.8"><path d="m6 6 12 12M18 6 6 18"/></svg>
             </button>
           </div>
+          <img className="meryo-function-artwork" src="/campaign-carousel/turnos-para-hoy.png" alt="Turnos para hoy en Barberías y Peluquerías." loading="lazy" decoding="async" />
           <h2 id="meryo-turn-finder-title" className="turn-hero__title">{day === 'today' ? 'Turnos para hoy' : day === 'tomorrow' ? 'Turnos para mañana' : 'Encuentra un turno'}</h2>
           <p className="turn-muted text-sm">Encuentra un horario disponible, compara precios y elige a tu profesional.</p>
         </header>
