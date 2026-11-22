@@ -1,98 +1,117 @@
 .meryo-discover {
   position: relative;
   z-index: 12;
-  margin: .35rem 0 .8rem;
+  margin: .2rem 0 .35rem;
 }
 
-.meryo-discover__handle {
-  display: flex;
-  width: 100%;
-  min-height: 2.75rem;
-  align-items: center;
-  justify-content: center;
-  gap: .75rem;
-  border: 1.5px solid var(--meryo-text);
+.meryo-discover__label {
+  margin: 0 0 .22rem .25rem;
+  color: var(--meryo-text-muted);
+  font-size: .78rem;
+  font-weight: 650;
+  line-height: 1.15;
+}
+
+.meryo-discover__switch-row { display: flex; align-items: center; }
+.meryo-discover__track {
+  position: relative;
+  width: min(8.5rem, 100%);
+  height: 2.35rem;
+  border: 1px solid color-mix(in srgb, var(--meryo-text) 32%, transparent);
   border-radius: 999px;
-  padding: .5rem .9rem;
-  background: var(--meryo-surface, #fff);
-  color: var(--meryo-text);
-  box-shadow: none;
-  font: inherit;
-  font-size: .9rem;
-  font-weight: 600;
-  touch-action: none;
+  background: #b0acac;
+  box-shadow: inset 0 1px 2px rgb(0 0 0 / 8%);
   cursor: grab;
+  touch-action: pan-y;
+  user-select: none;
+  transition: background-color .28s ease;
 }
-
-.meryo-discover__handle:active { cursor: grabbing; }
-.meryo-discover__handle:focus-visible { outline: 2px solid var(--meryo-gold-light); outline-offset: 3px; }
-
-.meryo-discover__panel { display: none; }
-.meryo-discover.is-peeking .meryo-discover__panel {
+.meryo-discover__track[aria-valuenow="100"] { border-color: #259c32; background: #35c943; }
+.meryo-discover__track:active { cursor: grabbing; }
+.meryo-discover__track:focus-visible { outline: 2px solid var(--meryo-gold-light); outline-offset: 3px; }
+.meryo-discover__knob {
   position: absolute;
-  top: 100%;
-  left: 0;
-  display: block;
-  width: 100%;
-  height: min(19rem, 58dvh);
-  overflow: hidden;
-  border: 1px solid var(--meryo-border);
-  border-radius: 1rem;
-  background: color-mix(in srgb, var(--meryo-carbon, #111) 92%, var(--meryo-text, #fff) 8%);
-  box-shadow: 0 8px 20px rgb(0 0 0 / 16%);
-  animation: meryo-discover-peek 1.8s ease-in-out both;
+  top: 3px;
+  left: 3px;
+  display: grid;
+  width: 3.8rem;
+  height: calc(100% - 6px);
+  place-items: center;
+  transform: translateX(0);
+  border: 1px solid color-mix(in srgb, var(--meryo-text) 16%, transparent);
+  border-radius: 999px;
+  background: #fff;
+  box-shadow: 0 2px 5px rgb(0 0 0 / 17%);
+  color: #222;
+  font-size: .78rem;
+  font-weight: 550;
+  transition: transform .36s cubic-bezier(.2,.7,.2,1), background-color .2s ease;
   pointer-events: none;
 }
-.meryo-discover.is-open {
+.meryo-discover__track:active .meryo-discover__knob { transition-duration: 0s; }
+
+.meryo-discover__panel {
   position: fixed;
-  z-index: 35;
-  top: var(--meryo-catalog-header-height, 3.5625rem);
+  display: flex;
+  flex-direction: column;
+  z-index: 65;
   right: 0;
   bottom: calc(4.35rem + env(safe-area-inset-bottom));
   left: 0;
-  display: flex;
-  flex-direction: column;
-  margin: 0;
-  padding: .45rem .75rem .7rem;
-  background: color-mix(in srgb, var(--meryo-carbon, #111) 92%, var(--meryo-text, #fff) 8%);
+  visibility: hidden;
+  overflow: hidden;
+  transform: translateY(-100%);
+  clip-path: inset(0 0 100% 0 round 1.35rem 1.35rem 0 0);
+  border: 1px solid color-mix(in srgb, var(--meryo-text) 24%, transparent);
+  border-bottom: 0;
+  border-radius: 1.35rem 1.35rem 0 0;
+  background: color-mix(in srgb, var(--meryo-carbon) 92%, #777 8%);
   color: var(--meryo-text);
+  box-shadow: 0 -6px 18px rgb(0 0 0 / 9%);
+  opacity: 1;
+  pointer-events: none;
+  will-change: transform;
+  transition: transform 1.5s cubic-bezier(.22,.75,.22,1), bottom 1.5s cubic-bezier(.22,.75,.22,1), clip-path 0s linear 1.5s, visibility 0s linear 1.5s;
 }
-.meryo-discover.is-open .meryo-discover__handle {
-  position: relative;
-  z-index: 1;
-  flex: 0 0 auto;
-  background: transparent;
-  box-shadow: none;
-}
-.meryo-discover.is-open .meryo-discover__panel {
-  display: block;
-  min-height: 0;
-  flex: 1 1 auto;
+.meryo-discover__panel.is-open {
+  visibility: visible;
+  transform: translateY(0);
+  clip-path: inset(0 round 1.35rem 1.35rem 0 0);
+  opacity: 1;
+  pointer-events: auto;
   overflow-x: hidden;
   overflow-y: auto;
   overscroll-behavior: contain;
-  padding: .35rem 0 .8rem;
+  padding: .55rem .75rem .75rem;
+  transition: transform 1.5s cubic-bezier(.22,.75,.22,1), bottom 1.5s cubic-bezier(.22,.75,.22,1), clip-path 0s linear, visibility 0s linear;
 }
-.meryo-discover__content { width: min(100%, 76rem); margin-inline: auto; }
+.meryo-discover__panel.is-peeking {
+  visibility: visible;
+  bottom: auto;
+  transform: translateY(0);
+  height: min(24rem, 60dvh);
+  animation: meryo-discover-peek 1.9s ease-in-out both;
+}
+.meryo-discover__content { flex: 0 0 auto; width: min(100%, 76rem); margin-inline: auto; }
 .meryo-discover__content h2 {
-  margin: .6rem 0 .85rem;
+  margin: .35rem 0 .7rem;
   color: var(--meryo-text);
   font-size: clamp(1.25rem, 3vw, 1.8rem);
   font-weight: 650;
   line-height: 1.2;
 }
 .meryo-discover__carousel {
-  display: flex;
-  gap: .75rem;
   overflow-x: auto;
   overscroll-behavior-inline: contain;
-  scroll-snap-type: x mandatory;
   scrollbar-width: none;
   -ms-overflow-style: none;
-  padding: .1rem .05rem .7rem;
+  padding: .05rem .05rem .6rem;
   -webkit-overflow-scrolling: touch;
+  touch-action: pan-x pan-y;
 }
 .meryo-discover__carousel::-webkit-scrollbar { display: none; }
+.meryo-discover__carousel-track { display: flex; width: max-content; }
+.meryo-discover__carousel-group { display: flex; flex: 0 0 auto; gap: .75rem; padding-right: .75rem; }
 .meryo-discover__slide {
   width: min(82vw, 54rem);
   flex: 0 0 min(82vw, 54rem);
@@ -108,11 +127,11 @@
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: .85rem 1rem;
-  padding: .2rem 0 .8rem;
+  padding: .15rem 0 .7rem;
 }
 .meryo-discover__action { min-width: 0; }
 .meryo-discover__action > p {
-  margin: .35rem .2rem 0;
+  margin: .4rem .15rem 0;
   color: var(--meryo-text-muted);
   font-size: .82rem;
   line-height: 1.4;
@@ -124,19 +143,19 @@
   display: flex;
   width: 100%;
   min-width: 0;
-  min-height: 3rem;
+  min-height: 2.8rem;
   flex-direction: row;
   align-items: center;
   justify-content: center;
-  gap: .45rem;
-  border: 1.5px solid var(--meryo-text);
+  gap: .4rem;
+  border: 1px solid color-mix(in srgb, var(--meryo-text) 34%, transparent);
   border-radius: 999px;
-  padding: .5rem 2.35rem;
-  background: var(--meryo-surface, #fff);
+  padding: .45rem .7rem;
+  background: color-mix(in srgb, var(--meryo-surface) 70%, #777 30%);
   color: var(--meryo-text);
   box-shadow: none;
-  font-size: .84rem;
-  font-weight: 500;
+  font-size: .82rem;
+  font-weight: 550;
   line-height: 1.2;
   text-align: center;
   text-decoration: none;
@@ -145,51 +164,80 @@
 .meryo-discover__turn-finder .meryo-turn-finder__trigger svg,
 .meryo-discover__action > .meryo-intelligence-trigger svg {
   position: absolute;
-  left: .9rem;
+  left: .65rem;
   display: block;
-  width: 1rem;
-  height: 1rem;
+  width: .95rem;
+  height: .95rem;
   flex: 0 0 auto;
 }
-.meryo-discover__action > .meryo-intelligence-trigger { border-color: var(--meryo-text); padding-inline: 2.35rem; }
+.meryo-discover__action > .meryo-intelligence-trigger { padding-inline: 1.7rem; }
 .meryo-discover__action > .meryo-intelligence-trigger svg { color: var(--meryo-text); }
-.meryo-discover__action > .meryo-catalog-promotion-shortcut { color: var(--meryo-text) !important; }
+.meryo-discover__action > .meryo-catalog-promotion-shortcut,
 .meryo-discover__action > .meryo-catalog-promotion-shortcut > span { color: var(--meryo-text) !important; }
 .meryo-discover__action > .meryo-intelligence-trigger span,
 .meryo-discover__shortcut > span,
-.meryo-discover__turn-finder .meryo-turn-finder__trigger > span { white-space: nowrap; }
+.meryo-discover__turn-finder .meryo-turn-finder__trigger > span { white-space: normal; }
 .meryo-discover__shortcut:hover,
-.meryo-discover__turn-finder .meryo-turn-finder__trigger:hover:not(:disabled) { background: transparent; color: var(--meryo-gold-light); }
+.meryo-discover__turn-finder .meryo-turn-finder__trigger:hover:not(:disabled) { background: color-mix(in srgb, var(--meryo-surface) 58%, #777 42%); color: var(--meryo-text); }
 .meryo-discover__shortcut:focus-visible,
 .meryo-discover__turn-finder .meryo-turn-finder__trigger:focus-visible { outline: 2px solid var(--meryo-gold-light); outline-offset: 2px; }
 .meryo-discover__turn-finder .meryo-turn-finder { margin: 0; border: 0; background: transparent; box-shadow: none; }
-.meryo-discover__turn-finder .meryo-turn-finder__trigger { background: transparent; box-shadow: none; }
+.meryo-discover__turn-finder .meryo-turn-finder__trigger { background: color-mix(in srgb, var(--meryo-surface) 70%, #777 30%); box-shadow: none; }
 .meryo-discover__turn-finder .meryo-turn-finder__trigger:disabled { color: var(--meryo-text-muted); opacity: .65; }
+.meryo-discover__panel .meryo-turn-finder .meryo-turn-finder__trigger {
+  border: 1px solid color-mix(in srgb, var(--meryo-text) 34%, transparent) !important;
+  border-radius: 999px !important;
+  background: color-mix(in srgb, var(--meryo-surface) 70%, #777 30%) !important;
+  color: var(--meryo-text) !important;
+  box-shadow: none !important;
+}
+
+.meryo-discover__panel[data-meryo-theme="beauty"][data-meryo-mode="dark"] {
+  --meryo-carbon: #342c33;
+  --meryo-surface: #413740;
+  --meryo-text: #f7eff2;
+  --meryo-text-muted: #d2c2ca;
+}
+.meryo-discover__panel[data-meryo-theme="beauty"][data-meryo-mode="light"][data-meryo-appearance="malva-lino"] {
+  --meryo-carbon: #f3eef0;
+  --meryo-surface: #fffcfd;
+  --meryo-text: #352832;
+  --meryo-text-muted: #675761;
+}
+
+.meryo-discover__catalog-frame {
+  border: 1px solid color-mix(in srgb, var(--meryo-text) 22%, transparent);
+  border-bottom: 0;
+  border-radius: 1.35rem 1.35rem 0 0;
+  padding: .8rem .65rem 0;
+}
+.meryo-discover__catalog-frame[hidden] { display: none !important; }
 
 @keyframes meryo-discover-peek {
-  0%, 100% { transform: translateY(-96%); }
-  20%, 80% { transform: translateY(0); }
+  0%, 100% { clip-path: inset(0 0 100% 0 round 1.35rem 1.35rem 0 0); opacity: 0; }
+  22%, 76% { clip-path: inset(0 0 72% 0 round 1.35rem 1.35rem 0 0); opacity: .96; }
 }
 
 @media (max-width: 520px) {
-  .meryo-discover.is-open { padding-inline: .55rem; }
-  .meryo-discover__actions { grid-template-columns: minmax(0, 1fr); gap: .5rem; }
-  .meryo-discover__action { display: block; }
-  .meryo-discover__action > p { margin: .2rem .35rem .45rem; font-size: .78rem; text-align: center; }
+  .meryo-discover__panel.is-open { padding-inline: .55rem; }
+  .meryo-discover__actions { gap: .75rem .55rem; }
+  .meryo-discover__action > p { margin: .3rem .15rem 0; font-size: .73rem; text-align: left; }
   .meryo-discover__shortcut,
   .meryo-discover__action > .meryo-intelligence-trigger,
-  .meryo-discover__turn-finder .meryo-turn-finder__trigger { min-height: 48px; font-size: .78rem; }
+  .meryo-discover__turn-finder .meryo-turn-finder__trigger { min-height: 2.65rem; font-size: .74rem; }
   .meryo-discover__shortcut svg,
   .meryo-discover__turn-finder .meryo-turn-finder__trigger svg,
-  .meryo-discover__action > .meryo-intelligence-trigger svg { width: .95rem; height: .95rem; }
+  .meryo-discover__action > .meryo-intelligence-trigger svg { left: .45rem; width: .85rem; height: .85rem; }
+  .meryo-discover__action > .meryo-intelligence-trigger { padding-inline: 1.45rem; }
   .meryo-discover__slide { width: 82vw; flex-basis: 82vw; }
+  .meryo-discover__catalog-frame { padding: .65rem .35rem 0; }
 }
 @media (min-width: 768px) {
-  .meryo-discover.is-open { bottom: 0; padding: .75rem 1.5rem 1rem; }
-  .meryo-discover.is-open .meryo-discover__handle { max-width: 76rem; margin-inline: auto; }
+  .meryo-discover__panel.is-open { bottom: 0; padding: .85rem 1.5rem 1rem; }
   .meryo-discover__actions { gap: 1rem 1.5rem; }
-  .meryo-discover__slide { width: min(68vw, 54rem); flex-basis: min(68vw, 54rem); }
+  .meryo-discover__slide { width: min(44vw, 34rem); flex-basis: min(44vw, 34rem); }
 }
 @media (prefers-reduced-motion: reduce) {
-  .meryo-discover.is-peeking .meryo-discover__panel { animation: none; }
+  .meryo-discover__knob,.meryo-discover__panel { transition: none; }
+  .meryo-discover__panel.is-peeking { animation: none; }
 }
