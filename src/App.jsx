@@ -114,7 +114,6 @@ function MeryoScreens({identity,view,setView}) {
   const [order, setOrder] = useState("name");
   const [catalogCategory,setCatalogCategory]=useState(()=>new URLSearchParams(typeof window==='undefined'?'':window.location.search).get('catalogo')==='belleza'?'belleza':'barberia');
   const [discoverOpen,setDiscoverOpen]=useState(false);
-  const [discoverPanelMotion,setDiscoverPanelMotion]=useState({height:0,dragging:false,peeking:false});
   const [themeModes,setThemeModes]=useState(()=>({barberia:readThemeMode('barberia','light'),belleza:readThemeMode('belleza','light')}));
   const [themePalettes,setThemePalettes]=useState(()=>({barberia:readThemeAppearance('barberia',readThemeMode('barberia','light')),belleza:readThemeAppearance('belleza',readThemeMode('belleza','light'))}));
   const [themePalettePreferences,setThemePalettePreferences]=useState(()=>({
@@ -945,7 +944,7 @@ if (view === "admin" && adminAccess) return <Suspense fallback={lazyFallback}><A
           <div className="meryo-catalog-topline">
             <div className="min-w-0"><h1 className="meryo-catalog-heading">{catalogCategory==='belleza'?'Encuentra tu salón':'Encuentra tu barbería'}</h1>{district&&<p className="mt-1 text-sm text-neutral-400">Distrito: {district}</p>}</div>
           </div>
-          <CatalogDiscoverLayer key={catalogCategory} category={catalogCategory} themeMode={themeMode} themeAppearance={themeAppearance} open={discoverOpen} onOpenChange={setDiscoverOpen} onPanelMotionChange={setDiscoverPanelMotion} control={<label className="meryo-catalog-search-inline meryo-discover__search">
+          <CatalogDiscoverLayer key={catalogCategory} category={catalogCategory} themeMode={themeMode} themeAppearance={themeAppearance} open={discoverOpen} onOpenChange={setDiscoverOpen} control={<label className="meryo-catalog-search-inline meryo-discover__search">
             <span className="sr-only">Buscar {catalogCategory==='belleza'?'peluquería':'barbería'}</span>
             <svg aria-hidden="true" viewBox="0 0 24 24" fill="none"><circle cx="10.8" cy="10.8" r="6.6" stroke="currentColor" strokeWidth="1.8"/><path d="m16 16 4.4 4.4" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"/></svg>
             <input id="meryo-catalog-search-inline" type="search" autoComplete="off" value={query} onChange={event=>setQuery(event.target.value)} placeholder={`Buscar ${catalogCategory==='belleza'?'peluquería':'barbería'}`} />
@@ -970,7 +969,7 @@ if (view === "admin" && adminAccess) return <Suspense fallback={lazyFallback}><A
             </div>
           </CatalogDiscoverLayer>
           </div>
-          <div className="meryo-discover__catalog-frame" data-discover-dragging={discoverPanelMotion.dragging} data-discover-peeking={discoverPanelMotion.peeking} style={{'--meryo-discover-catalog-offset':`${discoverPanelMotion.height}px`}} inert={discoverOpen}>
+          <div className="meryo-discover__catalog-frame" inert={discoverOpen}>
           {catalogControls}
           {catalogMatchesCategory&&!catalogLoading&&!catalogError&&catalogRows.length>0&&ranking.length===0&&<p role="status" className="meryo-catalog-no-match">No encontramos {catalogCategory==='belleza'?'peluquerías ni salones':'barberías'} con esos filtros.</p>}
           <CatalogStatus loading={catalogLoading||!catalogMatchesCategory} error={catalogMatchesCategory?catalogError:''} empty={catalogRows.length===0} businessLabel={catalogCategory==='belleza'?'peluquerías y salones':'barberías'} onRetry={cargarBarberiasActivas}/>
