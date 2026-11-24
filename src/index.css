@@ -1895,3 +1895,101 @@ body {
 [data-meryo-theme="barberia"] .meryo-profile-close--premium svg,
 .meryo-profile-modal[data-meryo-theme="barberia"] .meryo-profile-close--premium svg { width: 1.2rem; height: 1.2rem; }
 [data-meryo-theme="barberia"][data-meryo-mode="light"] .meryo-profile-modal :is(.meryo-profile-premium-action,.meryo-profile-row-action--premium) { border-color: rgb(76 58 38 / 34%); }
+
+
+/* MERYO Blanco Menta: fondo blanco limpio inspirado en la referencia Entel. */
+[data-meryo-theme="barberia"][data-meryo-mode="light"] {
+  --meryo-carbon: #FFFFFF;
+  --meryo-surface: #FFFFFF;
+  --meryo-surface-raised: #F4F7F8;
+  --meryo-surface-soft: #EAF4EF;
+  --meryo-gold: #6AC59C;
+  --meryo-gold-light: #329B73;
+  --meryo-gold-border: rgb(106 197 156 / 28%);
+  --meryo-text: #20272A;
+  --meryo-text-muted: #69777C;
+  --meryo-border: rgb(32 39 42 / 12%);
+  --color-neutral-950: #FFFFFF;
+  --color-neutral-900: #FFFFFF;
+  --color-neutral-800: #F4F7F8;
+  --color-neutral-700: #EAF4EF;
+  --color-neutral-600: #69777C;
+  --color-neutral-500: #69777C;
+  --color-neutral-400: #69777C;
+  --color-neutral-300: #59666B;
+  --color-neutral-200: #364247;
+  --color-neutral-100: #20272A;
+  background-color: #FFFFFF;
+  color: #20272A;
+}
+[data-meryo-theme="barberia"][data-meryo-mode="light"] .meryo-site-header {
+  border-color: rgb(32 39 42 / 8%) !important;
+  background-color: #FFFFFF !important;
+  color: #20272A;
+}
+[data-meryo-theme="barberia"][data-meryo-mode="light"] .meryo-site-header button { color: #20272A; }
+[data-meryo-theme="barberia"][data-meryo-mode="light"] .meryo-site-header button:hover { background-color: #EAF4EF; }
+[data-meryo-theme="barberia"][data-meryo-mode="light"] .meryo-catalog-page { background: #FFFFFF; color: #20272A; }
+[data-meryo-theme="barberia"][data-meryo-mode="light"] .meryo-catalog-filters {
+  border: 0;
+  background: #F4F7F8 !important;
+  box-shadow: 0 2px 8px rgb(32 39 42 / 6%);
+}
+[data-meryo-theme="barberia"][data-meryo-mode="light"] .meryo-catalog-filters input,
+[data-meryo-theme="barberia"][data-meryo-mode="light"] .meryo-catalog-filters select {
+  border: 1px solid rgb(32 39 42 / 8%) !important;
+  background: #FFFFFF !important;
+  color: #20272A !important;
+  box-shadow: none;
+}
+[data-meryo-theme="barberia"][data-meryo-mode="light"] .meryo-catalog-filters input::placeholder { color: #69777C; }
+[data-meryo-theme="barberia"][data-meryo-mode="light"] .meryo-soft-promotion-link {
+  background: #EAF4EF;
+  box-shadow: none;
+  color: #287D5B;
+}
+[data-meryo-theme="barberia"][data-meryo-mode="light"] .meryo-soft-promotion-link:hover { background: #DDF0E7; }
+[data-meryo-theme="barberia"][data-meryo-mode="light"] .meryo-soft-catalog .meryo-shop-card,
+[data-meryo-theme="barberia"][data-meryo-mode="light"] .meryo-shop-card {
+  border: 1px solid rgb(32 39 42 / 7%);
+  background: #FFFFFF;
+  box-shadow: 0 3px 12px rgb(32 39 42 / 7%);
+}
+[data-meryo-theme="barberia"][data-meryo-mode="light"] .meryo-shop-card__image,
+[data-meryo-theme="barberia"][data-meryo-mode="light"] .meryo-shop-card__placeholder { background: #F4F7F8; }
+[data-meryo-theme="barberia"][data-meryo-mode="light"] .meryo-shop-card__booking-action,
+[data-meryo-theme="barberia"][data-meryo-mode="light"] .meryo-profile-book-button {
+  background: #6AC59C;
+  color: #15392B;
+}
+[data-meryo-theme="barberia"][data-meryo-mode="light"] .meryo-shop-card__profile-action { background: #F4F7F8; color: #20272A; }
+[data-meryo-theme="barberia"][data-meryo-mode="light"] .meryo-soft-catalog .meryo-shop-card__services { background: #F4F7F8 !important; box-shadow: none; }
+[data-meryo-theme="barberia"][data-meryo-mode="light"] .meryo-soft-catalog-info .meryo-info-block { background: #FFFFFF !important; box-shadow: 0 3px 12px rgb(32 39 42 / 7%); }
+[data-meryo-theme="barberia"][data-meryo-mode="light"] .meryo-soft-catalog-info .meryo-info-block > .rounded-2xl { background: #F4F7F8; box-shadow: none; }
+[data-meryo-theme="barberia"][data-meryo-mode="light"] .meryo-mobile-bottom-nav {
+  border-color: rgb(32 39 42 / 8%);
+  background: rgb(255 255 255 / 98%);
+  color: #20272A;
+  backdrop-filter: none;
+}
+[data-meryo-theme="barberia"][data-meryo-mode="light"] .meryo-mobile-bottom-nav button { color: #69777C; }
+[data-meryo-theme="barberia"][data-meryo-mode="light"] .meryo-mobile-bottom-nav button.is-active { background: #EAF4EF; color: #287D5B; }
+[data-meryo-theme="barberia"][data-meryo-mode="light"] .meryo-soft-booking {
+  background: #FFFFFF !important;
+  color: #20272A !important;
+  box-shadow: 0 10px 28px rgb(32 39 42 / 16%);
+}
+[data-meryo-theme="barberia"][data-meryo-mode="light"] .meryo-soft-booking .meryo-booking-option,
+[data-meryo-theme="barberia"][data-meryo-mode="light"] .meryo-soft-booking .meryo-booking-field { background: #F4F7F8; color: #20272A; }
+[data-meryo-theme="barberia"][data-meryo-mode="light"] .meryo-soft-booking .meryo-booking-option.is-selected { background: #6AC59C; color: #15392B; }
+[data-meryo-theme="barberia"][data-meryo-mode="light"] .meryo-soft-booking .meryo-booking-option.is-selected .meryo-booking-price { color: #15392B; }
+[data-meryo-theme="barberia"][data-meryo-mode="light"] .meryo-soft-booking .meryo-booking-panel { background: #F4F7F8 !important; }
+[data-meryo-theme="barberia"][data-meryo-mode="light"] .meryo-booking-card { border-color: rgb(32 39 42 / 10%); background: #FFFFFF; color: #20272A; }
+[data-meryo-theme="barberia"][data-meryo-mode="light"] .meryo-booking-status { background: #EAF4EF; color: #287D5B; }
+[data-meryo-theme="barberia"][data-meryo-mode="light"] .meryo-discover__track[aria-valuenow="100"] { border-color: #329B73; background: #6AC59C; }
+[data-meryo-theme="barberia"][data-meryo-mode="light"] .meryo-discover__panel { background: #FFFFFF; color: #20272A; }
+[data-meryo-theme="barberia"][data-meryo-mode="light"] .meryo-discover__panel .meryo-discover__shortcut,
+[data-meryo-theme="barberia"][data-meryo-mode="light"] .meryo-discover__panel .meryo-discover__action > .meryo-intelligence-trigger,
+[data-meryo-theme="barberia"][data-meryo-mode="light"] .meryo-discover__panel .meryo-discover__turn-finder .meryo-turn-finder__trigger { background: #F4F7F8 !important; color: #20272A !important; }
+[data-meryo-theme="barberia"][data-meryo-mode="light"] .meryo-booking-dialog { --booking-selected-bg: #6AC59C; --booking-selected-fg: #15392B; }
+[data-meryo-theme="barberia"][data-meryo-mode="light"] :where(button,a,input,select,textarea,[tabindex]):focus-visible { outline-color: #329B73; }
