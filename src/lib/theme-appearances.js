@@ -1,6 +1,6 @@
 export const THEME_APPEARANCES = {
   barberia: [
-    { id: 'marfil', label: 'Marfil', mode: 'light', colors: ['#F2F2F0', '#FAFAFA', '#9B7548'] },
+    { id: 'blanco-menta', label: 'Blanco Menta', mode: 'light', colors: ['#FFFFFF', '#F4F7F8', '#6AC59C'] },
     { id: 'negro-gris', label: 'Negro con gris claro', mode: 'dark', colors: ['#000000', '#292929', '#D6D6D6'] },
   ],
   belleza: [
@@ -11,7 +11,7 @@ export const THEME_APPEARANCES = {
 };
 
 export const DEFAULT_THEME_APPEARANCE = {
-  barberia: { light: 'marfil', dark: 'negro-gris' },
+  barberia: { light: 'blanco-menta', dark: 'negro-gris' },
   belleza: { light: 'malva-lino', dark: 'ciruela-ahumado' },
 };
 
