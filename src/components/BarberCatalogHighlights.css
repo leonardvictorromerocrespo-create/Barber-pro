@@ -36,3 +36,12 @@
 .meryo-shop-card__content--likes { position:relative; }
 .meryo-shop-card__content--likes .meryo-shop-card__category { max-width:calc(100% - 3.5rem); }
 .meryo-shop-card__content--likes .meryo-shop-card__name { padding-right:3.5rem; }
+
+
+/* El bloque superior de Barbería queda integrado al blanco, sin caja ni sombra. */
+[data-meryo-theme="barberia"][data-meryo-mode="light"] .meryo-barber-sticky {
+  border: 0 !important;
+  background: #FFFFFF !important;
+  box-shadow: none !important;
+  backdrop-filter: none !important;
+}

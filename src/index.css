@@ -1993,3 +1993,192 @@ body {
 [data-meryo-theme="barberia"][data-meryo-mode="light"] .meryo-discover__panel .meryo-discover__turn-finder .meryo-turn-finder__trigger { background: #F4F7F8 !important; color: #20272A !important; }
 [data-meryo-theme="barberia"][data-meryo-mode="light"] .meryo-booking-dialog { --booking-selected-bg: #6AC59C; --booking-selected-fg: #15392B; }
 [data-meryo-theme="barberia"][data-meryo-mode="light"] :where(button,a,input,select,textarea,[tabindex]):focus-visible { outline-color: #329B73; }
+
+
+/* MERYO · Barbería y Reservas: acabado blanco neutro inspirado en Entel.
+   Alcance deliberado: solo barbería en modo claro; Peluquería no se modifica. */
+[data-meryo-theme="barberia"][data-meryo-mode="light"] {
+  --meryo-carbon: #FFFFFF;
+  --meryo-surface: #FFFFFF;
+  --meryo-surface-raised: #F3F4F6;
+  --meryo-surface-soft: #F3F4F6;
+  --meryo-gold: #F3F4F6;
+  --meryo-gold-light: #374151;
+  --meryo-gold-border: #D9E0EC;
+  --meryo-text: #111827;
+  --meryo-text-muted: #4B5563;
+  --meryo-border: #D9E0EC;
+  background: #FFFFFF !important;
+  color: #111827 !important;
+}
+[data-meryo-theme="barberia"][data-meryo-mode="light"] .meryo-catalog-page,
+[data-meryo-theme="barberia"][data-meryo-mode="light"] .meryo-catalog-section {
+  background: #FFFFFF !important;
+  color: #111827 !important;
+}
+[data-meryo-theme="barberia"][data-meryo-mode="light"] .meryo-catalog-heading,
+[data-meryo-theme="barberia"][data-meryo-mode="light"] .meryo-catalog-topline,
+[data-meryo-theme="barberia"][data-meryo-mode="light"] .meryo-catalog-topline p {
+  color: #111827 !important;
+}
+[data-meryo-theme="barberia"][data-meryo-mode="light"] .meryo-site-header {
+  border-color: #D9E0EC !important;
+  background: #FFFFFF !important;
+  color: #111827 !important;
+  box-shadow: none !important;
+}
+[data-meryo-theme="barberia"][data-meryo-mode="light"] .meryo-site-header :where(button, a, svg) {
+  color: #374151 !important;
+}
+[data-meryo-theme="barberia"][data-meryo-mode="light"] :is(.meryo-catalog-search-inline,.meryo-catalog-field,.meryo-district-trigger,.meryo-catalog-control-button,.meryo-catalog-filter-summary,.meryo-clear-filters,.meryo-active-filter) {
+  border: 1px solid #D9E0EC !important;
+  border-radius: 12px;
+  background: #FFFFFF !important;
+  color: #111827 !important;
+  box-shadow: 0 1px 3px rgb(17 24 39 / 5%) !important;
+}
+[data-meryo-theme="barberia"][data-meryo-mode="light"] .meryo-catalog-search-inline input {
+  color: #111827 !important;
+}
+[data-meryo-theme="barberia"][data-meryo-mode="light"] :is(.meryo-catalog-search-inline input,.meryo-catalog-field)::placeholder {
+  color: #4B5563 !important;
+  opacity: 1;
+}
+[data-meryo-theme="barberia"][data-meryo-mode="light"] .meryo-catalog-filters,
+[data-meryo-theme="barberia"][data-meryo-mode="light"] .meryo-catalog-controls {
+  background: transparent !important;
+  box-shadow: none !important;
+}
+[data-meryo-theme="barberia"][data-meryo-mode="light"] .meryo-district-listbox {
+  border: 1px solid #D9E0EC !important;
+  background: #FFFFFF !important;
+  color: #111827 !important;
+  box-shadow: 0 6px 18px rgb(17 24 39 / 8%) !important;
+}
+[data-meryo-theme="barberia"][data-meryo-mode="light"] .meryo-district-option {
+  color: #374151 !important;
+}
+[data-meryo-theme="barberia"][data-meryo-mode="light"] .meryo-district-option.is-selected,
+[data-meryo-theme="barberia"][data-meryo-mode="light"] .meryo-district-option:hover {
+  background: #F3F4F6 !important;
+  color: #111827 !important;
+}
+[data-meryo-theme="barberia"][data-meryo-mode="light"] .meryo-shop-card,
+[data-meryo-theme="barberia"][data-meryo-mode="light"] .meryo-shop-card--barberia {
+  border: 1px solid #D9E0EC !important;
+  border-radius: 16px !important;
+  background: #FFFFFF !important;
+  color: #111827 !important;
+  box-shadow: 0 1px 4px rgb(17 24 39 / 5%) !important;
+}
+[data-meryo-theme="barberia"][data-meryo-mode="light"] .meryo-shop-card :is(.meryo-shop-card__name,.meryo-shop-card__district,.meryo-shop-card__district--barberia,.meryo-shop-card__facts,.meryo-shop-card__services,.meryo-shop-card__price,.meryo-shop-card__price *) {
+  color: #111827 !important;
+}
+[data-meryo-theme="barberia"][data-meryo-mode="light"] .meryo-shop-card__services,
+[data-meryo-theme="barberia"][data-meryo-mode="light"] .meryo-shop-card__placeholder {
+  border-color: #D9E0EC !important;
+  background: #F3F4F6 !important;
+  box-shadow: none !important;
+}
+[data-meryo-theme="barberia"][data-meryo-mode="light"] .meryo-shop-card--barberia .meryo-shop-card__actions button,
+[data-meryo-theme="barberia"][data-meryo-mode="light"] .meryo-shop-card__profile-action,
+[data-meryo-theme="barberia"][data-meryo-mode="light"] .meryo-shop-card__booking-action,
+[data-meryo-theme="barberia"][data-meryo-mode="light"] .meryo-profile-book-button,
+[data-meryo-theme="barberia"][data-meryo-mode="light"] .meryo-profile-modal :is(button,a).meryo-profile-premium-action {
+  border: 1px solid #D9E0EC !important;
+  border-radius: 12px !important;
+  background: #FFFFFF !important;
+  color: #111827 !important;
+  box-shadow: 0 1px 3px rgb(17 24 39 / 5%) !important;
+}
+[data-meryo-theme="barberia"][data-meryo-mode="light"] .meryo-mobile-bottom-nav {
+  border: 0 !important;
+  border-top: 1px solid #D9E0EC !important;
+  border-radius: 16px 16px 0 0;
+  background: #FFFFFF !important;
+  color: #374151 !important;
+  box-shadow: 0 -1px 4px rgb(17 24 39 / 4%) !important;
+  backdrop-filter: none !important;
+}
+[data-meryo-theme="barberia"][data-meryo-mode="light"] .meryo-mobile-bottom-nav button,
+[data-meryo-theme="barberia"][data-meryo-mode="light"] .meryo-mobile-bottom-nav button.is-active {
+  background: transparent !important;
+  color: #374151 !important;
+  font-weight: 700;
+}
+[data-meryo-theme="barberia"][data-meryo-mode="light"] .meryo-bookings-page-header {
+  border-color: #D9E0EC !important;
+  color: #111827 !important;
+}
+[data-meryo-theme="barberia"][data-meryo-mode="light"].min-h-screen,
+[data-meryo-theme="barberia"][data-meryo-mode="light"] .meryo-reservations {
+  background: #FFFFFF !important;
+  color: #111827 !important;
+}
+[data-meryo-theme="barberia"][data-meryo-mode="light"] .meryo-reservations :is(h1,h2,h3,p,dt,dd,span,strong,label) {
+  color: #111827;
+}
+[data-meryo-theme="barberia"][data-meryo-mode="light"] .meryo-reservations .meryo-booking-card {
+  border: 1px solid #D9E0EC !important;
+  border-radius: 16px !important;
+  background: #FFFFFF !important;
+  color: #111827 !important;
+  box-shadow: 0 1px 4px rgb(17 24 39 / 5%) !important;
+}
+[data-meryo-theme="barberia"][data-meryo-mode="light"] .meryo-reservations :is(.meryo-booking-summary,.meryo-booking-details dt,.meryo-booking-amounts dt,.meryo-booking-note,.meryo-booking-payment) {
+  color: #4B5563 !important;
+}
+[data-meryo-theme="barberia"][data-meryo-mode="light"] .meryo-reservations :is(.meryo-booking-group > h3,.meryo-reservations-heading button,.meryo-booking-timer span) {
+  color: #374151 !important;
+}
+[data-meryo-theme="barberia"][data-meryo-mode="light"] .meryo-reservations .meryo-booking-status {
+  border: 1px solid #D9E0EC !important;
+  background: #F3F4F6 !important;
+  color: #374151 !important;
+}
+[data-meryo-theme="barberia"][data-meryo-mode="light"] .meryo-reservations button,
+[data-meryo-theme="barberia"][data-meryo-mode="light"] .meryo-bookings-page-header button {
+  border: 1px solid #D9E0EC !important;
+  border-radius: 12px !important;
+  background: #FFFFFF !important;
+  color: #111827 !important;
+  box-shadow: 0 1px 3px rgb(17 24 39 / 5%) !important;
+}
+[data-meryo-theme="barberia"][data-meryo-mode="light"] .meryo-soft-booking {
+  border: 1px solid #D9E0EC !important;
+  background: #FFFFFF !important;
+  color: #111827 !important;
+  box-shadow: 0 8px 22px rgb(17 24 39 / 10%) !important;
+}
+[data-meryo-theme="barberia"][data-meryo-mode="light"] .meryo-soft-booking :is(.meryo-booking-option,.meryo-booking-day,.meryo-booking-field,.meryo-booking-close,.meryo-booking-submit) {
+  border: 1px solid #D9E0EC !important;
+  border-radius: 12px !important;
+  background: #FFFFFF !important;
+  color: #111827 !important;
+  box-shadow: 0 1px 3px rgb(17 24 39 / 5%) !important;
+}
+[data-meryo-theme="barberia"][data-meryo-mode="light"] .meryo-soft-booking :is(.meryo-booking-option.is-selected,.meryo-booking-day.is-selected) {
+  border-color: #D9E0EC !important;
+  background: #F3F4F6 !important;
+  color: #111827 !important;
+}
+[data-meryo-theme="barberia"][data-meryo-mode="light"] .meryo-soft-booking :is(.meryo-booking-panel,.meryo-booking-option:hover:not(:disabled)) {
+  background: #F3F4F6 !important;
+  color: #111827 !important;
+}
+[data-meryo-theme="barberia"][data-meryo-mode="light"] .meryo-booking-dialog {
+  --booking-selected-bg: #F3F4F6;
+  --booking-selected-fg: #111827;
+}
+[data-meryo-theme="barberia"][data-meryo-mode="light"] .meryo-booking-dialog :is(.meryo-booking-option.is-selected,.meryo-booking-day.is-selected) {
+  border: 1px solid #D9E0EC !important;
+  background: #F3F4F6 !important;
+  color: #111827 !important;
+}
+[data-meryo-theme="barberia"][data-meryo-mode="light"] .meryo-booking-dialog :is(.meryo-booking-step-number,.meryo-booking-steps li.is-current,.meryo-booking-steps li.is-complete) {
+  background: #F3F4F6 !important;
+  color: #374151 !important;
+}
+[data-meryo-theme="barberia"][data-meryo-mode="light"] :where(button,a,input,select,textarea,[tabindex]):focus-visible {
+  outline-color: #9CA3AF !important;
+}
