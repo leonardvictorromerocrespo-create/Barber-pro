@@ -108,3 +108,11 @@
   .meryo-header-row > button { font-size: .6875rem; padding-inline: .25rem; }
   .meryo-header-row > .meryo-header-brand { padding: 0; }
 }
+
+/* Explorer only: Cuenta keeps the mobile sign-in entry point. */
+@media (max-width: 767px) {
+  .meryo-catalog-page:is([data-meryo-theme="barberia"],[data-meryo-theme="beauty"]) > .meryo-site-header--catalog {
+    & .meryo-header-account { display: none; }
+    & .meryo-header-row { gap: .5rem; }
+  }
+}
