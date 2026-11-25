@@ -20,7 +20,7 @@ import {rememberAccess,consumeAccess,accessView,oauthFailure} from './lib/access
 import {bookingDestination,bookingIdFromSearch,pickupOrderIdFromSearch} from './lib/booking-link';
 import {clearPickupCart,readPickupCart} from './lib/pickup-cart';
 import {createCatalogLoader} from './lib/catalog-loader';
-import {createProfileRefreshCoordinator} from './lib/profile-refresh';
+import {createProfileRefreshCoordinator,mergeFreshProfile} from './lib/profile-refresh';
 import {isPublicShopIndexable,isPublicShopPath,publicShopCanonical,publicShopIdFromPath,publicShopUrl} from './lib/public-shop-url.js';
 const api = createMeryoApi(supabase);
 import { selectShops, coordinates } from "./lib/catalog";
@@ -210,13 +210,14 @@ function MeryoScreens({identity,view,setView}) {
   const [showMeryoIntelligence,setShowMeryoIntelligence]=useState(false);
   const [profileAssetsLoading,setProfileAssetsLoading]=useState(false);
   const [profileAssetsError,setProfileAssetsError]=useState('');
+  const [profileAssetsRetry,setProfileAssetsRetry]=useState(0);
   const [profileUnavailable,setProfileUnavailable]=useState(false);
   const profileRouteId=publicShopIdFromPath(locationPath);
   useEffect(()=>{
     if(!profileRouteId){setProfileUnavailable(false);return;}
     if(!catalogMatchesCategory||catalogLoading)return;
     const shop=catalogRows.find(row=>String(row.id)===profileRouteId);
-    if(shop){setSelectedShop(shop);setShowProfileModal(true);setProfileUnavailable(false);}
+    if(shop){setSelectedShop(current=>current&&String(current.id)===String(shop.id)?mergeFreshProfile(current,shop):shop);setShowProfileModal(true);setProfileUnavailable(false);}
     else{setSelectedShop(null);setShowProfileModal(false);setProfileUnavailable(true);}
   },[profileRouteId,catalogMatchesCategory,catalogLoading,catalogRows]);
   useEffect(()=>{
@@ -228,12 +229,12 @@ function MeryoScreens({identity,view,setView}) {
       if(!active)return;
       const cover=assets.find(asset=>asset.kind==='portada'&&asset.url);
       const profile=assets.filter(asset=>asset.kind==='foto'&&asset.title===PROFILE_PHOTO_TITLE&&asset.url).at(-1);
-      setSelectedShop(current=>!current||String(current.id)!==shopId?current:{...current,assets,coverImage:cover?.url||current.coverImage,image:cover?.url||current.image,profileImage:profile?.url||null,contentError:''});
+      setSelectedShop(current=>!current||String(current.id)!==shopId?current:{...current,assets,coverImage:cover?.url||current.coverImage,image:cover?.url||current.image,profileImage:profile?.url||null,assetsLoaded:true,contentError:''});
     }).catch(error=>{
       if(active)setProfileAssetsError(error.message||'No se pudo cargar el contenido del perfil.');
     }).finally(()=>{if(active)setProfileAssetsLoading(false);});
     return()=>{active=false;};
-  },[api,showProfileModal,selectedShop?.id]);
+  },[api,showProfileModal,selectedShop?.id,catalogCategory,profileAssetsRetry]);
   useEffect(()=>{
     if(profileRouteId&&!showProfileModal&&!profileUnavailable)return;
     const shop=showProfileModal?selectedShop:null;
@@ -983,8 +984,9 @@ if (view === "admin" && adminAccess) return <Suspense fallback={lazyFallback}><A
         catalogCategory={catalogCategory}
         themeMode={themeMode}
         themeAppearance={themeAppearance}
-        contentLoading={profileAssetsLoading}
+        contentLoading={profileAssetsLoading||(!selectedShop?.assetsLoaded&&!profileAssetsError)}
         contentError={profileAssetsError}
+        onRetryContent={()=>setProfileAssetsRetry(current=>current+1)}
         onRefreshServices={()=>{if(selectedShop)void profileRefresh.current.refresh(selectedShop,catalogCategory);}}
         onClose={closeProfileModal}
         onStore={openStoreModal}

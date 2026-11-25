@@ -1,4 +1,4 @@
-function mergeFreshProfile(current, fresh) {
+export function mergeFreshProfile(current, fresh) {
   return {
     ...current,
     ...fresh,

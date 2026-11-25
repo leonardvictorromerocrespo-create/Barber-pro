@@ -186,7 +186,7 @@ export function createMeryoApi(client) {
     saveShop:async(data)=>{await requireRole(['barbero']);return savedOperation(()=>client.rpc('meryo_guardar_perfil',{p_data:data}));},
     bookingResults:async(shop,month)=>{await requireRole(['barbero']);return readResult(client.rpc('meryo_resultados_reservas',{p_shop:shop,p_month:month}));},
     shopHistory:async(id)=>readResult(client.rpc('meryo_historial_barberia',{p_id:id})),
-    shopAssets:async(id)=>{const rows=await readResult(client.from('meryo_shop_assets').select('*').eq('barberia_id',id).eq('active',true).order('created_at'));return signContent(client,rows);},
+    shopAssets:async(id)=>{const rows=await readResult(client.from('meryo_shop_assets').select('*').eq('barberia_id',id).eq('active',true).order('created_at'));const assets=await signContent(client,rows);if(assets.some(asset=>asset.error||!asset.url))throw new Error('No se pudieron cargar algunos archivos del perfil. Inténtalo de nuevo.');return assets;},
     contentConfig:()=>readResult(client.rpc('meryo_contenido_config')),
     uploadAsset:async(shop,file,kind,title)=>{const p=await requireRole(['barbero']);if(String(p.barberia_id)!==String(shop))throw new Error('Solo puedes subir contenido para tu propio negocio');return uploadContent(client,shop,file,kind,title);},
     shopProducts:async(shop)=>{
