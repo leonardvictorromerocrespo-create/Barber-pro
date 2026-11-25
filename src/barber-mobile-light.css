@@ -1,0 +1,103 @@
+/* Alternative presentation only; retain the original labels outside this scope. */
+.meryo-profile-choice-icon,
+.meryo-profile-member-role { display: none; }
+
+@media (max-width: 767px) {
+  .meryo-catalog-page[data-meryo-theme="barberia"][data-meryo-mode="light"] {
+    & .meryo-mobile-bottom-nav button.is-active,
+    & .meryo-header-row > .meryo-theme-toggle {
+      background: #f5ede2;
+      color: var(--color-amber-600, #795630);
+    }
+  }
+
+  .meryo-profile-modal[data-meryo-theme="barberia"][data-meryo-mode="light"] {
+    background-color: #fff;
+
+    & .meryo-profile-tabs button[aria-selected="true"] {
+      color: var(--color-amber-600, #795630);
+      box-shadow: inset 0 -2px var(--meryo-gold, #9b7548);
+    }
+
+    & .meryo-profile-avatar,
+    & .meryo-profile-member-photo {
+      background: #f5ede2;
+      color: var(--color-amber-600, #795630);
+    }
+
+    & .meryo-profile-service-list {
+      grid-template-columns: minmax(0, 1fr) fit-content(7rem) 44px;
+      gap: 0 .625rem;
+    }
+
+    & .meryo-profile-service-row {
+      grid-column: 1 / -1;
+      grid-template-columns: subgrid;
+      gap: .625rem;
+      padding: .55rem .25rem;
+      border: 0;
+      border-radius: 0;
+      background: #fff;
+      box-shadow: none;
+    }
+
+    & .meryo-profile-service-row + .meryo-profile-service-row {
+      border-top: 1px solid #e0e0e0;
+    }
+
+    & .meryo-profile-service-price {
+      text-align: right;
+      overflow-wrap: anywhere;
+      color: var(--color-amber-600, #795630);
+    }
+
+    & .meryo-profile-row-action {
+      grid-column: 3;
+      justify-self: end;
+      display: grid;
+      width: 44px;
+      min-width: 44px;
+      height: 44px;
+      place-items: center;
+      padding: 0;
+      border: 0;
+      background: transparent !important;
+      color: var(--color-amber-600, #795630);
+      box-shadow: none !important;
+    }
+
+    & .meryo-profile-choice-label { display: none; }
+    & .meryo-profile-choice-icon {
+      display: grid;
+      color: var(--color-amber-600, #795630);
+      width: 26px;
+      height: 26px;
+      place-items: center;
+      border: 1px solid var(--meryo-gold, #9b7548);
+      border-radius: 50%;
+    }
+    & .meryo-profile-choice-icon svg { width: 18px; height: 18px; }
+
+    & .meryo-profile-team-list {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: .5rem .65rem;
+    }
+    & .meryo-profile-team-card {
+      align-items: center;
+      gap: .5rem;
+      padding: .4rem 0;
+      border: 0;
+      border-radius: 0;
+      background: #fff;
+      box-shadow: none;
+    }
+    & .meryo-profile-member-services { display: none; }
+    & .meryo-profile-member-role { display: block; }
+  }
+}
+
+@media (max-width: 349px) {
+  .meryo-profile-modal[data-meryo-theme="barberia"][data-meryo-mode="light"] .meryo-profile-team-list {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
