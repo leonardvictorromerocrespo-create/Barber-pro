@@ -16,7 +16,7 @@
 
     & .meryo-profile-tabs button[aria-selected="true"] {
       color: var(--color-amber-600, #795630);
-      box-shadow: inset 0 -2px var(--meryo-gold, #9b7548);
+      box-shadow: inset 0 -2px #a77d49;
     }
 
     & .meryo-profile-avatar,
@@ -26,7 +26,8 @@
     }
 
     & .meryo-profile-service-list {
-      grid-template-columns: minmax(0, 1fr) fit-content(7rem) 44px;
+      /* Final 6px track plus the 10px gap shifts price and (+) left by 16px. */
+      grid-template-columns: minmax(0, 1fr) fit-content(7rem) 44px 6px;
       gap: 0 .625rem;
     }
 
@@ -66,6 +67,7 @@
       box-shadow: none !important;
     }
 
+    & .meryo-profile-row-action:focus-visible { outline-color: #a77d49; }
     & .meryo-profile-choice-label { display: none; }
     & .meryo-profile-choice-icon {
       display: grid;
@@ -73,7 +75,9 @@
       width: 26px;
       height: 26px;
       place-items: center;
-      border: 1px solid var(--meryo-gold, #9b7548);
+      border: 1px solid #d9c5a8;
+      background: #fff;
+      box-shadow: 0 2px 5px rgb(76 58 38 / 12%);
       border-radius: 50%;
     }
     & .meryo-profile-choice-icon svg { width: 18px; height: 18px; }
@@ -91,7 +95,8 @@
       background: #fff;
       box-shadow: none;
     }
-    & .meryo-profile-member-services { display: none; }
+    & .meryo-profile-member-services,
+    & .meryo-profile-owner-label { display: none; }
     & .meryo-profile-member-role { display: block; }
   }
 }

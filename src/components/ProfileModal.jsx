@@ -11,10 +11,12 @@ function BackArrowIcon(){
   return <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="m15 18-6-6 6-6"/><path d="M9 12h11"/></svg>;
 }
 
-export default function ProfileModal({selectedShop,onClose,onReserve,onStore,onInspiration,onRefreshServices,catalogCategory='barberia',themeMode='dark',themeAppearance,initialTab='servicios',contentLoading=false,contentError=''}) {
+export default function ProfileModal({selectedShop,onClose,onReserve,onStore,onInspiration,onRefreshServices,catalogCategory='barberia',themeMode='dark',themeAppearance,initialTab='servicios',contentLoading=false,contentError='',onRetryContent}) {
   const [shareFeedback,setShareFeedback]=useState('');
   const [activeTab,setActiveTab]=useState(initialTab);
   const [aboutExpanded,setAboutExpanded]=useState(false);
+  const [resourceError,setResourceError]=useState('');
+  useEffect(()=>{setResourceError('');},[selectedShop?.id,selectedShop?.assets]);
   const closeRef=useRef(null);
   const scrollContainerRef=useRef(null);
   const tabsRef=useRef(null);
@@ -77,6 +79,7 @@ export default function ProfileModal({selectedShop,onClose,onReserve,onStore,onI
     window.requestAnimationFrame(scrollTabsToTop);
   };
 
+  const mediaError=(contentError||resourceError)&&<div role="alert" className="meryo-profile-empty"><p>{contentError||resourceError}</p>{onRetryContent&&<button type="button" className="min-h-11 px-3 py-2 underline" onClick={onRetryContent}>Reintentar contenido</button>}</div>;
   let tabContent;
   if(activeTab==='servicios')tabContent=<section role="tabpanel" id="meryo-profile-panel" aria-labelledby="meryo-profile-tab-servicios" className="meryo-profile-tab-panel">
     {services.length?<div className="meryo-profile-service-list">{services.map(service=><article key={service.id} className="meryo-profile-service-row">
@@ -96,13 +99,13 @@ export default function ProfileModal({selectedShop,onClose,onReserve,onStore,onI
   </section>;
   else if(activeTab==='trabajos')tabContent=<section role="tabpanel" id="meryo-profile-panel" aria-labelledby="meryo-profile-tab-trabajos" className="meryo-profile-tab-panel">
     {onInspiration&&<div className="meryo-profile-work-heading"><button type="button" onClick={onInspiration} className="meryo-profile-secondary-action min-h-11 rounded-lg px-3 py-2 text-sm font-semibold">Ver Inspiración</button></div>}
-    {contentLoading?<p role="status" className="meryo-profile-empty">Cargando fotos del portafolio…</p>:contentError?<p role="alert" className="meryo-profile-empty">{contentError}</p>:workPhotos.length?<div className="meryo-profile-work-grid">{workPhotos.map(asset=><figure key={asset.id} className="min-w-0"><img src={asset.url} alt={asset.title||`Trabajo publicado por el ${profileLabel}`} loading="lazy"/>{asset.title&&<figcaption>{asset.title}</figcaption>}</figure>)}</div>:<p className="meryo-profile-empty">El negocio aún no publicó trabajos.</p>}
+    {contentLoading?<p role="status" className="meryo-profile-empty">Cargando fotos del portafolio…</p>:mediaError?mediaError:workPhotos.length?<div className="meryo-profile-work-grid">{workPhotos.map(asset=><figure key={asset.id} className="min-w-0"><img src={asset.url} alt={asset.title||`Trabajo publicado por el ${profileLabel}`} loading="lazy" onError={()=>setResourceError('No se pudo cargar una fotografía del trabajo.')}/>{asset.title&&<figcaption>{asset.title}</figcaption>}</figure>)}</div>:<p className="meryo-profile-empty">El negocio aún no publicó trabajos.</p>}
   </section>;
   else tabContent=<section role="tabpanel" id="meryo-profile-panel" aria-labelledby="meryo-profile-tab-informacion" className="meryo-profile-tab-panel">
     {selectedShop.about&&<div className="meryo-profile-info-block"><h4>Acerca del negocio</h4><p>{selectedShop.about}</p></div>}
     <PublicShopLocation key={selectedShop.id} shop={selectedShop} mapHeight="h-32 sm:h-48" className="meryo-profile-location"/>
     {!selectedShop.direccion&&!selectedShop.lat&&!selectedShop.lng&&!selectedShop.district&&<p className="meryo-profile-empty">El negocio aún no publicó su ubicación.</p>}
-    {contentLoading?<p role="status" className="meryo-profile-empty">Cargando contenido del perfil…</p>:contentError?<p role="alert" className="meryo-profile-empty">{contentError}</p>:videos.length>0?<div className="meryo-profile-info-block"><h4>Video de presentación</h4>{videos.map(asset=><video key={asset.id} src={asset.url} controls preload="none" aria-label="Video de presentación" className="mt-3 max-h-[28rem] w-full rounded-lg"/>)}</div>:selectedShop.contentError&&<p role="alert" className="meryo-profile-empty">{selectedShop.contentError}</p>}
+    {contentLoading?<p role="status" className="meryo-profile-empty">Cargando contenido del perfil…</p>:mediaError?mediaError:videos.length>0?<div className="meryo-profile-info-block"><h4>Video de presentación</h4>{videos.map(asset=><video key={asset.id} src={asset.url} controls preload="metadata" onError={()=>setResourceError('No se pudo cargar el video de presentación.')} aria-label="Video de presentación" className="mt-3 max-h-[28rem] w-full rounded-lg"/>)}</div>:<p className="meryo-profile-empty">El negocio aún no publicó un video de presentación.</p>}
     {(selectedShop.reviews>0||reviews.length>0)&&<div className="meryo-profile-info-block"><h4>Reseñas</h4>{selectedShop.reviews>0&&Number.isFinite(Number(selectedShop.rating))&&<p className="mt-2">★ {Number(selectedShop.rating).toFixed(1)} basado en {selectedShop.reviews} reseñas</p>}{reviews.map(review=><article key={review.id} className="meryo-profile-review"><p>{review.autor} · {review.calificacion}/5</p><p>{review.comentario}</p></article>)}</div>}
   </section>;
 
