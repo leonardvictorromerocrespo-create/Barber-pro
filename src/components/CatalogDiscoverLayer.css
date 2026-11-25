@@ -285,6 +285,13 @@
 
 /* Keep the original search/slider widths and all pointer interactions. */
 @media (max-width: 767px) {
+  /* The title and controls scroll with the catalogue instead of covering filters. */
+  .meryo-catalog-page:is([data-meryo-theme="barberia"],[data-meryo-theme="beauty"]) #catalogo > .meryo-barber-sticky {
+    position: static;
+    top: auto;
+    z-index: auto;
+  }
+
   .meryo-catalog-page:is([data-meryo-theme="barberia"],[data-meryo-theme="beauty"]) #catalogo .meryo-discover {
     margin-top: .65rem;
 
