@@ -2018,14 +2018,14 @@ body {
 }
 
 /* Reservar cita recupera el tono cálido de la paleta original del proyecto. */
-[data-meryo-theme="barberia"][data-meryo-mode="light"] .meryo-shop-card--barberia .meryo-shop-card__booking-action,
-[data-meryo-theme="barberia"][data-meryo-mode="light"] .meryo-profile-book-button {
-  background: #B89525 !important;
-  color: #17140C !important;
+[data-meryo-theme="barberia"] .meryo-shop-card--barberia .meryo-shop-card__booking-action,
+[data-meryo-theme="barberia"] .meryo-profile-book-button {
+  background: #A77D49 !important;
+  color: #FFFFFF !important;
 }
-[data-meryo-theme="barberia"][data-meryo-mode="light"] .meryo-shop-card--barberia .meryo-shop-card__booking-action:hover,
-[data-meryo-theme="barberia"][data-meryo-mode="light"] .meryo-profile-book-button:hover {
-  background: #A9821F !important;
+[data-meryo-theme="barberia"] .meryo-shop-card--barberia .meryo-shop-card__booking-action:hover,
+[data-meryo-theme="barberia"] .meryo-profile-book-button:hover {
+  background: #8F693D !important;
 }
 
 
@@ -2036,10 +2036,10 @@ body {
   --meryo-gold-border: rgb(167 125 73 / 34%);
 }
 
-/* El deslizador usa café al completarse; no queda el verde de la paleta anterior. */
-[data-meryo-theme="barberia"] .meryo-discover__track[aria-valuenow="100"] {
-  border-color: #8A6337 !important;
-  background: #A77D49 !important;
+/* El deslizador conserva el verde al comenzar a moverse, tanto en Sol como en Luna. */
+[data-meryo-theme="barberia"] .meryo-discover__track[aria-valuenow]:not([aria-valuenow="0"]) {
+  border-color: #259c32 !important;
+  background: #35c943 !important;
 }
 
 /* Reserva: pasos, selección de servicio/profesional, fecha y hora en café con texto blanco iluminado. */
