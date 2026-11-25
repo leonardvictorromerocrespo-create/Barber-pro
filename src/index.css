@@ -2027,3 +2027,63 @@ body {
 [data-meryo-theme="barberia"][data-meryo-mode="light"] .meryo-profile-book-button:hover {
   background: #A9821F !important;
 }
+
+
+/* MERYO Barbería: acento café unificado en modo claro y Luna. */
+[data-meryo-theme="barberia"] {
+  --meryo-gold: #A77D49;
+  --meryo-gold-light: #A77D49;
+  --meryo-gold-border: rgb(167 125 73 / 34%);
+}
+
+/* El deslizador usa café al completarse; no queda el verde de la paleta anterior. */
+[data-meryo-theme="barberia"] .meryo-discover__track[aria-valuenow="100"] {
+  border-color: #8A6337 !important;
+  background: #A77D49 !important;
+}
+
+/* Reserva: pasos, selección de servicio/profesional, fecha y hora en café con texto blanco iluminado. */
+.meryo-booking-dialog[data-meryo-theme="barberia"] {
+  --meryo-gold: #A77D49;
+  --meryo-gold-light: #A77D49;
+  --booking-selected-bg: #A77D49;
+  --booking-selected-fg: #FFFFFF;
+}
+
+.meryo-booking-dialog[data-meryo-theme="barberia"] .meryo-booking-step-number,
+.meryo-booking-dialog[data-meryo-theme="barberia"] .meryo-booking-steps li.is-current .meryo-booking-step-number,
+.meryo-booking-dialog[data-meryo-theme="barberia"] .meryo-booking-steps li.is-complete .meryo-booking-step-number {
+  background: #A77D49 !important;
+  color: #FFFFFF !important;
+  text-shadow: 0 0 7px rgb(255 255 255 / 48%);
+  box-shadow: 0 2px 8px rgb(167 125 73 / 30%);
+}
+
+.meryo-booking-dialog[data-meryo-theme="barberia"] .meryo-booking-option.is-selected,
+.meryo-booking-dialog[data-meryo-theme="barberia"] .meryo-booking-day.is-selected,
+.meryo-booking-dialog[data-meryo-theme="barberia"] .meryo-time-slot.is-selected {
+  background: #A77D49 !important;
+  color: #FFFFFF !important;
+  border-color: #A77D49 !important;
+  text-shadow: 0 0 7px rgb(255 255 255 / 42%);
+  box-shadow: 0 3px 10px rgb(167 125 73 / 28%);
+}
+
+.meryo-booking-dialog[data-meryo-theme="barberia"] .meryo-booking-option.is-selected :where(strong,small,span,.meryo-booking-price),
+.meryo-booking-dialog[data-meryo-theme="barberia"] .meryo-booking-day.is-selected :where(strong,small,span),
+.meryo-booking-dialog[data-meryo-theme="barberia"] .meryo-time-slot.is-selected :where(span) {
+  color: #FFFFFF !important;
+  text-shadow: 0 0 7px rgb(255 255 255 / 42%);
+}
+
+.meryo-booking-dialog[data-meryo-theme="barberia"] .meryo-booking-primary,
+.meryo-booking-dialog[data-meryo-theme="barberia"] .meryo-booking-submit {
+  background: #A77D49 !important;
+  color: #FFFFFF !important;
+  border-color: #A77D49 !important;
+}
+
+.meryo-booking-dialog[data-meryo-theme="barberia"] .meryo-booking-success {
+  background: rgb(167 125 73 / 14%) !important;
+  color: #A77D49 !important;
+}
