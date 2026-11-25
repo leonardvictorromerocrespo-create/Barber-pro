@@ -2050,13 +2050,26 @@ body {
   --booking-selected-fg: #FFFFFF;
 }
 
-.meryo-booking-dialog[data-meryo-theme="barberia"] .meryo-booking-step-number,
-.meryo-booking-dialog[data-meryo-theme="barberia"] .meryo-booking-steps li.is-current .meryo-booking-step-number,
-.meryo-booking-dialog[data-meryo-theme="barberia"] .meryo-booking-steps li.is-complete .meryo-booking-step-number {
+/* Booking progress: only the active step is solid; completed steps stay marked
+   without competing with the current action; upcoming steps remain neutral. */
+.meryo-booking-dialog[data-meryo-theme="barberia"] .meryo-booking-steps li.is-current {
+  color: var(--meryo-text) !important;
+  font-weight: 650;
+}
+.meryo-booking-dialog[data-meryo-theme="barberia"] .meryo-booking-steps li.is-current .meryo-booking-step-number {
   background: #A77D49 !important;
   color: #FFFFFF !important;
-  text-shadow: 0 0 7px rgb(255 255 255 / 48%);
-  box-shadow: 0 2px 8px rgb(167 125 73 / 30%);
+  border: 1px solid #A77D49 !important;
+  box-shadow: 0 2px 8px rgb(167 125 73 / 24%);
+}
+.meryo-booking-dialog[data-meryo-theme="barberia"] .meryo-booking-steps li.is-complete {
+  color: #A77D49 !important;
+}
+.meryo-booking-dialog[data-meryo-theme="barberia"] .meryo-booking-steps li.is-complete .meryo-booking-step-number {
+  background: rgb(167 125 73 / 14%) !important;
+  color: #A77D49 !important;
+  border: 1px solid rgb(167 125 73 / 42%) !important;
+  box-shadow: none !important;
 }
 
 .meryo-booking-dialog[data-meryo-theme="barberia"] .meryo-booking-option.is-selected,
