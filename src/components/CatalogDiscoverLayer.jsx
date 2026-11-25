@@ -128,7 +128,7 @@ export default function CatalogDiscoverLayer({category,themeMode,themeAppearance
       <p className="meryo-discover__label">Nuestras Funciones</p>
       <div className="meryo-discover__switch-row">
         {control}
-        <div ref={handleRef} className="meryo-discover__track" role="slider" aria-label="Desliza para abrir o cerrar las funciones" aria-controls="meryo-discover-panel" aria-orientation="horizontal" aria-valuemin="0" aria-valuemax="100" aria-valuenow={Math.round(progress*100)} aria-valuetext={open?'Funciones abiertas':'Funciones cerradas'} tabIndex="0"
+        <div ref={handleRef} className={`meryo-discover__track${progress>0?' is-active':''}`} role="slider" aria-label="Desliza para abrir o cerrar las funciones" aria-controls="meryo-discover-panel" aria-orientation="horizontal" aria-valuemin="0" aria-valuemax="100" aria-valuenow={Math.round(progress*100)} aria-valuetext={open?'Funciones abiertas':'Funciones cerradas'} tabIndex="0"
           onPointerDown={onPointerDown} onPointerMove={onPointerMove} onPointerUp={onPointerUp} onPointerCancel={onPointerUp} onLostPointerCapture={onPointerUp} onKeyDown={onKeyDown}
           onClick={()=>{if(Date.now()<suppressClickUntil.current)return;setPeeking(false);onOpenChange(!open);}}>
           <span className="meryo-discover__knob" style={{transform:`translateX(${progress*4.31}rem)`}}><span>{open?'Volver':'Deslizar'}</span></span>
