@@ -1,12 +1,12 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { fechaLima, listaDias, sumarDias } from '../lib/dates';
+import ProfessionalAvatar from './ProfessionalAvatar';
 
 const dateFormatter = new Intl.DateTimeFormat('es-PE', { day: 'numeric', month: 'long', timeZone: 'UTC' });
 const dayFormatter = new Intl.DateTimeFormat('es-PE', { weekday: 'short', timeZone: 'UTC' });
 const dateValue = value => value ? new Date(value + 'T12:00:00Z') : null;
 const formatDate = value => value ? dateFormatter.format(dateValue(value)) : 'Sin elegir';
 const formatDay = value => value ? dayFormatter.format(dateValue(value)).replace('.', '') : '';
-const initials = value => String(value || '?').trim().split(/\s+/).slice(0, 2).map(part => Array.from(part)[0] || '').join('').toLocaleUpperCase('es');
 
 const steps = [
   { id: 1, label: 'Servicio y equipo' },
@@ -218,7 +218,7 @@ export function BookingModal({
                 const isSelected = String(selectedBarber) === String(member.id);
                 return <button key={member.id} type="button" aria-pressed={isSelected} onClick={() => chooseMember(member)}
                   className={'meryo-booking-option meryo-booking-member-option' + (isSelected ? ' is-selected' : '')}>
-                  <span className="meryo-booking-member-avatar">{member.foto_url ? <img src={member.foto_url} alt="" onError={event => { event.currentTarget.hidden = true; }}/> : initials(member.nombre)}</span>
+                  <ProfessionalAvatar shop={selectedShop} member={member} className="meryo-booking-member-avatar"/>
                   <span className="min-w-0"><strong>{member.nombre}</strong><small>Disponible para este servicio</small></span>
                   {isSelected && <span aria-hidden="true" className="meryo-booking-check">✓</span>}
                 </button>;

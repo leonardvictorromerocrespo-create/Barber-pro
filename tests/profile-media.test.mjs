@@ -9,9 +9,9 @@ import {createMeryoApi} from '../src/lib/meryo-api.js';
 const source=await fs.readFile('src/App.jsx','utf8');
 const route=source.slice(source.indexOf('    if(shop){setSelectedShop'),source.indexOf('    else{setSelectedShop(null)',source.indexOf('    if(shop){setSelectedShop')));
 const routeUpdate=new Function('shop','setSelectedShop','setShowProfileModal','setProfileUnavailable','mergeFreshProfile',route);
-const start=source.indexOf('    if(!showProfileModal||!selectedShop){setProfileAssetsLoading');
-const body=source.slice(start,source.indexOf('  },[api,showProfileModal,selectedShop?.id',start));
-const load=new Function('api','showProfileModal','selectedShop','setProfileAssetsLoading','setProfileAssetsError','setSelectedShop','PROFILE_PHOTO_TITLE',body);
+const start=source.indexOf('    if(!profileMediaOpen||!selectedShop){setProfileAssetsLoading');
+const body=source.slice(start,source.indexOf('  },[api,profileMediaOpen,selectedShop?.id',start));
+const load=new Function('api','showProfileModal','selectedShop','setProfileAssetsLoading','setProfileAssetsError','setSelectedShop','PROFILE_PHOTO_TITLE','profileMediaOpen=true',body);
 const media=[{id:'work',kind:'foto',url:'/work.jpg'},{id:'video',kind:'video',url:'/video.mp4'}];
 const flush=()=>new Promise(resolve=>setImmediate(resolve));
 function harness(){let shop={id:41,assets:[]},loading=false,error='',calls=0;const pending=[];return {

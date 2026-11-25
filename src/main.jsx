@@ -5,6 +5,7 @@ import "./beauty-theme.css";
 import "./theme-modes.css";
 import App from "./App.jsx";
 import "./barber-mobile-light.css";
+import "./professionals-mobile-light.css";
 
 document.getElementById('public-shop-prerender')?.remove();
 
