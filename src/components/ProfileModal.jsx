@@ -1,6 +1,7 @@
 import {useEffect,useRef,useState} from 'react';
 import PublicShopLocation from './PublicShopLocation';
-import {isTeamPhotoAsset,isTeamPhotoTitle,PROFILE_PHOTO_TITLE} from '../lib/shop-content';
+import ProfessionalAvatar from './ProfessionalAvatar';
+import {isTeamPhotoTitle,PROFILE_PHOTO_TITLE} from '../lib/shop-content';
 import {publicShopUrl} from '../lib/public-shop-url';
 
 function StoreActionLabel() {
@@ -90,11 +91,9 @@ export default function ProfileModal({selectedShop,onClose,onReserve,onStore,onI
   </section>;
   else if(activeTab==='equipo')tabContent=<section role="tabpanel" id="meryo-profile-panel" aria-labelledby="meryo-profile-tab-equipo" className="meryo-profile-tab-panel">
     {team.length?<div className="meryo-profile-team-list">{team.map(member=>{
-      const memberInitials=String(member.nombre||'?').trim().split(/\s+/).slice(0,2).map(part=>Array.from(part)[0]||'').join('').toLocaleUpperCase('es');
-      const memberPhoto=selectedShop.assets?.filter(asset=>asset.kind==='foto'&&asset.url&&isTeamPhotoAsset(asset,selectedShop.id,member.id)).at(-1)?.url;
       const rating=Number(member.rating),reviewCount=Number(member.reviews);
       const hasRating=Number.isFinite(rating)&&rating>=1&&rating<=5&&Number.isInteger(reviewCount)&&reviewCount>0;
-      return <article key={member.id||member.nombre} className="meryo-profile-team-card"><div className="meryo-profile-member-photo">{memberPhoto?<img src={memberPhoto} alt={`Foto de ${member.nombre}`} loading="lazy"/>:memberInitials}</div><div className="meryo-profile-team-identity">{member.propietario&&<span className="meryo-profile-owner-label">Propietario</span>}<h4>{member.nombre}</h4>{catalogCategory==='barberia'&&themeMode==='light'&&<p className="meryo-profile-member-role">{member.especialidad||member.rol||(member.propietario?'Propietario':'Barbero profesional')}</p>}{hasRating&&<p className="meryo-profile-member-rating" aria-label={`Calificación ${rating.toFixed(1)} de 5, ${reviewCount} reseñas`}>★ {rating.toFixed(1)}</p>}</div></article>;
+      return <article key={member.id||member.nombre} className="meryo-profile-team-card"><ProfessionalAvatar shop={selectedShop} member={member} className="meryo-profile-member-photo"/><div className="meryo-profile-team-identity">{member.propietario&&<span className="meryo-profile-owner-label">Propietario</span>}<h4>{member.nombre}</h4>{themeMode==='light'&&<p className="meryo-profile-member-role">{member.especialidad||member.rol||(member.propietario?'Propietario':catalogCategory==='belleza'?'Profesional de belleza':'Barbero profesional')}</p>}{hasRating&&<p className="meryo-profile-member-rating" aria-label={`Calificación ${rating.toFixed(1)} de 5, ${reviewCount} reseñas`}>★ {rating.toFixed(1)}</p>}</div></article>;
     })}</div>:<p className="meryo-profile-empty">El negocio aún no publicó integrantes del equipo.</p>}
   </section>;
   else if(activeTab==='trabajos')tabContent=<section role="tabpanel" id="meryo-profile-panel" aria-labelledby="meryo-profile-tab-trabajos" className="meryo-profile-tab-panel">

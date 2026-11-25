@@ -213,6 +213,7 @@ function MeryoScreens({identity,view,setView}) {
   const [profileAssetsRetry,setProfileAssetsRetry]=useState(0);
   const [profileUnavailable,setProfileUnavailable]=useState(false);
   const profileRouteId=publicShopIdFromPath(locationPath);
+  const profileMediaOpen=showProfileModal||showBookingModal;
   useEffect(()=>{
     if(!profileRouteId){setProfileUnavailable(false);return;}
     if(!catalogMatchesCategory||catalogLoading)return;
@@ -221,7 +222,7 @@ function MeryoScreens({identity,view,setView}) {
     else{setSelectedShop(null);setShowProfileModal(false);setProfileUnavailable(true);}
   },[profileRouteId,catalogMatchesCategory,catalogLoading,catalogRows]);
   useEffect(()=>{
-    if(!showProfileModal||!selectedShop){setProfileAssetsLoading(false);setProfileAssetsError('');return;}
+    if(!profileMediaOpen||!selectedShop){setProfileAssetsLoading(false);setProfileAssetsError('');return;}
     let active=true;
     const shopId=String(selectedShop.id);
     setProfileAssetsLoading(true);setProfileAssetsError('');
@@ -234,7 +235,7 @@ function MeryoScreens({identity,view,setView}) {
       if(active)setProfileAssetsError(error.message||'No se pudo cargar el contenido del perfil.');
     }).finally(()=>{if(active)setProfileAssetsLoading(false);});
     return()=>{active=false;};
-  },[api,showProfileModal,selectedShop?.id,catalogCategory,profileAssetsRetry]);
+  },[api,profileMediaOpen,selectedShop?.id,catalogCategory,profileAssetsRetry]);
   useEffect(()=>{
     if(profileRouteId&&!showProfileModal&&!profileUnavailable)return;
     const shop=showProfileModal?selectedShop:null;

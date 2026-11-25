@@ -1,0 +1,55 @@
+/* Shared geometry only: each catalogue keeps its own palette and selection state. */
+@media (max-width: 767px) {
+  :is(.meryo-profile-modal,.meryo-booking-dialog)[data-meryo-mode="light"]:is([data-meryo-theme="barberia"],[data-meryo-theme="beauty"]) {
+    & :is(.meryo-profile-team-list,.meryo-booking-member-list) {
+      display: grid;
+      grid-template-columns: repeat(2,minmax(0,1fr));
+      gap: .5rem;
+    }
+    & :is(.meryo-profile-team-card,.meryo-booking-member-option) {
+      position: relative;
+      display: flex;
+      align-items: center;
+      gap: .5rem;
+      min-width: 0;
+      padding: .5rem .25rem;
+    }
+    & :is(.meryo-profile-member-photo,.meryo-booking-member-avatar) {
+      width: 64px;
+      height: 64px;
+      flex: 0 0 64px;
+      border-radius: 50%;
+      overflow: hidden;
+    }
+    & :is(.meryo-profile-member-photo,.meryo-booking-member-avatar) img {
+      display: block;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+    & :is(.meryo-profile-team-identity,.meryo-booking-member-option > .min-w-0) {
+      min-width: 0;
+      flex: 1;
+    }
+    & :is(.meryo-profile-team-card h4,.meryo-booking-member-option strong) {
+      font-size: 13px;
+      line-height: 1.3;
+      overflow-wrap: anywhere;
+    }
+    & :is(.meryo-profile-member-role,.meryo-booking-member-option small) {
+      display: block;
+      font-size: 11px;
+      line-height: 1.35;
+      overflow-wrap: anywhere;
+    }
+    & .meryo-profile-owner-label { display: none; }
+    & .meryo-booking-member-option { min-height: 80px; padding-right: .5rem; }
+    & .meryo-booking-check { position: absolute; top: 0; right: .2rem; margin: 0; line-height: 1; }
+  }
+}
+
+@media (max-width: 359px) {
+  :is(.meryo-profile-modal,.meryo-booking-dialog)[data-meryo-mode="light"]:is([data-meryo-theme="barberia"],[data-meryo-theme="beauty"]) :is(.meryo-profile-team-list,.meryo-booking-member-list) {
+    grid-template-columns: minmax(0,1fr);
+  }
+}
