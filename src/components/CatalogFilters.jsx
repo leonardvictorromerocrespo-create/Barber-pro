@@ -71,7 +71,7 @@ export default function CatalogFilters({
       className={`${fieldClass} meryo-catalog-search w-full`}/></>}
     <div className="meryo-catalog-filter-row mt-2">
       <DistrictPicker district={district} onDistrict={onDistrict} districtPrompt={districtPrompt}/>
-      {onUseLocation&&<button type="button" aria-label={locationStatus==='loading'?'Obteniendo ubicación':'Usar mi ubicación'} aria-pressed={hasLocation} aria-busy={locationStatus==='loading'} disabled={locationStatus==='loading'} onClick={onUseLocation} className="meryo-catalog-control-button min-h-10 min-w-0 flex-1 rounded-lg px-2 py-2 text-center text-[.8rem] font-semibold disabled:cursor-wait disabled:opacity-70">{locationStatus==='loading'?'Buscando…':hasLocation?'Ubicación encontrada':'Usar mi ubicación'}</button>}
+      {onUseLocation&&<button type="button" aria-label={locationStatus==='loading'?'Obteniendo ubicación':'Usar mi ubicación'} aria-pressed={hasLocation} aria-busy={locationStatus==='loading'} disabled={locationStatus==='loading'} onClick={onUseLocation} className="meryo-catalog-control-button min-h-10 min-w-0 flex-1 rounded-lg px-2 py-2 text-center text-[.8rem] font-semibold disabled:cursor-wait disabled:opacity-70"><svg className="meryo-catalog-location-icon hidden" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" aria-hidden="true"><path d="M20 10c0 6-8 12-8 12S4 16 4 10a8 8 0 1 1 16 0Z"/><circle cx="12" cy="10" r="3"/></svg>{locationStatus==='loading'?'Buscando…':hasLocation?'Ubicación encontrada':'Usar mi ubicación'}</button>}
     </div>
   </section>;
 }
