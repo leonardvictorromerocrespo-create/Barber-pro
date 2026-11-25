@@ -285,11 +285,12 @@
 
 /* Keep the original search/slider widths and all pointer interactions. */
 @media (max-width: 767px) {
-  /* The title and controls scroll with the catalogue instead of covering filters. */
+  /* Keep controls fixed on an opaque surface while the catalogue scrolls below. */
   .meryo-catalog-page:is([data-meryo-theme="barberia"],[data-meryo-theme="beauty"]) #catalogo > .meryo-barber-sticky {
-    position: static;
-    top: auto;
-    z-index: auto;
+    position: sticky;
+    top: var(--meryo-catalog-header-height, 57px);
+    z-index: 10;
+    background: var(--meryo-carbon) !important;
   }
 
   .meryo-catalog-page:is([data-meryo-theme="barberia"],[data-meryo-theme="beauty"]) #catalogo .meryo-discover {
