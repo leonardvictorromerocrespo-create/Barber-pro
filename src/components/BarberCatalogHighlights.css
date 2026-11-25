@@ -36,3 +36,9 @@
 .meryo-shop-card__content--likes { position:relative; }
 .meryo-shop-card__content--likes .meryo-shop-card__category { max-width:calc(100% - 3.5rem); }
 .meryo-shop-card__content--likes .meryo-shop-card__name { padding-right:3.5rem; }
+
+
+/* Barbería: el encabezado y el buscador heredan el fondo de la página, sin bloque propio. */
+[data-meryo-theme="barberia"] .meryo-barber-sticky {
+  background: transparent !important;
+}
