@@ -42,3 +42,39 @@
 [data-meryo-theme="barberia"] .meryo-barber-sticky {
   background: transparent !important;
 }
+
+/* Mobile light Barberías only: keep geometry and shared theme tokens intact. */
+@media (max-width: 767px) {
+  .meryo-catalog-page[data-meryo-theme="barberia"][data-meryo-mode="light"] {
+    background-color: #fff;
+  }
+
+  .meryo-catalog-page[data-meryo-theme="barberia"][data-meryo-mode="light"] #catalogo {
+    background-color: #fff;
+
+    & .meryo-barber-sticky { background-color: #fff; }
+
+    & .meryo-shop-card {
+      background-color: #fff;
+      outline: 1px solid #dededc;
+      outline-offset: -1px;
+      box-shadow: none;
+    }
+
+    & .meryo-shop-card__image { border-right: 1px solid #e5e5e3; }
+
+    & .meryo-shop-card__actions button,
+    & .meryo-catalog-filter-row > label > select,
+    & .meryo-catalog-control-button,
+    & .meryo-catalog-filter-summary {
+      box-shadow: 0 1px 3px rgb(0 0 0 / 5%);
+    }
+
+    & .meryo-shop-card__district,
+    & .meryo-shop-card__rating,
+    & .meryo-shop-card__service-summary,
+    & .meryo-catalog-count,
+    & .meryo-discovery-heading p,
+    & .meryo-rail-hint { color: #5d574f; }
+  }
+}
