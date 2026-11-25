@@ -2087,3 +2087,32 @@ body {
   background: rgb(167 125 73 / 14%) !important;
   color: #A77D49 !important;
 }
+
+/* Ajuste final solicitado: el verde se reserva exclusivamente para el deslizador.
+   Todos los importes visibles de Barbería usan el mismo café de la selección de reserva. */
+[data-meryo-theme="barberia"] .meryo-shop-card__price,
+[data-meryo-theme="barberia"] .meryo-profile-service-price,
+[data-meryo-theme="barberia"] .meryo-booking-dialog .meryo-booking-price,
+[data-meryo-theme="barberia"] .meryo-turn-finder .turn-card__service p.font-semibold {
+  color: #A77D49 !important;
+}
+
+/* Un solo tono para las acciones Reservar cita, tanto en tarjetas como en el perfil. */
+[data-meryo-theme="barberia"] .meryo-shop-card__booking-action,
+[data-meryo-theme="barberia"] .meryo-profile-book-button {
+  background: #A77D49 !important;
+  color: #FFFFFF !important;
+  border-color: #A77D49 !important;
+}
+[data-meryo-theme="barberia"] .meryo-shop-card__booking-action:hover:not(:disabled),
+[data-meryo-theme="barberia"] .meryo-profile-book-button:hover:not(:disabled) {
+  background: #8F693D !important;
+  border-color: #8F693D !important;
+}
+
+/* El deslizador permanece verde mientras esté abierto o tenga progreso;
+   vuelve a su tono base únicamente al quedar completamente cerrado. */
+[data-meryo-theme="barberia"] .meryo-discover__track[aria-valuenow]:not([aria-valuenow="0"]) {
+  border-color: #259c32 !important;
+  background: #35c943 !important;
+}
